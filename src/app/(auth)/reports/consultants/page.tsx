@@ -558,37 +558,37 @@ export default function ConsultantReportPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Danışman</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Toplam</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-green-400 uppercase tracking-wide">Satış</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-red-400 uppercase tracking-wide">Kayıp</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-blue-400 uppercase tracking-wide">Takip</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-indigo-400 uppercase tracking-wide">Kapama %</th>
+              <tr className="border-b-2 border-gray-100">
+                <th className="text-left px-5 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Danışman</th>
+                <th className="text-center px-4 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Toplam</th>
+                <th className="text-center px-4 py-4 text-xs font-semibold text-green-400 uppercase tracking-wide">Satış</th>
+                <th className="text-center px-4 py-4 text-xs font-semibold text-red-400 uppercase tracking-wide">Kayıp</th>
+                <th className="text-center px-4 py-4 text-xs font-semibold text-blue-400 uppercase tracking-wide">Takip</th>
+                <th className="text-center px-4 py-4 text-xs font-semibold text-indigo-400 uppercase tracking-wide">Kapama %</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-50">
               {stats.map((s, i) => (
-                <tr key={s.id} className={`border-b border-gray-50 ${i % 2 === 1 ? 'bg-gray-50/60' : ''}`}>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold shrink-0">
+                <tr key={s.id} className={`transition-colors hover:bg-blue-50/30 ${i % 2 === 1 ? 'bg-gray-50/40' : ''}`}>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold shrink-0">
                         {s.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                       </div>
                       <span className="font-medium text-gray-900">{s.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center font-medium text-gray-700">{s.total}</td>
-                  <td className="px-4 py-3 text-center">
-                    <span className="inline-flex items-center justify-center h-6 min-w-[28px] px-2 rounded-full bg-green-100 text-green-700 text-xs font-bold">{s.won}</span>
+                  <td className="px-4 py-4 text-center font-medium text-gray-700">{s.total}</td>
+                  <td className="px-4 py-4 text-center">
+                    <span className="inline-flex items-center justify-center h-7 min-w-[32px] px-2.5 rounded-full bg-green-100 text-green-700 text-xs font-bold">{s.won}</span>
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <span className="inline-flex items-center justify-center h-6 min-w-[28px] px-2 rounded-full bg-red-100 text-red-700 text-xs font-bold">{s.lost}</span>
+                  <td className="px-4 py-4 text-center">
+                    <span className="inline-flex items-center justify-center h-7 min-w-[32px] px-2.5 rounded-full bg-red-100 text-red-700 text-xs font-bold">{s.lost}</span>
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <span className="inline-flex items-center justify-center h-6 min-w-[28px] px-2 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">{s.active}</span>
+                  <td className="px-4 py-4 text-center">
+                    <span className="inline-flex items-center justify-center h-7 min-w-[32px] px-2.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">{s.active}</span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden min-w-[60px]">
                         <div
