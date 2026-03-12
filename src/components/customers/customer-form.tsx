@@ -5,11 +5,22 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import {
-  User, Phone, Mail, MapPin, Car, MessageSquare, ChevronLeft,
+  User, MapPin, Car, MessageSquare, ChevronLeft,
   Store, PhoneCall, Globe, Share2, UserCheck, CalendarCheck,
-  HelpCircle, Target, AtSign, MessageCircle, type LucideIcon,
+  HelpCircle, Target, AtSign, MessageCircle, Building2, Phone,
+  type LucideIcon,
 } from 'lucide-react'
 import Link from 'next/link'
+
+// ─── GSM Formatter ────────────────────────────────────────────────────────────
+
+function formatGSM(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  if (digits.length <= 4) return digits
+  if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`
+  if (digits.length <= 9) return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`
+  return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 9)} ${digits.slice(9)}`
+}
 
 // ─── Kanal ikon haritası ───────────────────────────────────────────────────────
 
@@ -49,14 +60,13 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
     phone: '',
     phone_alt: '',
     email: '',
-    tc_no: '',
-    birth_date: '',
     address: '',
     city: '',
     district: '',
     brand_id: '',
     source_channel_id: '',
     interested_model: '',
+    initial_contact_type: '',
     notes: '',
     consultant_id: '',
   })
@@ -90,16 +100,17 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
       const { data, error } = await supabase
         .from('customers')
         .insert({
-          ...form,
+          full_name: form.full_name,
+          phone: form.phone,
           phone_alt: form.phone_alt || null,
           email: form.email || null,
-          tc_no: form.tc_no || null,
-          birth_date: form.birth_date || null,
           address: form.address || null,
           city: form.city || null,
           district: form.district || null,
+          brand_id: form.brand_id,
           source_channel_id: form.source_channel_id || null,
           interested_model: form.interested_model || null,
+          initial_contact_type: form.initial_contact_type || null,
           notes: form.notes || null,
           consultant_id: form.consultant_id || currentUserId,
           location_id: currentLocationId,
@@ -158,30 +169,29 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
               <label className="text-xs font-medium text-gray-700 block mb-1">
                 Telefon <span className="text-red-500">*</span>
               </label>
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={(e) => update('phone', e.target.value)}
-                placeholder="0532 xxx xx xx"
-                className={`w-full h-9 rounded-lg border px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone ? 'border-red-400' : 'border-gray-300'}`}
-              />
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => update('phone', formatGSM(e.target.value))}
+                  placeholder="0532 456 78 90"
+                  maxLength={14}
+                  className={`w-full h-9 rounded-lg border pl-9 pr-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone ? 'border-red-400' : 'border-gray-300'}`}
+                />
+              </div>
               {errors.phone && <p className="text-xs text-red-500 mt-0.5">{errors.phone}</p>}
             </div>
             <div>
               <label className="text-xs font-medium text-gray-700 block mb-1">Alternatif Telefon</label>
-              <input type="tel" value={form.phone_alt} onChange={(e) => update('phone_alt', e.target.value)} placeholder="0532 xxx xx xx" className="w-full h-9 rounded-lg border border-gray-300 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                <input type="tel" value={form.phone_alt} onChange={(e) => update('phone_alt', formatGSM(e.target.value))} placeholder="0532 456 78 90" maxLength={14} className="w-full h-9 rounded-lg border border-gray-300 pl-9 pr-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
             </div>
             <div>
               <label className="text-xs font-medium text-gray-700 block mb-1">E-posta</label>
               <input type="email" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="ornek@email.com" className="w-full h-9 rounded-lg border border-gray-300 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-700 block mb-1">TC Kimlik No</label>
-              <input type="text" value={form.tc_no} onChange={(e) => update('tc_no', e.target.value)} maxLength={11} placeholder="11 haneli TC" className="w-full h-9 rounded-lg border border-gray-300 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-700 block mb-1">Doğum Tarihi</label>
-              <input type="date" value={form.birth_date} onChange={(e) => update('birth_date', e.target.value)} className="w-full h-9 rounded-lg border border-gray-300 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
         </div>
@@ -208,7 +218,7 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
             </div>
             <div>
               <label className="text-xs font-medium text-gray-700 block mb-1">İlçe</label>
-              <input type="text" value={form.district} onChange={(e) => update('district', e.target.value)} placeholder="Bergama" className="w-full h-9 rounded-lg border border-gray-300 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="text" value={form.district} onChange={(e) => update('district', e.target.value)} placeholder="Karşıyaka" className="w-full h-9 rounded-lg border border-gray-300 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
         </div>
@@ -302,6 +312,38 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
                 <option value="">Bana ata (varsayılan)</option>
                 {consultants.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
               </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs font-medium text-gray-700 block mb-1.5">
+                Temas Türü
+              </label>
+              <div className="flex gap-2">
+                {[
+                  { value: 'visit',         label: 'Ziyaret',      icon: Building2,  color: '#6366F1', bg: '#EEF2FF' },
+                  { value: 'inbound_call',  label: 'Gelen Çağrı',  icon: PhoneCall,  color: '#10B981', bg: '#ECFDF5' },
+                ].map(({ value, label, icon: Icon, color, bg }) => {
+                  const isSelected = form.initial_contact_type === value
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => update('initial_contact_type', isSelected ? '' : value)}
+                      className={`flex items-center gap-2 h-9 px-4 rounded-lg border text-xs font-semibold transition-all ${
+                        isSelected ? 'text-white shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                      style={isSelected ? { backgroundColor: color, borderColor: color } : {}}
+                    >
+                      <div
+                        className="h-5 w-5 rounded-md flex items-center justify-center shrink-0"
+                        style={isSelected ? { background: 'rgba(255,255,255,0.25)' } : { background: bg }}
+                      >
+                        <Icon className="h-3 w-3" style={{ color: isSelected ? '#fff' : color }} />
+                      </div>
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
           <div className="mt-4">
