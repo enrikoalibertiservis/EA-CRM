@@ -295,17 +295,18 @@ export function PipelineTimeline({
                       const isNegative = !!customerFields[opt.negativeField!]
                       return (
                         <div key={opt.field} className="space-y-1.5">
-                          {/* Ana kart — Yapıldı toggle */}
-                          <button
-                            onClick={() => handlePairedClick(opt, true)}
+                          {/* Ana kart — button içinde button olmaması için div kullanılıyor */}
+                          <div
                             className={cn(
-                              'flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all w-full',
+                              'flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all w-full cursor-pointer select-none',
                               isPositive
                                 ? 'bg-green-50 border-green-300 shadow-sm'
                                 : isNegative
                                   ? 'bg-red-50 border-red-200'
                                   : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50',
                             )}
+                            onClick={() => handlePairedClick(opt, true)}
+                            role="button"
                           >
                             <div className={cn(
                               'h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all',
@@ -324,8 +325,9 @@ export function PipelineTimeline({
                             )}>
                               {opt.label}
                             </span>
-                            {/* Yapılamadı mini toggle */}
+                            {/* Yapılamadı mini toggle — ayrı button olabilir çünkü artık parent div */}
                             <button
+                              type="button"
                               onClick={(e) => { e.stopPropagation(); handlePairedClick(opt, false) }}
                               className={cn(
                                 'shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border transition-all',
@@ -337,7 +339,7 @@ export function PipelineTimeline({
                               <X className="h-2.5 w-2.5" />
                               {opt.negativeLabel ?? 'Yapılamadı'}
                             </button>
-                          </button>
+                          </div>
                           {/* Reason input */}
                           {isNegative && opt.reasonField && (
                             <input
