@@ -38,9 +38,10 @@ export default async function CustomersPage() {
         actions={
           <Link
             href="/customers/new"
-            className="flex items-center gap-1.5 h-8 px-3 bg-[#1E3A5F] text-white text-xs font-medium rounded-lg hover:bg-[#162d4a] transition-colors"
+            className="flex items-center gap-2 h-9 px-4 rounded-xl text-white text-sm font-semibold shadow-sm hover:opacity-90 transition-opacity"
+            style={{ background: 'linear-gradient(135deg, #1A3A6B, #2D5A9E)' }}
           >
-            <UserPlus className="h-3.5 w-3.5" />
+            <UserPlus className="h-4 w-4" />
             Yeni Müşteri
           </Link>
         }

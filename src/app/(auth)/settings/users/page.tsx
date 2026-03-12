@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Topbar } from '@/components/layout/topbar'
-import { Users, Shield, MapPin, Building2, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Users, Shield, MapPin, Building2, ToggleLeft, ToggleRight, UserPlus, X, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
 import type { UserProfile, Location } from '@/lib/types/database'
