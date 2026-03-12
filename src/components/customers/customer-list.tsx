@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import {
-  Search, Filter, ChevronRight, Phone, Car, FileText, Clock,
+  Search, Filter, ChevronRight, Car, FileText, Clock,
   CheckCircle, Shield, Lock, X, Trash2, CalendarDays, AlertTriangle,
+  ChevronUp, ChevronDown, ChevronsUpDown, Building2,
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import type { Customer } from '@/lib/types/database'
@@ -17,31 +18,36 @@ const stageIcons: Record<string, React.ElementType> = {
   'kabul': CheckCircle, 'sigorta': Shield, 'oto-koruma': Lock,
 }
 
+const PAGE_SIZE = 20
+
 interface CustomerListProps {
   customers: Customer[]
   brands: { id: string; name: string; color: string; slug: string }[]
   stages: { id: string; name: string; color: string; slug: string; sort_order: number }[]
   consultants: { id: string; full_name: string }[]
+  locations: { id: string; name: string }[]
   userRole: string
 }
 
-type SortField = 'created_at' | 'full_name' | 'brand'
+type SortField = 'created_at' | 'full_name' | 'brand' | 'consultant' | 'status'
 type SortDir = 'asc' | 'desc'
-type DateMode = '' | 'today' | 'week' | 'month' | 'custom'
+type DateMode = '' | 'today' | 'week' | 'month' | 'last_month' | 'custom'
 
 const DATE_TABS: { key: DateMode; label: string }[] = [
   { key: '', label: 'Tümü' },
   { key: 'today', label: 'Bugün' },
   { key: 'week', label: 'Bu Hafta' },
   { key: 'month', label: 'Bu Ay' },
+  { key: 'last_month', label: 'Geçen Ay' },
   { key: 'custom', label: 'Özel Tarih' },
 ]
 
 const CAN_DELETE = ['super_admin', 'manager']
 
-export function CustomerList({ customers, brands, stages, consultants, userRole }: CustomerListProps) {
+export function CustomerList({ customers, brands, stages, consultants, locations, userRole }: CustomerListProps) {
   const router = useRouter()
   const [search, setSearch] = useState('')
+  const [filterLocation, setFilterLocation] = useState('')
   const [filterBrand, setFilterBrand] = useState('')
   const [filterStage, setFilterStage] = useState('')
   const [filterConsultant, setFilterConsultant] = useState('')
@@ -55,13 +61,17 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isDeleting, setIsDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [page, setPage] = useState(1)
 
   const canDelete = CAN_DELETE.includes(userRole)
+
+  const resetPage = () => setPage(1)
 
   const filtered = useMemo(() => {
     let list = [...customers]
     const now = new Date()
 
+    if (filterLocation) list = list.filter(c => c.location_id === filterLocation)
     if (search.trim()) {
       const s = search.toLowerCase()
       list = list.filter(c =>
@@ -85,23 +95,56 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
     } else if (filterDate === 'month') {
       const monthAgo = new Date(now); monthAgo.setMonth(monthAgo.getMonth() - 1)
       list = list.filter(c => new Date(c.created_at) >= monthAgo)
+    } else if (filterDate === 'last_month') {
+      const firstOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const lastOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
+      list = list.filter(c => {
+        const d = new Date(c.created_at)
+        return d >= firstOfLastMonth && d <= lastOfLastMonth
+      })
     } else if (filterDate === 'custom') {
       if (dateFrom) list = list.filter(c => c.created_at >= dateFrom)
       if (dateTo) list = list.filter(c => c.created_at <= dateTo + 'T23:59:59')
     }
 
     list.sort((a, b) => {
-      let aVal: string = '', bVal: string = ''
+      let aVal = '', bVal = ''
       if (sortField === 'created_at') { aVal = a.created_at; bVal = b.created_at }
-      if (sortField === 'full_name') { aVal = a.full_name; bVal = b.full_name }
-      if (sortField === 'brand') { aVal = a.brand?.name ?? ''; bVal = b.brand?.name ?? '' }
+      else if (sortField === 'full_name') { aVal = a.full_name; bVal = b.full_name }
+      else if (sortField === 'brand') { aVal = a.brand?.name ?? ''; bVal = b.brand?.name ?? '' }
+      else if (sortField === 'consultant') { aVal = a.consultant?.full_name ?? ''; bVal = b.consultant?.full_name ?? '' }
+      else if (sortField === 'status') {
+        aVal = a.is_won ? 'won' : a.is_lost ? 'lost' : 'active'
+        bVal = b.is_won ? 'won' : b.is_lost ? 'lost' : 'active'
+      }
       if (sortDir === 'asc') return aVal < bVal ? -1 : aVal > bVal ? 1 : 0
       return aVal > bVal ? -1 : aVal < bVal ? 1 : 0
     })
     return list
-  }, [customers, search, filterBrand, filterStage, filterConsultant, filterStatus, filterDate, dateFrom, dateTo, sortField, sortDir])
+  }, [customers, filterLocation, search, filterBrand, filterStage, filterConsultant, filterStatus, filterDate, dateFrom, dateTo, sortField, sortDir])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
   const activeFilters = [filterBrand, filterStage, filterConsultant, filterStatus].filter(Boolean).length
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDir('desc')
+    }
+    resetPage()
+  }
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ChevronsUpDown className="h-3 w-3 text-gray-300 group-hover:text-gray-400" />
+    return sortDir === 'asc'
+      ? <ChevronUp className="h-3 w-3 text-blue-500" />
+      : <ChevronDown className="h-3 w-3 text-blue-500" />
+  }
 
   const allFilteredSelected = filtered.length > 0 && filtered.every(c => selectedIds.has(c.id))
 
@@ -146,20 +189,55 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
 
   return (
     <div>
+      {/* Location filter tabs */}
+      {locations.length > 1 && (
+        <div className="flex items-center gap-2 mb-4 p-1 bg-gray-100 rounded-xl w-fit">
+          <button
+            onClick={() => { setFilterLocation(''); resetPage() }}
+            className={`flex items-center gap-1.5 h-8 px-4 rounded-lg text-sm font-medium transition-all ${
+              filterLocation === '' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Tümü
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterLocation === '' ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-500'}`}>
+              {customers.length}
+            </span>
+          </button>
+          {locations.map(loc => {
+            const count = customers.filter(c => c.location_id === loc.id).length
+            return (
+              <button
+                key={loc.id}
+                onClick={() => { setFilterLocation(loc.id); resetPage() }}
+                className={`flex items-center gap-1.5 h-8 px-4 rounded-lg text-sm font-medium transition-all ${
+                  filterLocation === loc.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Building2 className="h-3.5 w-3.5 shrink-0" />
+                {loc.name}
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterLocation === loc.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-500'}`}>
+                  {count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       {/* Search + Filters */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input type="text" placeholder="İsim, telefon, e-posta veya araç ara..."
-            value={search} onChange={(e) => setSearch(e.target.value)}
+            value={search} onChange={(e) => { setSearch(e.target.value); resetPage() }}
             className="w-full h-10 pl-9 pr-4 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+            <button onClick={() => { setSearch(''); resetPage() }} className="absolute right-3 top-1/2 -translate-y-1/2">
               <X className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600" />
             </button>
           )}
         </div>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+        <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); resetPage() }}
           className="h-10 w-36 rounded-lg border border-gray-200 bg-white text-sm px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
           <option value="">Tüm Durumlar</option>
           <option value="active">Aktif Takip</option>
@@ -178,7 +256,7 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
       {/* Date tabs */}
       <div className="flex items-center gap-1 mb-3 flex-wrap">
         {DATE_TABS.map((tab) => (
-          <button key={tab.key} onClick={() => setFilterDate(tab.key)}
+          <button key={tab.key} onClick={() => { setFilterDate(tab.key); resetPage() }}
             className={`h-7 px-3 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
               filterDate === tab.key ? 'bg-blue-600 text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}>
@@ -220,7 +298,7 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
         <div className="rounded-xl border border-gray-200 bg-white p-4 mb-3 grid grid-cols-2 lg:grid-cols-4 gap-3 shadow-sm">
           <div>
             <label className="text-xs font-medium text-gray-500 block mb-1">Marka</label>
-            <select value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)}
+            <select value={filterBrand} onChange={(e) => { setFilterBrand(e.target.value); resetPage() }}
               className="w-full h-9 rounded-md border border-gray-200 bg-white text-xs px-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">Tümü</option>
               {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -228,7 +306,7 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
           </div>
           <div>
             <label className="text-xs font-medium text-gray-500 block mb-1">Aşama</label>
-            <select value={filterStage} onChange={(e) => setFilterStage(e.target.value)}
+            <select value={filterStage} onChange={(e) => { setFilterStage(e.target.value); resetPage() }}
               className="w-full h-9 rounded-md border border-gray-200 bg-white text-xs px-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">Tümü</option>
               {stages.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -236,7 +314,7 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
           </div>
           <div>
             <label className="text-xs font-medium text-gray-500 block mb-1">Danışman</label>
-            <select value={filterConsultant} onChange={(e) => setFilterConsultant(e.target.value)}
+            <select value={filterConsultant} onChange={(e) => { setFilterConsultant(e.target.value); resetPage() }}
               className="w-full h-9 rounded-md border border-gray-200 bg-white text-xs px-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">Tümü</option>
               {consultants.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
@@ -244,7 +322,7 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
           </div>
           <div className="flex items-end">
             {activeFilters > 0 && (
-              <button onClick={() => { setFilterBrand(''); setFilterStage(''); setFilterConsultant(''); setFilterStatus('') }}
+              <button onClick={() => { setFilterBrand(''); setFilterStage(''); setFilterConsultant(''); setFilterStatus(''); resetPage() }}
                 className="h-9 w-full rounded-md border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-colors">
                 Temizle
               </button>
@@ -258,6 +336,11 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-white">
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold text-gray-900">{filtered.length} müşteri</span>
+            {filtered.length > PAGE_SIZE && (
+              <span className="text-xs text-gray-400">
+                {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} gösteriliyor
+              </span>
+            )}
             {selectedIds.size > 0 && (
               <span className="text-xs font-medium text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
                 {selectedIds.size} seçili
@@ -293,14 +376,6 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
                 </button>
               </div>
             )}
-            <select value={`${sortField}-${sortDir}`}
-              onChange={(e) => { const [f, d] = e.target.value.split('-') as [SortField, SortDir]; setSortField(f); setSortDir(d) }}
-              className="h-7 rounded border border-gray-200 bg-white text-xs px-2 focus:outline-none">
-              <option value="created_at-desc">En Yeni</option>
-              <option value="created_at-asc">En Eski</option>
-              <option value="full_name-asc">İsim A-Z</option>
-              <option value="brand-asc">Marka A-Z</option>
-            </select>
           </div>
         </div>
 
@@ -313,7 +388,7 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50">
+              <tr className="bg-slate-50 border-b border-gray-100">
                 {/* Checkbox column */}
                 {canDelete && (
                   <th className="pl-4 pr-2 py-2.5 w-8">
@@ -323,18 +398,44 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
                 )}
                 {/* Row number */}
                 <th className="px-2 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide w-10 text-center">#</th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Müşteri</th>
-                <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">Marka</th>
+                {/* Sortable: Müşteri */}
+                <th className="text-left px-4 py-2.5">
+                  <button onClick={() => handleSort('full_name')} className="group flex items-center gap-1 text-xs font-semibold text-gray-400 uppercase tracking-wide hover:text-gray-600 transition-colors">
+                    Müşteri <SortIcon field="full_name" />
+                  </button>
+                </th>
+                {/* Sortable: Marka */}
+                <th className="text-left px-3 py-2.5 hidden md:table-cell">
+                  <button onClick={() => handleSort('brand')} className="group flex items-center gap-1 text-xs font-semibold text-gray-400 uppercase tracking-wide hover:text-gray-600 transition-colors">
+                    Marka <SortIcon field="brand" />
+                  </button>
+                </th>
                 <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden lg:table-cell">Telefon</th>
-                <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Durum</th>
-                <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden lg:table-cell">Danışman</th>
+                {/* Sortable: Durum */}
+                <th className="text-left px-3 py-2.5">
+                  <button onClick={() => handleSort('status')} className="group flex items-center gap-1 text-xs font-semibold text-gray-400 uppercase tracking-wide hover:text-gray-600 transition-colors">
+                    Durum <SortIcon field="status" />
+                  </button>
+                </th>
+                {/* Sortable: Danışman */}
+                <th className="text-left px-3 py-2.5 hidden lg:table-cell">
+                  <button onClick={() => handleSort('consultant')} className="group flex items-center gap-1 text-xs font-semibold text-gray-400 uppercase tracking-wide hover:text-gray-600 transition-colors">
+                    Danışman <SortIcon field="consultant" />
+                  </button>
+                </th>
                 <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden xl:table-cell">Ek Hizmet</th>
-                <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">Tarih</th>
+                {/* Sortable: Tarih */}
+                <th className="text-left px-3 py-2.5 hidden md:table-cell">
+                  <button onClick={() => handleSort('created_at')} className="group flex items-center gap-1 text-xs font-semibold text-gray-400 uppercase tracking-wide hover:text-gray-600 transition-colors">
+                    Tarih <SortIcon field="created_at" />
+                  </button>
+                </th>
                 <th className="w-8" />
               </tr>
             </thead>
             <tbody>
-              {filtered.map((customer, idx) => {
+              {paged.map((customer, idx) => {
+                const globalIdx = (safePage - 1) * PAGE_SIZE + idx + 1
                 const HIDDEN_STAGE_SLUGS = ['sigorta', 'oto-koruma']
                 const displayStage = customer.current_stage && HIDDEN_STAGE_SLUGS.includes(customer.current_stage.slug ?? '')
                   ? stages.find(s => s.slug === 'kabul') ?? customer.current_stage
@@ -356,7 +457,7 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
                     )}
                     {/* Row number */}
                     <td className="px-2 py-2.5 text-center">
-                      <span className="text-xs font-mono text-gray-400">{idx + 1}</span>
+                      <span className="text-xs font-mono text-gray-400">{globalIdx}</span>
                     </td>
                     <td className="px-4 py-2.5">
                       <Link href={`/customers/${customer.id}`} className="flex items-center gap-2.5" onClick={e => e.stopPropagation()}>
@@ -431,6 +532,58 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
               })}
             </tbody>
           </table>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+            <p className="text-xs text-gray-500">
+              Toplam <span className="font-semibold text-gray-700">{filtered.length}</span> müşteri —
+              Sayfa <span className="font-semibold text-gray-700">{safePage}</span> / {totalPages}
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage(1)}
+                disabled={safePage === 1}
+                className="h-7 w-7 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+                title="İlk sayfa"
+              >«</button>
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={safePage === 1}
+                className="h-7 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >Önceki</button>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let p: number
+                if (totalPages <= 5) p = i + 1
+                else if (safePage <= 3) p = i + 1
+                else if (safePage >= totalPages - 2) p = totalPages - 4 + i
+                else p = safePage - 2 + i
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`h-7 w-7 rounded-lg text-xs font-semibold transition-all ${
+                      p === safePage
+                        ? 'bg-blue-600 text-white shadow-sm border border-blue-600'
+                        : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >{p}</button>
+                )
+              })}
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={safePage === totalPages}
+                className="h-7 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >Sonraki</button>
+              <button
+                onClick={() => setPage(totalPages)}
+                disabled={safePage === totalPages}
+                className="h-7 w-7 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+                title="Son sayfa"
+              >»</button>
+            </div>
+          </div>
         )}
       </div>
     </div>

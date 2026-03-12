@@ -2,16 +2,54 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { redirect } from 'next/navigation'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  Cell, LabelList, Legend,
+  Cell, LabelList,
 } from 'recharts'
 import {
   TrendingUp, Users, CheckCircle, XCircle, Activity,
-  Filter, ChevronDown, ChevronUp,
+  Filter, ChevronDown, ChevronUp, CalendarDays,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+type DateMode = '' | 'today' | 'week' | 'month' | 'last_month' | 'custom'
+
+const DATE_TABS: { key: DateMode; label: string }[] = [
+  { key: '', label: 'Tümü' },
+  { key: 'today', label: 'Bugün' },
+  { key: 'week', label: 'Bu Hafta' },
+  { key: 'month', label: 'Bu Ay' },
+  { key: 'last_month', label: 'Geçen Ay' },
+  { key: 'custom', label: 'Özel Tarih' },
+]
+
+function getDateRange(mode: DateMode, customFrom: string, customTo: string): { from: string; to: string } {
+  const now = new Date()
+  if (mode === 'today') {
+    const d = now.toISOString().split('T')[0]
+    return { from: d, to: d }
+  }
+  if (mode === 'week') {
+    const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7)
+    return { from: weekAgo.toISOString().split('T')[0], to: '' }
+  }
+  if (mode === 'month') {
+    const monthAgo = new Date(now); monthAgo.setMonth(monthAgo.getMonth() - 1)
+    return { from: monthAgo.toISOString().split('T')[0], to: '' }
+  }
+  if (mode === 'last_month') {
+    const first = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const last = new Date(now.getFullYear(), now.getMonth(), 0)
+    return {
+      from: first.toISOString().split('T')[0],
+      to: last.toISOString().split('T')[0],
+    }
+  }
+  if (mode === 'custom') {
+    return { from: customFrom, to: customTo }
+  }
+  return { from: '', to: '' }
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -102,8 +140,11 @@ export default function ConsultantReportPage() {
   const [allReasons, setAllReasons] = useState<string[]>([])
   const [selectedReasons, setSelectedReasons] = useState<string[]>([])
   const [reasonFilterOpen, setReasonFilterOpen] = useState(false)
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  const [dateMode, setDateMode] = useState<DateMode>('')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
+
+  const { from: dateFrom, to: dateTo } = getDateRange(dateMode, customFrom, customTo)
 
   useEffect(() => {
     const load = async () => {
@@ -126,7 +167,7 @@ export default function ConsultantReportPage() {
         .in('role', ['consultant', 'manager'])
         .eq('is_active', true)
 
-      // Fetch customers with filters
+      // Fetch customers with date range
       let query = supabase
         .from('customers')
         .select('id, consultant_id, is_won, is_lost, lost_reason, created_at')
@@ -175,6 +216,7 @@ export default function ConsultantReportPage() {
       setLoading(false)
     }
     load()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateFrom, dateTo])
 
   const reasonChartData = useMemo(() => {
@@ -215,35 +257,60 @@ export default function ConsultantReportPage() {
     <div className="space-y-7">
 
       {/* ── Date filters ── */}
-      <div className="flex justify-end -mt-4 mb-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5">
-            <label className="text-xs text-gray-500 shrink-0">Başlangıç</label>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={e => setDateFrom(e.target.value)}
-              className="h-8 px-2 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-            />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <label className="text-xs text-gray-500 shrink-0">Bitiş</label>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={e => setDateTo(e.target.value)}
-              className="h-8 px-2 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-            />
-          </div>
-          {(dateFrom || dateTo) && (
+      <div className="-mt-4 mb-2">
+        <div className="flex items-center gap-1 flex-wrap">
+          {DATE_TABS.map((tab) => (
             <button
-              onClick={() => { setDateFrom(''); setDateTo('') }}
-              className="h-8 px-3 text-xs rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors"
+              key={tab.key}
+              onClick={() => setDateMode(tab.key)}
+              className={`h-7 px-3 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                dateMode === tab.key
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
             >
-              Temizle
+              {tab.key === 'custom' && <CalendarDays className="h-3 w-3" />}
+              {tab.label}
             </button>
-          )}
+          ))}
         </div>
+
+        {/* Custom date range picker */}
+        {dateMode === 'custom' && (
+          <div className="flex items-center gap-3 mt-2 p-3 rounded-xl bg-blue-50 border border-blue-100">
+            <CalendarDays className="h-4 w-4 text-blue-500 shrink-0" />
+            <div className="flex items-center gap-2 flex-wrap">
+              <div>
+                <label className="text-xs font-medium text-blue-700 block mb-0.5">Başlangıç</label>
+                <input
+                  type="date"
+                  value={customFrom}
+                  onChange={e => setCustomFrom(e.target.value)}
+                  className="h-8 rounded-lg border border-blue-200 bg-white text-xs px-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700"
+                />
+              </div>
+              <span className="text-blue-400 font-bold mt-4">—</span>
+              <div>
+                <label className="text-xs font-medium text-blue-700 block mb-0.5">Bitiş</label>
+                <input
+                  type="date"
+                  value={customTo}
+                  min={customFrom}
+                  onChange={e => setCustomTo(e.target.value)}
+                  className="h-8 rounded-lg border border-blue-200 bg-white text-xs px-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700"
+                />
+              </div>
+              {(customFrom || customTo) && (
+                <button
+                  onClick={() => { setCustomFrom(''); setCustomTo('') }}
+                  className="mt-4 text-xs text-blue-500 hover:text-blue-700 underline"
+                >
+                  Temizle
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Summary Cards ── */}
@@ -295,10 +362,10 @@ export default function ConsultantReportPage() {
               />
               <Tooltip content={<ClosingRateTooltip />} cursor={{ fill: '#f8fafc' }} />
               <Bar dataKey="closingRate" radius={[0, 6, 6, 0]} maxBarSize={28}>
-                {stats.map((s, i) => (
+                {stats.map((s) => (
                   <Cell
                     key={s.id}
-                    fill={s.closingRate >= 60 ? '#10B981' : s.closingRate >= 35 ? '#6366F1' : '#F59E0B'}
+                    fill={s.closingRate >= 35 ? '#10B981' : s.closingRate >= 20 ? '#6366F1' : '#F59E0B'}
                   />
                 ))}
                 <LabelList
@@ -314,9 +381,73 @@ export default function ConsultantReportPage() {
 
         {/* Legend */}
         <div className="flex items-center gap-4 mt-3 justify-center text-xs text-gray-500">
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-green-500" />≥ %60 Yüksek</span>
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-indigo-500" />%35–59 Orta</span>
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-amber-400" />{'<'} %35 Düşük</span>
+          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-green-500" />≥ %35 Yüksek</span>
+          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-indigo-500" />%20–34 Orta</span>
+          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-amber-400" />{'<'} %20 Düşük</span>
+        </div>
+      </div>
+
+      {/* ── Sector Benchmark Reference ── */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center">
+            <TrendingUp className="h-4 w-4 text-amber-500" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-gray-900">Sektör Benchmark — Satış Kapatma Oranı</h2>
+            <p className="text-xs text-gray-400">Otomotiv bayii sektörü ortalamaları (referans)</p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Seviye</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Satış Kapatma Oranı</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Yorum</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {[
+                {
+                  level: 'Düşük',
+                  range: '%10 – %20',
+                  comment: 'Süreçte problem olabilir. Karşılama, ihtiyaç analizi veya takip zayıf olabilir.',
+                  color: 'bg-amber-50 text-amber-700 border-amber-200',
+                  dot: 'bg-amber-400',
+                },
+                {
+                  level: 'Orta (Sektör Ortalaması)',
+                  range: '%20 – %35',
+                  comment: 'Sağlıklı ve kabul edilebilir performans. Çoğu bayi bu aralıkta çalışır.',
+                  color: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                  dot: 'bg-indigo-500',
+                },
+                {
+                  level: 'Yüksek (Başarılı satış danışmanı)',
+                  range: '%35 – %50+',
+                  comment: 'Güçlü satış becerisi, iyi müşteri yönetimi ve doğru lead kalitesi.',
+                  color: 'bg-green-50 text-green-700 border-green-200',
+                  dot: 'bg-green-500',
+                },
+              ].map((row) => (
+                <tr key={row.level} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-2">
+                      <span className={`h-2 w-2 rounded-full ${row.dot}`} />
+                      <span className="font-semibold text-gray-800 text-sm">{row.level}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${row.color}`}>
+                      {row.range}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3.5 text-xs text-gray-600 max-w-xs">{row.comment}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -477,14 +608,14 @@ export default function ConsultantReportPage() {
                         <div
                           className="h-full rounded-full transition-all"
                           style={{
-                            width: `${s.closingRate}%`,
-                            backgroundColor: s.closingRate >= 60 ? '#10B981' : s.closingRate >= 35 ? '#6366F1' : '#F59E0B',
+                            width: `${Math.min(s.closingRate, 100)}%`,
+                            backgroundColor: s.closingRate >= 35 ? '#10B981' : s.closingRate >= 20 ? '#6366F1' : '#F59E0B',
                           }}
                         />
                       </div>
                       <span className={cn(
                         'text-xs font-bold w-10 text-right',
-                        s.closingRate >= 60 ? 'text-green-600' : s.closingRate >= 35 ? 'text-indigo-600' : 'text-amber-600',
+                        s.closingRate >= 35 ? 'text-green-600' : s.closingRate >= 20 ? 'text-indigo-600' : 'text-amber-600',
                       )}>
                         %{s.closingRate.toFixed(1)}
                       </span>

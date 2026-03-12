@@ -237,9 +237,9 @@ export default async function MainReportPage() {
                       <td className="py-3 px-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <div className="w-16 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                            <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${closeRate}%` }} />
+                            <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(closeRate, 100)}%`, backgroundColor: closeRate >= 35 ? '#10B981' : closeRate >= 20 ? '#6366F1' : '#F59E0B' }} />
                           </div>
-                          <span className={`text-xs font-bold ${closeRate >= 30 ? 'text-emerald-600' : closeRate >= 15 ? 'text-amber-600' : 'text-gray-500'}`}>
+                          <span className={`text-xs font-bold ${closeRate >= 35 ? 'text-emerald-600' : closeRate >= 20 ? 'text-indigo-600' : 'text-amber-600'}`}>
                             {c.custCount > 0 ? `%${closeRate.toFixed(0)}` : '—'}
                           </span>
                         </div>
@@ -252,7 +252,7 @@ export default async function MainReportPage() {
                       <td className="py-3 px-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <span className="text-xs text-gray-500">{c.otoKorumaCount}</span>
-                          <span className={`text-xs font-bold ${otoRate >= 30 ? 'text-orange-600' : 'text-gray-400'}`}>
+                          <span className={`text-xs font-bold ${otoRate >= 35 ? 'text-orange-600' : otoRate >= 20 ? 'text-orange-400' : 'text-gray-400'}`}>
                             {c.custCount > 0 ? `(%${otoRate.toFixed(0)})` : '—'}
                           </span>
                         </div>
@@ -260,7 +260,7 @@ export default async function MainReportPage() {
                       <td className="py-3 px-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <span className="text-xs text-gray-500">{c.kaskoCount}</span>
-                          <span className={`text-xs font-bold ${kaskoRate >= 30 ? 'text-sky-600' : 'text-gray-400'}`}>
+                          <span className={`text-xs font-bold ${kaskoRate >= 35 ? 'text-sky-600' : kaskoRate >= 20 ? 'text-sky-400' : 'text-gray-400'}`}>
                             {c.custCount > 0 ? `(%${kaskoRate.toFixed(0)})` : '—'}
                           </span>
                         </div>

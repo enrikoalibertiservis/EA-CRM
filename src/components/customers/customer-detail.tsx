@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { PipelineTimeline } from './pipeline-timeline'
 import { ContactLogForm } from './contact-log-form'
-import { Phone, Mail, MapPin, MessageSquare, Calendar, Clock, ChevronRight, CheckCircle, XCircle, X, AlertCircle } from 'lucide-react'
+import { Phone, Mail, MapPin, MessageSquare, Calendar, Clock, ChevronRight, CheckCircle, XCircle, X, AlertCircle, Pencil, Check } from 'lucide-react'
 import { formatDate, OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/utils'
-import type { Customer, SalesStage, CustomerStageHistory, ContactLog, ContactChannel } from '@/lib/types/database'
+import type { Customer, SalesStage, CustomerStageHistory, ContactLog, ContactChannel, Brand } from '@/lib/types/database'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -17,6 +17,9 @@ interface CustomerDetailProps {
   contactLogs: ContactLog[]
   channels: ContactChannel[]
   currentUserId: string
+  isAdmin?: boolean
+  brandOptions?: Pick<Brand, 'id' | 'name' | 'color'>[]
+  consultantOptions?: { id: string; full_name: string }[]
 }
 
 export function CustomerDetail({
@@ -26,11 +29,37 @@ export function CustomerDetail({
   contactLogs: initialLogs,
   channels,
   currentUserId,
+  isAdmin = false,
+  brandOptions = [],
+  consultantOptions = [],
 }: CustomerDetailProps) {
   const [currentStageId, setCurrentStageId] = useState(customer.current_stage_id)
   const [history, setHistory] = useState(initialHistory)
   const [logs, setLogs] = useState(initialLogs)
   const [activeTab, setActiveTab] = useState<'timeline' | 'contacts'>('timeline')
+
+  // Editable customer meta fields
+  const [editingField, setEditingField] = useState<string | null>(null)
+  const [consultantId, setConsultantId] = useState(customer.consultant_id)
+  const [brandId, setBrandId] = useState(customer.brand_id)
+  const [sourceChannelId, setSourceChannelId] = useState(customer.source_channel_id)
+  const [interestedModel, setInterestedModel] = useState(customer.interested_model ?? '')
+  const [savingField, setSavingField] = useState<string | null>(null)
+
+  const currentBrand = brandOptions.find(b => b.id === brandId) ?? customer.brand
+  const currentConsultant = consultantOptions.find(c => c.id === consultantId) ?? customer.consultant
+  const currentChannel = channels.find(c => c.id === sourceChannelId) ?? customer.source_channel
+
+  const saveMetaField = async (field: string, value: string | null) => {
+    setSavingField(field)
+    const supabase = createClient()
+    const { error } = await supabase.from('customers').update({ [field]: value }).eq('id', customer.id)
+    setSavingField(null)
+    if (error) { toast.error('Güncellenemedi'); return false }
+    toast.success('Güncellendi')
+    setEditingField(null)
+    return true
+  }
 
   const [isWon, setIsWon] = useState(customer.is_won)
   const [isLost, setIsLost] = useState(customer.is_lost)
@@ -222,22 +251,166 @@ export function CustomerDetail({
 
           {/* Info grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100">
-            <div>
-              <p className="text-xs text-gray-400 mb-0.5">Danışman</p>
-              <p className="text-sm font-medium text-gray-900">{customer.consultant?.full_name ?? '—'}</p>
+
+            {/* Marka */}
+            <div className="group">
+              <div className="flex items-center gap-1 mb-0.5">
+                <p className="text-xs text-gray-400">Marka</p>
+                {isAdmin && editingField !== 'brand_id' && (
+                  <button onClick={() => setEditingField('brand_id')} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
+                  </button>
+                )}
+              </div>
+              {isAdmin && editingField === 'brand_id' ? (
+                <div className="flex items-center gap-1">
+                  <select
+                    autoFocus
+                    value={brandId ?? ''}
+                    onChange={e => setBrandId(e.target.value)}
+                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  >
+                    {brandOptions.map(b => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={async () => { if (await saveMetaField('brand_id', brandId)) setBrandId(brandId) }}
+                    disabled={savingField === 'brand_id'}
+                    className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {savingField === 'brand_id' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  </button>
+                  <button onClick={() => { setBrandId(customer.brand_id); setEditingField(null) }} className="h-7 w-7 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm font-medium text-gray-900">{currentBrand?.name ?? '—'}</p>
+              )}
             </div>
-            <div>
-              <p className="text-xs text-gray-400 mb-0.5">Kaynak Kanal</p>
-              <p className="text-sm font-medium text-gray-900">{customer.source_channel?.name ?? '—'}</p>
+
+            {/* Danışman */}
+            <div className="group">
+              <div className="flex items-center gap-1 mb-0.5">
+                <p className="text-xs text-gray-400">Danışman</p>
+                {isAdmin && editingField !== 'consultant_id' && (
+                  <button onClick={() => setEditingField('consultant_id')} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
+                  </button>
+                )}
+              </div>
+              {isAdmin && editingField === 'consultant_id' ? (
+                <div className="flex items-center gap-1">
+                  <select
+                    autoFocus
+                    value={consultantId ?? ''}
+                    onChange={e => setConsultantId(e.target.value)}
+                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value="">— Seçiniz —</option>
+                    {consultantOptions.map(c => (
+                      <option key={c.id} value={c.id}>{c.full_name}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={async () => { await saveMetaField('consultant_id', consultantId || null) }}
+                    disabled={savingField === 'consultant_id'}
+                    className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {savingField === 'consultant_id' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  </button>
+                  <button onClick={() => { setConsultantId(customer.consultant_id); setEditingField(null) }} className="h-7 w-7 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm font-medium text-gray-900">{currentConsultant?.full_name ?? '—'}</p>
+              )}
             </div>
-            <div>
-              <p className="text-xs text-gray-400 mb-0.5">İlgilendiği Model</p>
-              <p className="text-sm font-medium text-gray-900">{customer.interested_model ?? '—'}</p>
+
+            {/* Kaynak Kanal */}
+            <div className="group">
+              <div className="flex items-center gap-1 mb-0.5">
+                <p className="text-xs text-gray-400">Kaynak Kanal</p>
+                {isAdmin && editingField !== 'source_channel_id' && (
+                  <button onClick={() => setEditingField('source_channel_id')} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
+                  </button>
+                )}
+              </div>
+              {isAdmin && editingField === 'source_channel_id' ? (
+                <div className="flex items-center gap-1">
+                  <select
+                    autoFocus
+                    value={sourceChannelId ?? ''}
+                    onChange={e => setSourceChannelId(e.target.value)}
+                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value="">— Seçiniz —</option>
+                    {channels.map(ch => (
+                      <option key={ch.id} value={ch.id}>{ch.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={async () => { await saveMetaField('source_channel_id', sourceChannelId || null) }}
+                    disabled={savingField === 'source_channel_id'}
+                    className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {savingField === 'source_channel_id' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  </button>
+                  <button onClick={() => { setSourceChannelId(customer.source_channel_id); setEditingField(null) }} className="h-7 w-7 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm font-medium text-gray-900">{currentChannel?.name ?? '—'}</p>
+              )}
             </div>
+
+            {/* İlgilendiği Model */}
+            <div className="group">
+              <div className="flex items-center gap-1 mb-0.5">
+                <p className="text-xs text-gray-400">İlgilendiği Model</p>
+                {isAdmin && editingField !== 'interested_model' && (
+                  <button onClick={() => setEditingField('interested_model')} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
+                  </button>
+                )}
+              </div>
+              {isAdmin && editingField === 'interested_model' ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    autoFocus
+                    type="text"
+                    value={interestedModel}
+                    onChange={e => setInterestedModel(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') saveMetaField('interested_model', interestedModel || null); if (e.key === 'Escape') { setInterestedModel(customer.interested_model ?? ''); setEditingField(null) } }}
+                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="Model adı..."
+                  />
+                  <button
+                    onClick={async () => { await saveMetaField('interested_model', interestedModel || null) }}
+                    disabled={savingField === 'interested_model'}
+                    className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {savingField === 'interested_model' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  </button>
+                  <button onClick={() => { setInterestedModel(customer.interested_model ?? ''); setEditingField(null) }} className="h-7 w-7 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm font-medium text-gray-900">{interestedModel || '—'}</p>
+              )}
+            </div>
+
+            {/* Kayıt Tarihi — read-only */}
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Kayıt Tarihi</p>
               <p className="text-sm font-medium text-gray-900">{formatDate(customer.created_at)}</p>
             </div>
+
           </div>
 
           {customer.notes && (

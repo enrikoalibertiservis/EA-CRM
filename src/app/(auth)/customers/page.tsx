@@ -14,16 +14,18 @@ export default async function CustomersPage() {
     { data: stages },
     { data: consultants },
     { data: profile },
+    { data: locations },
   ] = await Promise.all([
     supabase
       .from('customers')
-      .select(`*, brand:brands(id, name, color, slug), source_channel:contact_channels(id, name, icon_name, color), consultant:user_profiles(id, full_name), current_stage:sales_stages(id, name, color, slug, sort_order)`)
+      .select(`*, brand:brands(id, name, color, slug), source_channel:contact_channels(id, name, icon_name, color), consultant:user_profiles(id, full_name), current_stage:sales_stages(id, name, color, slug, sort_order), location:locations(id, name)`)
       .eq('is_active', true)
       .order('created_at', { ascending: false }),
     supabase.from('brands').select('id, name, color, slug').eq('is_active', true),
     supabase.from('sales_stages').select('id, name, color, slug, sort_order').eq('is_active', true).order('sort_order'),
     supabase.from('user_profiles').select('id, full_name').eq('is_active', true),
     supabase.from('user_profiles').select('role').eq('id', user!.id).single(),
+    supabase.from('locations').select('id, name').eq('is_active', true).order('name'),
   ])
 
   return (
@@ -40,6 +42,7 @@ export default async function CustomersPage() {
         brands={brands ?? []}
         stages={stages ?? []}
         consultants={consultants ?? []}
+        locations={locations ?? []}
         userRole={profile?.role ?? 'consultant'}
       />
     </div>
