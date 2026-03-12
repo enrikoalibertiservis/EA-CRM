@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { PipelineTimeline } from './pipeline-timeline'
 import { ContactLogForm } from './contact-log-form'
-import { Phone, Mail, MapPin, Car, MessageSquare, Calendar, Clock, ChevronRight, CheckCircle, XCircle, X, AlertCircle } from 'lucide-react'
+import { Phone, Mail, MapPin, MessageSquare, Calendar, Clock, ChevronRight, CheckCircle, XCircle, X, AlertCircle } from 'lucide-react'
 import { formatDate, OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/utils'
-import type { Customer, SalesStage, CustomerStageHistory, ContactLog, ContactChannel, VehicleInterest } from '@/lib/types/database'
+import type { Customer, SalesStage, CustomerStageHistory, ContactLog, ContactChannel } from '@/lib/types/database'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -15,7 +15,6 @@ interface CustomerDetailProps {
   stages: SalesStage[]
   history: CustomerStageHistory[]
   contactLogs: ContactLog[]
-  vehicleInterests: VehicleInterest[]
   channels: ContactChannel[]
   currentUserId: string
 }
@@ -25,14 +24,13 @@ export function CustomerDetail({
   stages,
   history: initialHistory,
   contactLogs: initialLogs,
-  vehicleInterests,
   channels,
   currentUserId,
 }: CustomerDetailProps) {
   const [currentStageId, setCurrentStageId] = useState(customer.current_stage_id)
   const [history, setHistory] = useState(initialHistory)
   const [logs, setLogs] = useState(initialLogs)
-  const [activeTab, setActiveTab] = useState<'timeline' | 'contacts' | 'vehicles'>('timeline')
+  const [activeTab, setActiveTab] = useState<'timeline' | 'contacts'>('timeline')
 
   const [isWon, setIsWon] = useState(customer.is_won)
   const [isLost, setIsLost] = useState(customer.is_lost)
@@ -256,7 +254,6 @@ export function CustomerDetail({
           {[
             { key: 'timeline', label: 'Satış Süreci', icon: ChevronRight },
             { key: 'contacts', label: `İletişim (${logs.length})`, icon: MessageSquare },
-            { key: 'vehicles', label: `Araç İlgisi (${vehicleInterests.length})`, icon: Car },
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -352,49 +349,6 @@ export function CustomerDetail({
             </div>
           )}
 
-          {/* Vehicle Interests Tab */}
-          {activeTab === 'vehicles' && (
-            <div className="space-y-3">
-              {vehicleInterests.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-gray-400">
-                  <Car className="h-8 w-8 mb-2 opacity-40" />
-                  <p className="text-sm">Henüz araç ilgisi kaydı yok</p>
-                </div>
-              ) : (
-                vehicleInterests.map((vi) => (
-                  <div key={vi.id} className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">
-                          {vi.brand?.name} {vi.model} {vi.year && `(${vi.year})`}
-                        </p>
-                        <div className="flex items-center gap-3 mt-1 flex-wrap">
-                          {vi.color && <span className="text-xs text-gray-500">Renk: {vi.color}</span>}
-                          {vi.fuel_type && <span className="text-xs text-gray-500">Yakıt: {vi.fuel_type}</span>}
-                          {vi.transmission && <span className="text-xs text-gray-500">{vi.transmission}</span>}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        {vi.offered_price && (
-                          <p className="text-sm font-bold text-gray-900">
-                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(vi.offered_price)}
-                          </p>
-                        )}
-                        {(vi.budget_min || vi.budget_max) && (
-                          <p className="text-xs text-gray-500">
-                            Bütçe: {vi.budget_min ? new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(vi.budget_min) : '—'}
-                            {' — '}
-                            {vi.budget_max ? new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(vi.budget_max) : '—'} ₺
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    {vi.notes && <p className="text-xs text-gray-500 mt-2 border-t border-gray-50 pt-2">{vi.notes}</p>}
-                  </div>
-                ))
-              )}
-            </div>
-          )}
         </div>
       </div>
 
