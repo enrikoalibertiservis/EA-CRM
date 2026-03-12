@@ -8,6 +8,8 @@ import { Building2, Users, CheckCircle, MessageSquare, TrendingUp, Shield, Shiel
 import Link from 'next/link'
 import type { Brand, SalesStage, BrandFunnelData, HeatmapCell, ChannelStats, ContactChannel } from '@/lib/types/database'
 
+export const dynamic = 'force-dynamic'
+
 export default async function MainReportPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

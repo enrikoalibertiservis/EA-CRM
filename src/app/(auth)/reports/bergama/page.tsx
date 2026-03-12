@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { BrandFunnel } from '@/components/charts/brand-funnel'
+
+export const dynamic = 'force-dynamic'
 import { ContactHeatmap } from '@/components/charts/contact-heatmap'
 import { ChannelChart } from '@/components/charts/channel-chart'
 import { ActivityChart } from '@/components/charts/activity-chart'
