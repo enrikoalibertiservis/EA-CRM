@@ -7,6 +7,7 @@ import {
   Users, MessageSquare, CheckCircle, Clock, UserPlus, FileText,
 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { formatDate } from '@/lib/utils'
 import type { Brand, SalesStage, BrandFunnelData, HeatmapCell, ChannelStats, ContactChannel } from '@/lib/types/database'
 
@@ -182,7 +183,16 @@ export default async function DashboardPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{c.full_name}</p>
-                      <p className="text-[11px] text-gray-400">{brand?.name} · {formatDate(c.created_at)}</p>
+                      <div className="flex items-center gap-1 text-[11px] text-gray-400">
+                        {brand?.name && (() => {
+                          const logos: Record<string, string> = { 'Fiat': '/brands/fiat.png', 'Alfa Romeo': '/brands/alfa-romeo.png', 'Jeep': '/brands/jeep.png' }
+                          const logo = logos[brand.name]
+                          return logo ? (
+                            <Image src={logo} alt={brand.name} width={14} height={14} className="object-contain opacity-70" style={{ mixBlendMode: 'multiply' }} />
+                          ) : null
+                        })()}
+                        {brand?.name} · {formatDate(c.created_at)}
+                      </div>
                     </div>
                     {stage && (
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0"
