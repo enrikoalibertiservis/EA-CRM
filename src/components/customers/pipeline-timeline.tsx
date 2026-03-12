@@ -217,9 +217,7 @@ export function PipelineTimeline({
                   )}
                   style={current ? { backgroundColor: stage.color, borderColor: stage.color } : {}}
                 >
-                  {completed ? <Check className="h-4 w-4" />
-                    : next ? <Plus className="h-3.5 w-3.5" />
-                    : <Icon className="h-4 w-4" />}
+                  {next ? <Plus className="h-3.5 w-3.5" /> : <Icon className="h-4 w-4" />}
                 </button>
 
                 <div className="text-center">
