@@ -51,7 +51,7 @@ export default async function MainReportPage() {
       .eq('is_active', true)
     if (locationFilter) fallbackQuery = fallbackQuery.eq('location_id', locationFilter)
     const { data: fallbackData } = await fallbackQuery
-    customers = fallbackData
+    customers = (fallbackData ?? []).map((c) => ({ ...c, insurance_kasko_offered: false, oto_koruma_sold: false }))
   }
 
   let consultantsQuery = supabase.from('user_profiles').select('id, full_name, is_active')
