@@ -386,7 +386,7 @@ export function CustomerList({ customers, brands, stages, consultants, userRole 
                         </span>
                       ) : customer.is_lost ? (
                         <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-red-50 text-red-600 border-red-200">
-                          <X className="h-3 w-3" /> Kaybedildi
+                          <X className="h-3 w-3" /> Kaçan Satış
                         </span>
                       ) : displayStage ? (
                         <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"

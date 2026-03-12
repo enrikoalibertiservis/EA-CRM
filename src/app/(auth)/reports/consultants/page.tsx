@@ -43,7 +43,7 @@ function ClosingRateTooltip({ active, payload }: { active?: boolean; payload?: {
       <p className="font-bold text-gray-900 text-sm">{d.name}</p>
       <div className="flex justify-between gap-4"><span className="text-gray-500">Toplam Temas</span><span className="font-semibold">{d.total}</span></div>
       <div className="flex justify-between gap-4"><span className="text-green-600">Satış Yapıldı</span><span className="font-semibold text-green-700">{d.won}</span></div>
-      <div className="flex justify-between gap-4"><span className="text-red-500">Kaybedildi</span><span className="font-semibold text-red-600">{d.lost}</span></div>
+      <div className="flex justify-between gap-4"><span className="text-red-500">Kaçan Satış</span><span className="font-semibold text-red-600">{d.lost}</span></div>
       <div className="flex justify-between gap-4"><span className="text-blue-500">Aktif</span><span className="font-semibold text-blue-600">{d.active}</span></div>
       <div className="pt-1 border-t border-gray-100 flex justify-between gap-4">
         <span className="text-gray-700 font-semibold">Kapama Oranı</span>
@@ -250,7 +250,7 @@ export default function ConsultantReportPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Toplam Temas" value={totalAll} icon={Users} color="bg-blue-50 text-blue-600" />
         <StatCard label="Satış Yapıldı" value={totalWon} sub={`%${avgRate.toFixed(1)} kapama`} icon={CheckCircle} color="bg-green-50 text-green-600" />
-        <StatCard label="Kaybedildi" value={totalLost} icon={XCircle} color="bg-red-50 text-red-600" />
+        <StatCard label="Kaçan Satış" value={totalLost} icon={XCircle} color="bg-red-50 text-red-600" />
         <StatCard label="Aktif Süreçler" value={totalAll - totalWon - totalLost} icon={Activity} color="bg-indigo-50 text-indigo-600" />
       </div>
 

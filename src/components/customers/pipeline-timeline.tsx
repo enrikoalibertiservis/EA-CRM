@@ -287,63 +287,70 @@ export function PipelineTimeline({
             {expandedOptions.length > 0 && (
               <div className="p-4 space-y-2.5">
 
-                {/* ── Paired toggles (yapıldı / yapılamadı) ── */}
+                {/* ── Paired toggles (yapıldı / yapılamadı) — araç tanıtımı stili ── */}
                 {pairedOptions.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {pairedOptions.map((opt) => {
                       const isPositive = !!customerFields[opt.field]
                       const isNegative = !!customerFields[opt.negativeField!]
                       return (
-                        <div
-                          key={opt.field}
-                          className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50/60"
-                        >
-                          {/* Option label */}
-                          <div className="px-3 py-2 text-xs font-semibold text-gray-600 bg-white border-b border-gray-100">
-                            {opt.label}
-                          </div>
-                          {/* Toggle buttons */}
-                          <div className="flex gap-2 p-2.5">
+                        <div key={opt.field} className="space-y-1.5">
+                          {/* Ana kart — Yapıldı toggle */}
+                          <button
+                            onClick={() => handlePairedClick(opt, true)}
+                            className={cn(
+                              'flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all w-full',
+                              isPositive
+                                ? 'bg-green-50 border-green-300 shadow-sm'
+                                : isNegative
+                                  ? 'bg-red-50 border-red-200'
+                                  : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+                            )}
+                          >
+                            <div className={cn(
+                              'h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all',
+                              isPositive
+                                ? 'bg-green-500 border-green-500'
+                                : isNegative
+                                  ? 'bg-red-400 border-red-400'
+                                  : 'border-gray-300 bg-white',
+                            )}>
+                              {isPositive && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
+                              {isNegative && <X className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
+                            </div>
+                            <span className={cn(
+                              'text-sm flex-1',
+                              isPositive ? 'text-green-800 font-medium' : isNegative ? 'text-red-700 font-medium' : 'text-gray-600',
+                            )}>
+                              {opt.label}
+                            </span>
+                            {/* Yapılamadı mini toggle */}
                             <button
-                              onClick={() => handlePairedClick(opt, true)}
+                              onClick={(e) => { e.stopPropagation(); handlePairedClick(opt, false) }}
                               className={cn(
-                                'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all border',
-                                isPositive
-                                  ? 'bg-green-500 border-green-500 text-white shadow-sm'
-                                  : 'bg-white border-gray-200 text-gray-500 hover:border-green-400 hover:text-green-600 hover:bg-green-50',
-                              )}
-                            >
-                              <Check className="h-3.5 w-3.5" />
-                              Yapıldı
-                            </button>
-                            <button
-                              onClick={() => handlePairedClick(opt, false)}
-                              className={cn(
-                                'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all border',
+                                'shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border transition-all',
                                 isNegative
-                                  ? 'bg-red-500 border-red-500 text-white shadow-sm'
-                                  : 'bg-white border-gray-200 text-gray-500 hover:border-red-400 hover:text-red-600 hover:bg-red-50',
+                                  ? 'bg-red-500 border-red-500 text-white'
+                                  : 'bg-white border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 hover:bg-red-50',
                               )}
                             >
-                              <X className="h-3.5 w-3.5" />
+                              <X className="h-2.5 w-2.5" />
                               {opt.negativeLabel ?? 'Yapılamadı'}
                             </button>
-                          </div>
+                          </button>
                           {/* Reason input */}
                           {isNegative && opt.reasonField && (
-                            <div className="px-2.5 pb-2.5">
-                              <input
-                                key={`${opt.reasonField}-${customerFields[opt.reasonField]}`}
-                                type="text"
-                                defaultValue={customerFields[opt.reasonField] ? String(customerFields[opt.reasonField]) : ''}
-                                onBlur={async (e) => {
-                                  const raw = e.target.value.trim()
-                                  await onUpdateField(opt.reasonField!, raw || null)
-                                }}
-                                placeholder={opt.reasonPlaceholder ?? 'Sebep yazın...'}
-                                className="w-full h-8 rounded-lg border border-red-200 bg-red-50 px-3 text-xs text-red-700 placeholder:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-200 transition-colors"
-                              />
-                            </div>
+                            <input
+                              key={`${opt.reasonField}-${customerFields[opt.reasonField]}`}
+                              type="text"
+                              defaultValue={customerFields[opt.reasonField] ? String(customerFields[opt.reasonField]) : ''}
+                              onBlur={async (e) => {
+                                const raw = e.target.value.trim()
+                                await onUpdateField(opt.reasonField!, raw || null)
+                              }}
+                              placeholder={opt.reasonPlaceholder ?? 'Sebep yazın...'}
+                              className="w-full h-8 rounded-lg border border-red-200 bg-red-50 px-3 text-xs text-red-700 placeholder:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-200 transition-colors"
+                            />
                           )}
                         </div>
                       )

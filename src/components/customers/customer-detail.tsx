@@ -203,7 +203,7 @@ export function CustomerDetail({
                   {isWon ? 'Satış Yapıldı ✓' : 'Satış Yapıldı'}
                 </button>
 
-                {/* Kaybedildi — her zaman tıklanabilir, aktifken geri alınabilir */}
+                {/* Kaçan Satış — her zaman tıklanabilir, aktifken geri alınabilir */}
                 {!isWon && (
                   <button
                     onClick={handleMarkLost}
@@ -215,7 +215,7 @@ export function CustomerDetail({
                     }`}
                   >
                     <XCircle className="h-3.5 w-3.5" />
-                    {isLost ? 'Kaybedildi ✕' : 'Kaybedildi'}
+                    {isLost ? 'Kaçan Satış ✕' : 'Kaçan Satış'}
                   </button>
                 )}
               </div>
