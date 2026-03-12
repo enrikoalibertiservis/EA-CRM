@@ -4,8 +4,31 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { User, Phone, Mail, MapPin, Car, MessageSquare, ChevronLeft } from 'lucide-react'
+import {
+  User, Phone, Mail, MapPin, Car, MessageSquare, ChevronLeft,
+  Store, PhoneCall, Globe, Share2, UserCheck, CalendarCheck,
+  HelpCircle, Target, AtSign, MessageCircle, type LucideIcon,
+} from 'lucide-react'
 import Link from 'next/link'
+
+// ─── Kanal ikon haritası ───────────────────────────────────────────────────────
+
+const CHANNEL_ICONS: Record<string, { icon: LucideIcon; color: string; bg: string }> = {
+  'Showroom Ziyaret': { icon: Store,         color: '#6366F1', bg: '#EEF2FF' },
+  'Telefon':          { icon: PhoneCall,      color: '#10B981', bg: '#ECFDF5' },
+  'WhatsApp':         { icon: MessageCircle,  color: '#22C55E', bg: '#F0FDF4' },
+  'E-posta':          { icon: AtSign,         color: '#3B82F6', bg: '#EFF6FF' },
+  'Web Sitesi':       { icon: Globe,          color: '#06B6D4', bg: '#ECFEFF' },
+  'Sosyal Medya':     { icon: Share2,         color: '#EC4899', bg: '#FDF2F8' },
+  'Referans':         { icon: UserCheck,      color: '#F59E0B', bg: '#FFFBEB' },
+  'Fuar / Etkinlik':  { icon: CalendarCheck,  color: '#8B5CF6', bg: '#F5F3FF' },
+  'Lead':             { icon: Target,         color: '#EF4444', bg: '#FFF1F2' },
+  'Diğer':            { icon: HelpCircle,     color: '#9CA3AF', bg: '#F9FAFB' },
+}
+
+function getChannelMeta(name: string) {
+  return CHANNEL_ICONS[name] ?? { icon: MessageSquare, color: '#6B7280', bg: '#F9FAFB' }
+}
 
 interface CustomerFormProps {
   brands: { id: string; name: string; color: string }[]
@@ -108,11 +131,14 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
       <div className="space-y-5">
         {/* Kişisel Bilgiler */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-7 w-7 rounded-lg bg-blue-50 flex items-center justify-center">
-              <User className="h-3.5 w-3.5 text-blue-600" />
+          <div className="flex items-center gap-3 mb-5 pb-3 border-b border-gray-100">
+            <div className="h-9 w-9 rounded-xl flex items-center justify-center shadow-sm" style={{ background: '#EFF6FF', border: '1.5px solid #BFDBFE' }}>
+              <User className="h-4.5 w-4.5" style={{ color: '#3B82F6' }} />
             </div>
-            <h2 className="text-sm font-semibold text-gray-900">Kişisel Bilgiler</h2>
+            <div>
+              <h2 className="text-sm font-bold text-gray-800">Kişisel Bilgiler</h2>
+              <p className="text-[11px] text-gray-400">Ad, iletişim ve kimlik bilgileri</p>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -162,11 +188,14 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
 
         {/* Adres */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-7 w-7 rounded-lg bg-purple-50 flex items-center justify-center">
-              <MapPin className="h-3.5 w-3.5 text-purple-600" />
+          <div className="flex items-center gap-3 mb-5 pb-3 border-b border-gray-100">
+            <div className="h-9 w-9 rounded-xl flex items-center justify-center shadow-sm" style={{ background: '#F5F3FF', border: '1.5px solid #DDD6FE' }}>
+              <MapPin className="h-4 w-4" style={{ color: '#8B5CF6' }} />
             </div>
-            <h2 className="text-sm font-semibold text-gray-900">Adres Bilgileri</h2>
+            <div>
+              <h2 className="text-sm font-bold text-gray-800">Adres Bilgileri</h2>
+              <p className="text-[11px] text-gray-400">İl, ilçe ve açık adres</p>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-3">
@@ -186,11 +215,14 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
 
         {/* CRM Bilgileri */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-7 w-7 rounded-lg bg-green-50 flex items-center justify-center">
-              <Car className="h-3.5 w-3.5 text-green-600" />
+          <div className="flex items-center gap-3 mb-5 pb-3 border-b border-gray-100">
+            <div className="h-9 w-9 rounded-xl flex items-center justify-center shadow-sm" style={{ background: '#ECFDF5', border: '1.5px solid #A7F3D0' }}>
+              <Car className="h-4 w-4" style={{ color: '#10B981' }} />
             </div>
-            <h2 className="text-sm font-semibold text-gray-900">CRM Bilgileri</h2>
+            <div>
+              <h2 className="text-sm font-bold text-gray-800">CRM Bilgileri</h2>
+              <p className="text-[11px] text-gray-400">Marka, model ve kaynak kanal</p>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -234,21 +266,34 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
             <div>
               <label className="text-xs font-medium text-gray-700 block mb-1">Nereden Ulaştı?</label>
               <div className="grid grid-cols-2 gap-1.5">
-                {channels.map((ch) => (
-                  <button
-                    key={ch.id}
-                    type="button"
-                    onClick={() => update('source_channel_id', ch.id)}
-                    className={`h-8 rounded-lg border text-xs font-medium transition-all ${
-                      form.source_channel_id === ch.id
-                        ? 'text-white shadow-sm'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                    }`}
-                    style={form.source_channel_id === ch.id ? { backgroundColor: ch.color, borderColor: ch.color } : {}}
-                  >
-                    {ch.name}
-                  </button>
-                ))}
+                {channels.map((ch) => {
+                  const meta = getChannelMeta(ch.name)
+                  const ChIcon = meta.icon
+                  const isSelected = form.source_channel_id === ch.id
+                  return (
+                    <button
+                      key={ch.id}
+                      type="button"
+                      onClick={() => update('source_channel_id', ch.id)}
+                      className={`flex items-center gap-2 h-9 px-3 rounded-lg border text-xs font-medium transition-all ${
+                        isSelected ? 'text-white shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                      style={isSelected
+                        ? { backgroundColor: meta.color, borderColor: meta.color }
+                        : {}}
+                    >
+                      <div
+                        className="h-5 w-5 rounded-md flex items-center justify-center shrink-0 transition-all"
+                        style={isSelected
+                          ? { background: 'rgba(255,255,255,0.25)' }
+                          : { background: meta.bg }}
+                      >
+                        <ChIcon className="h-3 w-3" style={{ color: isSelected ? '#fff' : meta.color }} />
+                      </div>
+                      {ch.name}
+                    </button>
+                  )
+                })}
               </div>
             </div>
             <div>
