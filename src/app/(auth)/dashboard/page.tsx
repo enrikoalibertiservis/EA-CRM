@@ -141,13 +141,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* Heatmap + Channel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
-          <ContactHeatmap data={heatmapData} />
-        </div>
-        <div>
-          <ChannelChart data={channelStats} />
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <ContactHeatmap data={heatmapData} />
+        <ChannelChart data={channelStats} />
       </div>
 
       {/* Activity + Recent Customers */}
