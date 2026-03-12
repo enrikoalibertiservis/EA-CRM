@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { CustomerDetail } from '@/components/customers/customer-detail'
+
+export const dynamic = 'force-dynamic'
 import type { Customer, CustomerStageHistory, ContactLog } from '@/lib/types/database'
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {

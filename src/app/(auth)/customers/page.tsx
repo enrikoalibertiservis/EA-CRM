@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CustomerList } from '@/components/customers/customer-list'
+
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { UserPlus } from 'lucide-react'
 import type { Customer } from '@/lib/types/database'
