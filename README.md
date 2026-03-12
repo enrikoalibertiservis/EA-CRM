@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EA Motors CRM
 
-## Getting Started
+Fiat, Alfa Romeo, Jeep ve İkinci El yetkili bayi için geliştirilmiş tam kapsamlı CRM sistemi.
 
-First, run the development server:
+## Özellikler
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Google OAuth zorunlu giriş** — Supabase Auth + Google
+- **Marka bazlı müşteri yönetimi** — Fiat, Alfa Romeo, Jeep, İkinci El
+- **Satış pipeline'ı** — 6 aşamalı, değiştirilemez geçmiş (audit trail)
+- **İletişim logu** — 9 temas kanalı, süre, sonuç, sonraki aksiyon
+- **Dashboard** — Marka hunileri, gün/saat yoğunluk haritası, kanal dağılımı
+- **Bergama Şube Raporu** — Ayrı danışman performansı + dönüşüm analitiği
+- **RLS ile güvenlik** — Kullanıcı/lokasyon bazlı veri izolasyonu
+
+## Kurulum
+
+### 1. Supabase Projesi Oluştur
+
+1. [supabase.com](https://supabase.com) adresine git
+2. Yeni proje oluştur
+3. **Authentication → Providers → Google** aktif et, Client ID ve Secret gir
+4. **Redirect URL** olarak `https://your-domain.com/auth/callback` ekle
+
+### 2. Veritabanı Şemasını Kur
+
+Supabase SQL Editor'da `supabase/migrations/001_initial_schema.sql` dosyasını çalıştır.
+
+### 3. Ortam Değişkenlerini Ayarla
+
+`.env.local` dosyasını güncelle:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxxxxxxxxxxxxxxxxx
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 4. İlk Kullanıcıyı Oluştur
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Google ile sisteme ilk giriş yap
+2. Supabase'de `user_profiles` tablosuna manuel kayıt ekle:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```sql
+INSERT INTO user_profiles (id, full_name, role, location_id)
+VALUES (
+  'auth.users tablosundaki UUID',
+  'Adınız Soyadınız',
+  'super_admin',
+  '00000000-0000-0000-0000-000000000001'  -- Merkez lokasyon
+);
+```
 
-## Learn More
+### 5. Uygulamayı Çalıştır
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Sayfa Yapısı
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| URL | Açıklama | Erişim |
+|-----|----------|--------|
+| `/login` | Google OAuth giriş | Herkese açık |
+| `/dashboard` | Ana panel | Tüm roller |
+| `/customers` | Müşteri listesi (filtreli) | Tüm roller |
+| `/customers/new` | Yeni müşteri formu | Tüm roller |
+| `/customers/[id]` | Müşteri detay + pipeline | Tüm roller |
+| `/reports/main` | Merkez raporu | Manager + Admin |
+| `/reports/bergama` | Bergama raporu | Sadece Super Admin |
+| `/settings/users` | Kullanıcı yönetimi | Sadece Super Admin |
 
-## Deploy on Vercel
+## Kullanıcı Rolleri
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Rol | Yetki |
+|-----|-------|
+| `super_admin` | Her şeyi görür, Bergama dahil |
+| `manager` | Kendi lokasyonunun tüm müşterileri |
+| `consultant` | Sadece kendi müşterileri |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Satış Aşamaları
+
+1. **Araç Tanıtımı** — Araç gösterimi yapıldı
+2. **Teklif** — Fiyat teklifi sunuldu
+3. **Düşünme Süreci** — Müşteri karar aşamasında
+4. **Kabul** — Teklif kabul edildi
+5. **Sigorta İşlemleri** — Sigorta süreci
+6. **Oto Koruma** — Tamamlandı (final aşama)
+
+## Temas Kanalları
+
+Showroom Ziyaret, Telefon, WhatsApp, E-posta, Web Sitesi, Sosyal Medya, Referans, Fuar/Etkinlik, Diğer
+
+## Teknik Stack
+
+- **Next.js 16** (App Router, TypeScript)
+- **Tailwind CSS** + Lucide React
+- **Supabase** (PostgreSQL + Auth + RLS)
+- **Recharts** (grafikler)
+- **Sonner** (bildirimler)
