@@ -37,10 +37,22 @@ export default async function MainReportPage() {
   // locationFilter yoksa tüm aktif müşterileri getir
   let customersQuery = supabase
     .from('customers')
-    .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, insurance_kasko_offered, oto_koruma_sold')
+    .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, insurance_kasko_offered, oto_koruma_sold, location_id')
     .eq('is_active', true)
   if (locationFilter) customersQuery = customersQuery.eq('location_id', locationFilter)
-  const { data: customers } = await customersQuery
+  let { data: customers, error: customersError } = await customersQuery
+
+  // Eğer kolon yoksa (migration çalıştırılmamış) fallback sorgu
+  if (customersError) {
+    console.error('[MainReport] customers error:', customersError.message)
+    let fallbackQuery = supabase
+      .from('customers')
+      .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id')
+      .eq('is_active', true)
+    if (locationFilter) fallbackQuery = fallbackQuery.eq('location_id', locationFilter)
+    const { data: fallbackData } = await fallbackQuery
+    customers = fallbackData
+  }
 
   let consultantsQuery = supabase.from('user_profiles').select('id, full_name, is_active')
   if (locationFilter) consultantsQuery = consultantsQuery.eq('location_id', locationFilter)
