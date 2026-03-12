@@ -4,7 +4,7 @@ import { BrandFunnel } from '@/components/charts/brand-funnel'
 import { ContactHeatmap } from '@/components/charts/contact-heatmap'
 import { ChannelChart } from '@/components/charts/channel-chart'
 import { ActivityChart } from '@/components/charts/activity-chart'
-import { Building2, Users, CheckCircle, MessageSquare, TrendingUp } from 'lucide-react'
+import { Building2, Users, CheckCircle, MessageSquare, TrendingUp, Shield, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import type { Brand, SalesStage, BrandFunnelData, HeatmapCell, ChannelStats, ContactChannel } from '@/lib/types/database'
 
@@ -30,7 +30,7 @@ export default async function MainReportPage() {
 
   const { data: customers } = await supabase
     .from('customers')
-    .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id')
+    .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, insurance_kasko_offered, oto_koruma_sold')
     .eq('is_active', true)
     .eq('location_id', locationFilter)
 
@@ -102,10 +102,13 @@ export default async function MainReportPage() {
   const convRate = totalCustomers > 0 ? ((wonCustomers / totalCustomers) * 100).toFixed(1) : '0.0'
 
   const consultantPerf = (consultants ?? []).map((c) => {
-    const custCount = (customers ?? []).filter((cu) => cu.consultant_id === c.id).length
-    const wonCount = (customers ?? []).filter((cu) => cu.consultant_id === c.id && cu.is_won).length
+    const myCusts = (customers ?? []).filter((cu) => cu.consultant_id === c.id)
+    const custCount = myCusts.length
+    const wonCount = myCusts.filter((cu) => cu.is_won).length
     const contactCount = (contactLogs ?? []).filter((l) => l.created_by === c.id).length
-    return { ...c, custCount, wonCount, contactCount }
+    const otoKorumaCount = myCusts.filter((cu) => cu.oto_koruma_sold).length
+    const kaskoCount = myCusts.filter((cu) => cu.insurance_kasko_offered).length
+    return { ...c, custCount, wonCount, contactCount, otoKorumaCount, kaskoCount }
   }).sort((a, b) => b.custCount - a.custCount)
 
   return (
@@ -168,39 +171,108 @@ export default async function MainReportPage() {
 
         {/* Consultant Table */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">Danışman Performansı</h2>
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-8 w-8 rounded-lg bg-[#1E3A5F] flex items-center justify-center">
+              <Users className="h-4 w-4 text-white" />
+            </div>
+            <h2 className="text-sm font-semibold text-gray-900">Danışman Bazlı Performans</h2>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Danışman</th>
-                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Müşteri</th>
-                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Kazanılan</th>
-                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Temas</th>
-                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Dönüşüm</th>
+                <tr className="border-b-2 border-gray-100">
+                  <th className="text-left py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Danışman</th>
+                  <th className="text-right py-2.5 px-3 text-xs font-semibold text-blue-500 uppercase tracking-wide">
+                    <div className="flex items-center justify-end gap-1">
+                      <Users className="h-3 w-3" />
+                      Satış Adedi
+                    </div>
+                  </th>
+                  <th className="text-right py-2.5 px-3 text-xs font-semibold text-emerald-500 uppercase tracking-wide">
+                    <div className="flex items-center justify-end gap-1">
+                      <CheckCircle className="h-3 w-3" />
+                      Kapama Oranı
+                    </div>
+                  </th>
+                  <th className="text-right py-2.5 px-3 text-xs font-semibold text-purple-500 uppercase tracking-wide">
+                    <div className="flex items-center justify-end gap-1">
+                      <MessageSquare className="h-3 w-3" />
+                      Temas
+                    </div>
+                  </th>
+                  <th className="text-right py-2.5 px-3 text-xs font-semibold text-orange-500 uppercase tracking-wide">
+                    <div className="flex items-center justify-end gap-1">
+                      <Shield className="h-3 w-3" />
+                      Oto Koruma
+                    </div>
+                  </th>
+                  <th className="text-right py-2.5 px-3 text-xs font-semibold text-sky-500 uppercase tracking-wide">
+                    <div className="flex items-center justify-end gap-1">
+                      <ShieldCheck className="h-3 w-3" />
+                      Kasko Oranı
+                    </div>
+                  </th>
                 </tr>
               </thead>
-              <tbody>
-                {consultantPerf.map((c, i) => (
-                  <tr key={c.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                    <td className="py-2.5 px-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded-full bg-[#1E3A5F] text-white flex items-center justify-center text-xs font-bold">
-                          {c.full_name.charAt(0)}
+              <tbody className="divide-y divide-gray-50">
+                {consultantPerf.map((c) => {
+                  const closeRate = c.custCount > 0 ? (c.wonCount / c.custCount) * 100 : 0
+                  const kaskoRate = c.custCount > 0 ? (c.kaskoCount / c.custCount) * 100 : 0
+                  const otoRate = c.custCount > 0 ? (c.otoKorumaCount / c.custCount) * 100 : 0
+                  return (
+                    <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#1E3A5F] to-[#2D5A8E] text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                            {c.full_name.charAt(0)}
+                          </div>
+                          <span className="font-medium text-gray-900">{c.full_name}</span>
                         </div>
-                        <span className="font-medium text-gray-900">{c.full_name}</span>
-                      </div>
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-semibold">{c.custCount}</td>
-                    <td className="py-2.5 px-3 text-right text-green-600 font-semibold">{c.wonCount}</td>
-                    <td className="py-2.5 px-3 text-right text-gray-600">{c.contactCount}</td>
-                    <td className="py-2.5 px-3 text-right font-semibold">
-                      {c.custCount > 0 ? `%${((c.wonCount / c.custCount) * 100).toFixed(0)}` : '—'}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <span className="inline-flex items-center justify-center h-6 min-w-[2rem] px-2 rounded-md bg-blue-50 text-blue-700 text-xs font-bold">
+                          {c.custCount}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="w-16 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                            <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${closeRate}%` }} />
+                          </div>
+                          <span className={`text-xs font-bold ${closeRate >= 30 ? 'text-emerald-600' : closeRate >= 15 ? 'text-amber-600' : 'text-gray-500'}`}>
+                            {c.custCount > 0 ? `%${closeRate.toFixed(0)}` : '—'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <span className="inline-flex items-center justify-center h-6 min-w-[2rem] px-2 rounded-md bg-purple-50 text-purple-700 text-xs font-bold">
+                          {c.contactCount}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <span className="text-xs text-gray-500">{c.otoKorumaCount}</span>
+                          <span className={`text-xs font-bold ${otoRate >= 30 ? 'text-orange-600' : 'text-gray-400'}`}>
+                            {c.custCount > 0 ? `(%${otoRate.toFixed(0)})` : '—'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <span className="text-xs text-gray-500">{c.kaskoCount}</span>
+                          <span className={`text-xs font-bold ${kaskoRate >= 30 ? 'text-sky-600' : 'text-gray-400'}`}>
+                            {c.custCount > 0 ? `(%${kaskoRate.toFixed(0)})` : '—'}
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
+            {consultantPerf.length === 0 && (
+              <p className="text-center text-xs text-gray-400 py-8">Henüz danışman verisi bulunmuyor.</p>
+            )}
           </div>
         </div>
 

@@ -30,7 +30,7 @@ const EXACT: Record<string, PageMeta> = {
     icon: UserPlus,
   },
   '/reports/main': {
-    title: 'Merkez Raporu',
+    title: 'Enriko Aliberti',
     subtitle: 'Detaylı satış ve temas performansı',
     color: '#F59E0B',
     icon: BarChart3,

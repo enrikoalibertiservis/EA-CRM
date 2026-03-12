@@ -38,7 +38,7 @@ function getNavGroups(isAdmin: boolean, isManager: boolean): NavGroup[] {
 
   if (isAdmin || isManager) {
     const reportItems: NavItem[] = [
-      { label: 'Merkez Raporu',        href: '/reports/main',        icon: BarChart3,  color: 'text-amber-400' },
+      { label: 'Enriko Aliberti',       href: '/reports/main',        icon: BarChart3,  color: 'text-amber-400' },
       { label: 'Danışman Performansı', href: '/reports/consultants', icon: TrendingUp, color: 'text-emerald-400' },
     ]
     if (isAdmin) {
@@ -102,7 +102,7 @@ export function Sidebar({ profile }: { profile: UserProfile | null }) {
           <Car className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h2 className="font-bold text-sm leading-tight text-white">EA Motors</h2>
+          <h2 className="font-bold text-sm leading-tight text-white">Enriko Aliberti</h2>
           <p className="text-xs text-slate-400">CRM Sistemi</p>
         </div>
       </Link>
