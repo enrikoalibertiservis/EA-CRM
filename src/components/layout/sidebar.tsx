@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Users, UserPlus, BarChart3,
   MapPin, Settings, Car, LogOut, ChevronRight,
+  ShieldCheck, UserCog,
   type LucideIcon,
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
@@ -47,9 +48,16 @@ function getNavGroups(isAdmin: boolean, isManager: boolean): NavGroup[] {
 
   if (isAdmin) {
     groups.push({
-      title: 'YÖNETİM',
+      title: 'KULLANICI YÖNETİMİ',
       items: [
-        { label: 'Kullanıcılar', href: '/settings/users', icon: Settings, color: 'text-gray-400' },
+        { label: 'Kullanıcı Listesi', href: '/settings/users', icon: Users, color: 'text-indigo-400' },
+        { label: 'Yeni Kullanıcı', href: '/settings/users/new', icon: UserPlus, color: 'text-teal-400' },
+      ],
+    })
+    groups.push({
+      title: 'SİSTEM',
+      items: [
+        { label: 'Ayarlar', href: '/settings', icon: Settings, color: 'text-gray-400' },
       ],
     })
   }

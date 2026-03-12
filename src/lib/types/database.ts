@@ -25,12 +25,16 @@ export interface Brand {
   created_at: string
 }
 
+export type Department = 'satis' | 'servis' | 'yonetim' | 'muhasebe' | 'diger'
+
 export interface UserProfile {
   id: string
+  email?: string
   full_name: string
   phone: string | null
   role: UserRole
   location_id: string
+  department: Department | null
   is_active: boolean
   avatar_url: string | null
   created_at: string
