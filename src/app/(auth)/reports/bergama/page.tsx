@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { BrandFunnel } from '@/components/charts/brand-funnel'
 import { ContactHeatmap } from '@/components/charts/contact-heatmap'
@@ -125,25 +125,25 @@ export default async function IncesusReportPage() {
     <div className="space-y-6">
       <div className="flex justify-end -mt-4 mb-2">
         <Link href="/reports/main" className="text-xs text-blue-600 hover:text-blue-700 font-semibold border border-blue-200 rounded-lg px-4 h-9 flex items-center shadow-sm bg-white">
-          Merkez Raporu [char]0x2192
+          Merkez Raporu →
         </Link>
       </div>
 
       {/* Header badge */}
       <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
         <MapPin className="h-4 w-4 text-emerald-600" />
-        <p className="text-sm text-emerald-800 font-medium">?ncesu Otomotiv ? Uydu Bayi Analizi</p>
-        <span className="ml-auto text-xs text-emerald-600">Sadece y�netici g�r�r</span>
+        <p className="text-sm text-emerald-800 font-medium">İncesu Otomotiv — Uydu Bayi Analizi</p>
+        <span className="ml-auto text-xs text-emerald-600">Sadece yönetici görür</span>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { label: 'Toplam M�?teri', value: totalCustomers,          icon: Users,        color: '#3B82F6', bg: '#EFF6FF' },
-          { label: 'Aktif Takip',    value: activeCustomers,          icon: TrendingUp,   color: '#F59E0B', bg: '#FFFBEB' },
-          { label: 'Kazan?lan',      value: wonCustomers,             icon: CheckCircle,  color: '#10B981', bg: '#ECFDF5' },
-          { label: 'Kaybedilen',     value: lostCustomers,            icon: XCircle,      color: '#EF4444', bg: '#FEF2F2' },
-          { label: 'Toplam Temas',   value: contactLogs?.length ?? 0, icon: MessageSquare, color: '#8B5CF6', bg: '#F5F3FF' },
+          { label: 'Toplam Müşteri', value: totalCustomers,          icon: Users,        color: '#3B82F6', bg: '#EFF6FF' },
+          { label: 'Aktif Takip',   value: activeCustomers,          icon: TrendingUp,   color: '#F59E0B', bg: '#FFFBEB' },
+          { label: 'Kazanılan',     value: wonCustomers,             icon: CheckCircle,  color: '#10B981', bg: '#ECFDF5' },
+          { label: 'Kaçan Satış',   value: lostCustomers,            icon: XCircle,      color: '#EF4444', bg: '#FEF2F2' },
+          { label: 'Toplam Temas',  value: contactLogs?.length ?? 0, icon: MessageSquare, color: '#8B5CF6', bg: '#F5F3FF' },
         ].map((stat) => {
           const Icon = stat.icon
           return (
@@ -162,12 +162,12 @@ export default async function IncesusReportPage() {
       <div className="bg-gradient-to-r from-[#1E3A5F] to-[#2D5A8E] rounded-xl p-5 text-white">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <p className="text-white/60 text-sm">?ncesu Otomotiv D�n�?�m Oran?</p>
+            <p className="text-white/60 text-sm">İncesu Otomotiv Dönüşüm Oranı</p>
             <p className="text-4xl font-bold mt-1">%{conversionRate}</p>
-            <p className="text-white/60 text-xs mt-1">{wonCustomers} kazan?lan / {totalCustomers} toplam m�?teri</p>
+            <p className="text-white/60 text-xs mt-1">{wonCustomers} kazanılan / {totalCustomers} toplam müşteri</p>
           </div>
           <div className="text-right">
-            <p className="text-white/60 text-xs">Aktif Dan??man Say?s?</p>
+            <p className="text-white/60 text-xs">Aktif Danışman Sayısı</p>
             <p className="text-2xl font-bold">{consultants?.filter((c) => c.is_active).length ?? 0}</p>
           </div>
         </div>
@@ -175,14 +175,14 @@ export default async function IncesusReportPage() {
 
       {/* Brand Funnels */}
       <div>
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">?ncesu Otomotiv ? Marka Bazl? Huni</h2>
+        <h2 className="text-sm font-semibold text-gray-700 mb-3">İncesu Otomotiv — Marka Bazlı Huni</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {brandFunnelData.filter((d) => d.total > 0).map((d) => (
             <BrandFunnel key={d.brand.id} data={d} />
           ))}
           {brandFunnelData.every((d) => d.total === 0) && (
             <div className="col-span-2 bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400 text-sm">
-              ?ncesu Otomotiv ?ubesinde hen�z m�?teri kayd? bulunmuyor
+              İncesu Otomotiv şubesinde henüz müşteri kaydı bulunmuyor
             </div>
           )}
         </div>
@@ -190,19 +190,19 @@ export default async function IncesusReportPage() {
 
       {/* Consultant Performance */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Dan??man Performans?</h2>
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">Danışman Performansı</h2>
         {consultantPerf.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">Dan??man bulunamad?</p>
+          <p className="text-sm text-gray-400 text-center py-6">Danışman bulunamadı</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Dan??man</th>
-                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">M�?teri</th>
-                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Kazan?lan</th>
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Danışman</th>
+                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Müşteri</th>
+                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Kazanılan</th>
                   <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Temas</th>
-                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">D�n�?�m</th>
+                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Dönüşüm</th>
                 </tr>
               </thead>
               <tbody>
@@ -238,21 +238,21 @@ export default async function IncesusReportPage() {
       {/* Heatmap + Channel */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <ContactHeatmap data={heatmapData} title="?ncesu Otomotiv ? ?leti?im Yo?unlu?u (G�n/Saat)" />
+          <ContactHeatmap data={heatmapData} title="İncesu Otomotiv — İletişim Yoğunluğu (Gün/Saat)" />
         </div>
         <div>
-          <ChannelChart data={channelStats} title="?ncesu Otomotiv ? Temas Kanallar?" />
+          <ChannelChart data={channelStats} title="İncesu Otomotiv — Temas Kanalları" />
         </div>
       </div>
 
       {/* Activity */}
-      <ActivityChart data={activityData} title="?ncesu Otomotiv ? Son 30 G�n Temas Aktivitesi" color="#10B981" />
+      <ActivityChart data={activityData} title="İncesu Otomotiv — Son 30 Gün Temas Aktivitesi" color="#10B981" />
 
       {/* Recent customers */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">?ncesu Otomotiv ? Son M�?teriler</h2>
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">İncesu Otomotiv — Son Müşteriler</h2>
         {!recentCustomers || recentCustomers.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">Hen�z m�?teri yok</p>
+          <p className="text-sm text-gray-400 text-center py-6">Henüz müşteri yok</p>
         ) : (
           <div className="space-y-1.5">
             {recentCustomers.map((c) => {
@@ -272,7 +272,7 @@ export default async function IncesusReportPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium text-gray-900 truncate">{c.full_name}</p>
-                    <p className="text-xs text-gray-400">{brand?.name} � {formatDate(c.created_at)}</p>
+                    <p className="text-xs text-gray-400">{brand?.name} · {formatDate(c.created_at)}</p>
                   </div>
                   {stage && (
                     <span
@@ -291,3 +291,4 @@ export default async function IncesusReportPage() {
     </div>
   )
 }
+
