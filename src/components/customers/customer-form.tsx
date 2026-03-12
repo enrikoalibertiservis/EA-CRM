@@ -9,13 +9,14 @@ import Link from 'next/link'
 
 interface CustomerFormProps {
   brands: { id: string; name: string; color: string }[]
+  models: { id: string; brand_id: string; name: string }[]
   channels: { id: string; name: string; icon_name: string; color: string }[]
   consultants: { id: string; full_name: string }[]
   currentUserId: string
   currentLocationId: string
 }
 
-export function CustomerForm({ brands, channels, consultants, currentUserId, currentLocationId }: CustomerFormProps) {
+export function CustomerForm({ brands, models, channels, consultants, currentUserId, currentLocationId }: CustomerFormProps) {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
@@ -217,7 +218,18 @@ export function CustomerForm({ brands, channels, consultants, currentUserId, cur
             </div>
             <div>
               <label className="text-xs font-medium text-gray-700 block mb-1">İlgilendiği Model</label>
-              <input type="text" value={form.interested_model} onChange={(e) => update('interested_model', e.target.value)} placeholder="Örn: Fiat Egea 1.3" className="w-full h-9 rounded-lg border border-gray-300 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <select value={form.interested_model} onChange={(e) => update('interested_model', e.target.value)}
+                className="w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Model seçin</option>
+                {form.brand_id
+                  ? models.filter(m => m.brand_id === form.brand_id).map(m => (
+                    <option key={m.id} value={m.name}>{m.name}</option>
+                  ))
+                  : models.map(m => (
+                    <option key={m.id} value={m.name}>{m.name}</option>
+                  ))
+                }
+              </select>
             </div>
             <div>
               <label className="text-xs font-medium text-gray-700 block mb-1">Nereden Ulaştı?</label>

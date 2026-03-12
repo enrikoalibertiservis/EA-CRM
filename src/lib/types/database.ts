@@ -43,6 +43,16 @@ export interface UserProfile {
   location?: Location
 }
 
+export interface VehicleModel {
+  id: string
+  brand_id: string
+  name: string
+  is_active: boolean
+  sort_order: number
+  created_at: string
+  brand?: Brand
+}
+
 export interface ContactChannel {
   id: string
   name: string

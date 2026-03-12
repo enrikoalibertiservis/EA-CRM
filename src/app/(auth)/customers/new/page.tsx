@@ -9,8 +9,9 @@ export default async function NewCustomerPage() {
   const { data: profile } = await supabase
     .from('user_profiles').select('id, location_id').eq('id', user!.id).single()
 
-  const [{ data: brands }, { data: channels }, { data: consultants }] = await Promise.all([
+  const [{ data: brands }, { data: models }, { data: channels }, { data: consultants }] = await Promise.all([
     supabase.from('brands').select('id, name, color').eq('is_active', true),
+    supabase.from('vehicle_models').select('id, brand_id, name').eq('is_active', true).order('sort_order'),
     supabase.from('contact_channels').select('id, name, icon_name, color').eq('is_active', true).order('sort_order'),
     supabase.from('user_profiles').select('id, full_name').eq('is_active', true).eq('location_id', profile?.location_id ?? ''),
   ])
@@ -28,6 +29,7 @@ export default async function NewCustomerPage() {
       </div>
       <CustomerForm
         brands={brands ?? []}
+        models={models ?? []}
         channels={channels ?? []}
         consultants={consultants ?? []}
         currentUserId={user!.id}
