@@ -12,9 +12,9 @@ import type { UserProfile, Location } from '@/lib/types/database'
 import Link from 'next/link'
 
 const ROLE_LABELS: Record<string, string> = {
-  super_admin: 'Süper Admin',
-  manager: 'Yönetici',
-  consultant: 'Danışman',
+  super_admin: 'Yönetici',
+  manager: 'Satış Müdürü',
+  consultant: 'Satış Danışmanı',
 }
 const ROLE_COLORS: Record<string, string> = {
   super_admin: '#8B5CF6',
@@ -147,17 +147,7 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-            <Users className="h-5 w-5 text-indigo-600" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">Kullanıcı Yönetimi</h1>
-            <p className="text-xs text-gray-500">{users.length} kayıtlı kullanıcı</p>
-          </div>
-        </div>
+      <div className="flex justify-end -mt-4 mb-2">
         <Link href="/settings/users/new"
           className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white text-sm shadow-sm hover:bg-blue-700 transition-colors">
           + Yeni Kullanıcı
@@ -234,9 +224,9 @@ export default function UsersPage() {
                     {isEditing ? (
                       <select value={user.role} onChange={e => updateField(user.id, 'role', e.target.value)}
                         className="h-7 rounded border border-gray-200 bg-white text-xs px-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                        <option value="super_admin">Süper Admin</option>
-                        <option value="manager">Yönetici</option>
-                        <option value="consultant">Danışman</option>
+                        <option value="super_admin">Yönetici</option>
+                        <option value="manager">Satış Müdürü</option>
+                        <option value="consultant">Satış Danışmanı</option>
                       </select>
                     ) : (
                       <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold"

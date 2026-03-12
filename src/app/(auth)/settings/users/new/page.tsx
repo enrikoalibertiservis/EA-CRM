@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { UserPlus, ArrowLeft, Mail, Lock, User, Phone, Building2, Shield, Briefcase } from 'lucide-react'
+import { UserPlus, Mail, Lock, User, Phone, Building2, Shield, Briefcase } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Location } from '@/lib/types/database'
 
@@ -90,22 +90,6 @@ export default function NewUserPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
-            <UserPlus className="h-5 w-5 text-teal-600" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">Yeni Kullanıcı Oluştur</h1>
-            <p className="text-xs text-gray-500">Sisteme yeni personel ekleyin</p>
-          </div>
-        </div>
-        <button onClick={() => router.back()}
-          className="flex items-center gap-1.5 h-9 px-4 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
-          <ArrowLeft className="h-3.5 w-3.5" /> Geri
-        </button>
-      </div>
-
       {/* Form */}
       <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-6 space-y-5">
 
@@ -155,9 +139,9 @@ export default function NewUserPage() {
             </label>
             <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
               className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="consultant">Danışman</option>
-              <option value="manager">Yönetici</option>
-              <option value="super_admin">Süper Admin</option>
+              <option value="consultant">Satış Danışmanı</option>
+              <option value="manager">Satış Müdürü</option>
+              <option value="super_admin">Yönetici</option>
             </select>
           </div>
           <div>

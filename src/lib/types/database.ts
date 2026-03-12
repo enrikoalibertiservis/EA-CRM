@@ -99,6 +99,31 @@ export interface Customer {
   is_won: boolean
   is_lost: boolean
   lost_reason: string | null
+  test_drive_done: boolean
+  vehicle_info_given: boolean
+  catalog_given: boolean
+  offer_written: boolean
+  offer_amount: number | null
+  offer_campaign: string | null
+  offer_accepted: boolean
+  followup_done: boolean
+  followup_datetime: string | null
+  deposit_received: boolean
+  contract_signed: boolean
+  insurance_kasko_offered: boolean
+  insurance_kasko_not_done: boolean
+  insurance_kasko_fail_reason: string | null
+  insurance_trafik_offered: boolean
+  insurance_trafik_not_done: boolean
+  insurance_trafik_fail_reason: string | null
+  insurance_kasko_sold: boolean
+  insurance_trafik_sold: boolean
+  oto_koruma_offered: boolean
+  oto_koruma_sold: boolean
+  oto_koruma_not_done: boolean
+  oto_koruma_fail_reason: string | null
+  oto_koruma_product: string | null
+  oto_koruma_amount: number | null
   created_at: string
   created_by: string
   updated_at: string

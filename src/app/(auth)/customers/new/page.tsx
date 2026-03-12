@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { CustomerForm } from '@/components/customers/customer-form'
-import { UserPlus } from 'lucide-react'
 
 export default async function NewCustomerPage() {
   const supabase = await createClient()
@@ -18,15 +17,6 @@ export default async function NewCustomerPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-          <UserPlus className="h-5 w-5 text-purple-600" />
-        </div>
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">Yeni Müşteri</h1>
-          <p className="text-xs text-gray-500">CRM&apos;e yeni müşteri kaydı ekle</p>
-        </div>
-      </div>
       <CustomerForm
         brands={brands ?? []}
         models={models ?? []}

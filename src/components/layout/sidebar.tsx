@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Users, UserPlus, BarChart3,
   MapPin, Settings, Car, LogOut, ChevronRight,
-  ShieldCheck, UserCog,
+  ShieldCheck, UserCog, TrendingUp,
   type LucideIcon,
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
@@ -38,10 +38,11 @@ function getNavGroups(isAdmin: boolean, isManager: boolean): NavGroup[] {
 
   if (isAdmin || isManager) {
     const reportItems: NavItem[] = [
-      { label: 'Merkez Raporu', href: '/reports/main', icon: BarChart3, color: 'text-amber-400' },
+      { label: 'Merkez Raporu',        href: '/reports/main',        icon: BarChart3,  color: 'text-amber-400' },
+      { label: 'Danışman Performansı', href: '/reports/consultants', icon: TrendingUp, color: 'text-emerald-400' },
     ]
     if (isAdmin) {
-      reportItems.push({ label: 'Bergama Raporu', href: '/reports/bergama', icon: MapPin, color: 'text-cyan-400' })
+      reportItems.push({ label: 'İncesu Otomotiv', href: '/reports/bergama', icon: MapPin, color: 'text-cyan-400' })
     }
     groups.push({ title: 'RAPORLAR', items: reportItems })
   }
@@ -77,7 +78,7 @@ export function Sidebar({ profile }: { profile: UserProfile | null }) {
 
   const isAdmin = profile?.role === 'super_admin'
   const isManager = profile?.role === 'manager'
-  const roleName = isAdmin ? 'Süper Admin' : isManager ? 'Yönetici' : 'Danışman'
+  const roleName = isAdmin ? 'Yönetici' : isManager ? 'Satış Müdürü' : 'Satış Danışmanı'
   const groups = getNavGroups(isAdmin, isManager)
 
   const isActive = (href: string) =>

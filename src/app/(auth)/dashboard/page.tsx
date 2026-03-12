@@ -97,7 +97,7 @@ export default async function DashboardPage() {
             <p className="text-blue-200 text-sm font-medium mb-1">{today}</p>
             <h1 className="text-2xl font-bold">Hoş Geldiniz, {firstName} 👋</h1>
             <p className="text-blue-200 text-sm mt-1">
-              {profile?.role === 'super_admin' ? 'Yönetici Paneli' : profile?.role === 'manager' ? 'Yönetici Paneli' : 'Danışman Paneli'}
+              {profile?.role === 'super_admin' ? 'Yönetici Paneli' : profile?.role === 'manager' ? 'Satış Müdürü Paneli' : 'Danışman Paneli'}
             </p>
           </div>
           <Link href="/customers/new"

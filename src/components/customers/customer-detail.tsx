@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PipelineTimeline } from './pipeline-timeline'
 import { ContactLogForm } from './contact-log-form'
-import { Phone, Mail, MapPin, Car, MessageSquare, Calendar, Clock, ChevronRight, Edit2, CheckCircle, XCircle } from 'lucide-react'
+import { Phone, Mail, MapPin, Car, MessageSquare, Calendar, Clock, ChevronRight, CheckCircle, XCircle, X, AlertCircle } from 'lucide-react'
 import { formatDate, OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/utils'
 import type { Customer, SalesStage, CustomerStageHistory, ContactLog, ContactChannel, VehicleInterest } from '@/lib/types/database'
 import Link from 'next/link'
@@ -34,6 +34,35 @@ export function CustomerDetail({
   const [logs, setLogs] = useState(initialLogs)
   const [activeTab, setActiveTab] = useState<'timeline' | 'contacts' | 'vehicles'>('timeline')
 
+  const [isWon, setIsWon] = useState(customer.is_won)
+  const [isLost, setIsLost] = useState(customer.is_lost)
+  const [showLostModal, setShowLostModal] = useState(false)
+
+  const [stageFields, setStageFields] = useState<Record<string, boolean | string | number | null>>({
+    vehicle_info_given:              customer.vehicle_info_given ?? false,
+    test_drive_done:                 customer.test_drive_done ?? false,
+    catalog_given:                   customer.catalog_given ?? false,
+    offer_written:                   customer.offer_written ?? false,
+    offer_amount:                    customer.offer_amount ?? null,
+    offer_campaign:                  customer.offer_campaign ?? null,
+    offer_accepted:                  customer.offer_accepted ?? false,
+    followup_done:                   customer.followup_done ?? false,
+    followup_datetime:               customer.followup_datetime ?? null,
+    deposit_received:                customer.deposit_received ?? false,
+    contract_signed:                 customer.contract_signed ?? false,
+    insurance_kasko_offered:         customer.insurance_kasko_offered ?? false,
+    insurance_kasko_not_done:        customer.insurance_kasko_not_done ?? false,
+    insurance_kasko_fail_reason:     customer.insurance_kasko_fail_reason ?? null,
+    insurance_trafik_offered:        customer.insurance_trafik_offered ?? false,
+    insurance_trafik_not_done:       customer.insurance_trafik_not_done ?? false,
+    insurance_trafik_fail_reason:    customer.insurance_trafik_fail_reason ?? null,
+    oto_koruma_sold:                 customer.oto_koruma_sold ?? false,
+    oto_koruma_not_done:             customer.oto_koruma_not_done ?? false,
+    oto_koruma_fail_reason:          customer.oto_koruma_fail_reason ?? null,
+    oto_koruma_product:              customer.oto_koruma_product ?? null,
+    oto_koruma_amount:               customer.oto_koruma_amount ?? null,
+  })
+
   const handleStageUpdate = (stageId: string) => {
     setCurrentStageId(stageId)
     // Optimistically add to history - will refresh on next server render
@@ -45,23 +74,58 @@ export function CustomerDetail({
 
   const currentStage = stages.find((s) => s.id === currentStageId)
 
-  const handleMarkWon = async () => {
+  const handleToggleWon = async () => {
+    const next = !isWon
+    setIsWon(next)
+    if (next) setIsLost(false)
     const supabase = createClient()
     const { error } = await supabase
       .from('customers')
-      .update({ is_won: true, is_lost: false })
+      .update({ is_won: next, ...(next ? { is_lost: false } : {}) })
       .eq('id', customer.id)
-    if (error) toast.error('Güncelleme başarısız'); else toast.success('Müşteri "Kazanıldı" olarak işaretlendi')
+    if (error) { toast.error('Güncelleme başarısız'); setIsWon(!next) }
+    else toast.success(next ? 'Satış yapıldı olarak işaretlendi' : 'Satış durumu kaldırıldı')
   }
 
-  const handleMarkLost = async () => {
-    const reason = window.prompt('Kayıp nedeni (isteğe bağlı):')
+  const handleMarkLost = () => {
+    if (isLost) {
+      handleUndoLost()
+    } else {
+      setShowLostModal(true)
+    }
+  }
+
+  const handleUndoLost = async () => {
+    setIsLost(false)
     const supabase = createClient()
     const { error } = await supabase
       .from('customers')
-      .update({ is_lost: true, is_won: false, lost_reason: reason || null })
+      .update({ is_lost: false, lost_reason: null })
       .eq('id', customer.id)
-    if (error) toast.error('Güncelleme başarısız'); else toast.success('Müşteri "Kaybedildi" olarak işaretlendi')
+    if (error) { toast.error('Güncelleme başarısız'); setIsLost(true) }
+    else toast.success('Kayıp durumu kaldırıldı')
+  }
+
+  const handleConfirmLost = async (reasons: string[], note: string) => {
+    const lostReason = [...reasons, ...(note.trim() ? [`Not: ${note.trim()}`] : [])].join('\n')
+    setIsLost(true)
+    setIsWon(false)
+    setShowLostModal(false)
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('customers')
+      .update({ is_lost: true, is_won: false, lost_reason: lostReason || null })
+      .eq('id', customer.id)
+    if (error) { toast.error('Güncelleme başarısız'); setIsLost(false) }
+    else toast.success('Müşteri "Satış Yapılamadı" olarak işaretlendi')
+  }
+
+  const onUpdateField = async (field: string, value: boolean | string | number | null) => {
+    const prev = stageFields[field]
+    setStageFields(p => ({ ...p, [field]: value }))
+    const supabase = createClient()
+    const { error } = await supabase.from('customers').update({ [field]: value }).eq('id', customer.id)
+    if (error) { toast.error('Güncellenemedi'); setStageFields(p => ({ ...p, [field]: prev })) }
   }
 
   return (
@@ -123,33 +187,38 @@ export function CustomerDetail({
                   {currentStage.name}
                 </span>
               )}
-              {customer.is_won && (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">
-                  <CheckCircle className="h-3 w-3" /> Kazanıldı
-                </span>
-              )}
-              {customer.is_lost && (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">
-                  <XCircle className="h-3 w-3" /> Kaybedildi
-                </span>
-              )}
               {/* Actions */}
-              {!customer.is_won && !customer.is_lost && (
-                <div className="flex gap-1.5">
-                  <button
-                    onClick={handleMarkWon}
-                    className="h-7 px-2.5 rounded-lg bg-green-50 border border-green-200 text-green-700 text-xs font-medium hover:bg-green-100 transition-colors flex items-center gap-1"
-                  >
-                    <CheckCircle className="h-3 w-3" /> Kazanıldı
-                  </button>
+              <div className="flex items-center gap-2">
+                {/* Satış Yapıldı toggle — pasif → yeşil */}
+                <button
+                  onClick={handleToggleWon}
+                  disabled={isLost}
+                  className={`h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 border-2 transition-all ${
+                    isWon
+                      ? 'bg-green-600 border-green-600 text-white shadow-sm'
+                      : 'bg-white border-gray-200 text-gray-400 hover:border-green-400 hover:text-green-600 disabled:opacity-40 disabled:cursor-not-allowed'
+                  }`}
+                >
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  {isWon ? 'Satış Yapıldı ✓' : 'Satış Yapıldı'}
+                </button>
+
+                {/* Kaybedildi — her zaman tıklanabilir, aktifken geri alınabilir */}
+                {!isWon && (
                   <button
                     onClick={handleMarkLost}
-                    className="h-7 px-2.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-medium hover:bg-red-100 transition-colors flex items-center gap-1"
+                    title={isLost ? 'Kayıp durumunu kaldırmak için tıklayın' : ''}
+                    className={`h-8 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 border-2 transition-all ${
+                      isLost
+                        ? 'bg-red-600 border-red-600 text-white shadow-sm hover:bg-red-700'
+                        : 'bg-white border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-600 hover:bg-red-50'
+                    }`}
                   >
-                    <XCircle className="h-3 w-3" /> Kaybedildi
+                    <XCircle className="h-3.5 w-3.5" />
+                    {isLost ? 'Kaybedildi ✕' : 'Kaybedildi'}
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
@@ -207,13 +276,18 @@ export function CustomerDetail({
         <div className="p-5">
           {/* Pipeline Tab */}
           {activeTab === 'timeline' && (
-            <PipelineTimeline
-              customerId={customer.id}
-              stages={stages}
-              history={history}
-              currentStageId={currentStageId}
-              onStageUpdate={handleStageUpdate}
-            />
+            <div className="space-y-5">
+              <PipelineTimeline
+                customerId={customer.id}
+                stages={stages}
+                history={history}
+                currentStageId={currentStageId}
+                onStageUpdate={handleStageUpdate}
+                customerFields={stageFields}
+                onUpdateField={onUpdateField}
+              />
+
+            </div>
           )}
 
           {/* Contact Logs Tab */}
@@ -303,14 +377,14 @@ export function CustomerDetail({
                       <div className="text-right">
                         {vi.offered_price && (
                           <p className="text-sm font-bold text-gray-900">
-                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(vi.offered_price)}
+                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(vi.offered_price)}
                           </p>
                         )}
                         {(vi.budget_min || vi.budget_max) && (
                           <p className="text-xs text-gray-500">
-                            Bütçe: {vi.budget_min ? new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(vi.budget_min) : '—'}
+                            Bütçe: {vi.budget_min ? new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(vi.budget_min) : '—'}
                             {' — '}
-                            {vi.budget_max ? new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(vi.budget_max) : '—'} ₺
+                            {vi.budget_max ? new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(vi.budget_max) : '—'} ₺
                           </p>
                         )}
                       </div>
@@ -323,6 +397,141 @@ export function CustomerDetail({
           )}
         </div>
       </div>
+
+      {/* Lost Reason Modal */}
+      {showLostModal && (
+        <LostReasonModal
+          onConfirm={handleConfirmLost}
+          onClose={() => setShowLostModal(false)}
+        />
+      )}
     </div>
   )
 }
+
+// ─── Lost Reason Modal ────────────────────────────────────────────────────────
+
+function LostReasonModal({
+  onConfirm,
+  onClose,
+}: {
+  onConfirm: (reasons: string[], note: string) => Promise<void>
+  onClose: () => void
+}) {
+  const [reasons, setReasons] = useState<string[]>([])
+  const [selected, setSelected] = useState<string[]>([])
+  const [note, setNote] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.from('lost_reasons').select('name').eq('is_active', true).order('sort_order')
+      .then(({ data }) => setReasons((data ?? []).map((r: { name: string }) => r.name)))
+  }, [])
+
+  const toggle = (r: string) =>
+    setSelected(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r])
+
+  const handleSave = async () => {
+    if (selected.length === 0 && !note.trim()) {
+      toast.error('En az bir sebep seçin veya not girin')
+      return
+    }
+    setSaving(true)
+    await onConfirm(selected, note)
+    setSaving(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100">
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-red-100 flex items-center justify-center">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-gray-900">Satış Yapılamadı</h3>
+              <p className="text-xs text-gray-500">Lütfen sebep(leri) işaretleyin</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="h-7 w-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Reasons */}
+        <div className="px-5 py-4 space-y-2 max-h-72 overflow-y-auto">
+          {reasons.length === 0 && (
+            <p className="text-xs text-gray-400 text-center py-4">Sebepler yükleniyor...</p>
+          )}
+          {reasons.map((reason) => {
+            const checked = selected.includes(reason)
+            return (
+              <button
+                key={reason}
+                onClick={() => toggle(reason)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${
+                  checked
+                    ? 'bg-red-50 border-red-200'
+                    : 'bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-white'
+                }`}
+              >
+                <div className={`h-5 w-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                  checked ? 'bg-red-500 border-red-500' : 'bg-white border-gray-300'
+                }`}>
+                  {checked && (
+                    <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </div>
+                <span className={`text-sm ${checked ? 'text-red-800 font-medium' : 'text-gray-700'}`}>
+                  {reason}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Additional note */}
+        <div className="px-5 pb-4">
+          <label className="text-xs font-semibold text-gray-500 block mb-1.5">Ek not (isteğe bağlı)</label>
+          <textarea
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            placeholder="Detay veya ek bilgi..."
+            rows={2}
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 resize-none bg-gray-50"
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 px-5 pb-5">
+          <button
+            onClick={onClose}
+            className="flex-1 h-9 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            İptal
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 h-9 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 whitespace-nowrap"
+          >
+            {saving
+              ? <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+              : <XCircle className="h-3.5 w-3.5 shrink-0" />
+            }
+            Onayla
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+

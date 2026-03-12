@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Search, Filter, ChevronRight, Phone, Car, FileText, Clock, CheckCircle, Shield, Lock, X } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import type { Customer } from '@/lib/types/database'
@@ -29,6 +30,7 @@ const DATE_TABS = [
 ]
 
 export function CustomerList({ customers, brands, stages, consultants }: CustomerListProps) {
+  const router = useRouter()
   const [search, setSearch] = useState('')
   const [filterBrand, setFilterBrand] = useState('')
   const [filterStage, setFilterStage] = useState('')
@@ -191,15 +193,22 @@ export function CustomerList({ customers, brands, stages, consultants }: Custome
                 <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden lg:table-cell">Telefon</th>
                 <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Durum</th>
                 <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden lg:table-cell">Danışman</th>
+                <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden xl:table-cell">Ek Hizmet</th>
                 <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">Tarih</th>
                 <th className="w-8" />
               </tr>
             </thead>
             <tbody>
               {filtered.map((customer, idx) => {
-                const StageIcon = customer.current_stage?.slug ? (stageIcons[customer.current_stage.slug] ?? Car) : Car
+                // Sigorta ve Oto Koruma aşamaları listede gösterilmez, Kabul olarak kalır
+                const HIDDEN_STAGE_SLUGS = ['sigorta', 'oto-koruma']
+                const displayStage = customer.current_stage && HIDDEN_STAGE_SLUGS.includes(customer.current_stage.slug ?? '')
+                  ? stages.find(s => s.slug === 'kabul') ?? customer.current_stage
+                  : customer.current_stage
+                const StageIcon = displayStage?.slug ? (stageIcons[displayStage.slug] ?? Car) : Car
                 return (
                   <tr key={customer.id}
+                    onClick={() => router.push(`/customers/${customer.id}`)}
                     className={`border-b border-gray-50 hover:bg-blue-50/50 transition-colors cursor-pointer group ${idx % 2 === 1 ? 'bg-gray-50/60' : ''}`}>
                     <td className="px-4 py-2.5">
                       <Link href={`/customers/${customer.id}`} className="flex items-center gap-2.5">
@@ -225,21 +234,41 @@ export function CustomerList({ customers, brands, stages, consultants }: Custome
                     <td className="px-3 py-2.5">
                       {customer.is_won ? (
                         <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-green-50 text-green-700 border-green-200">
-                          <CheckCircle className="h-3 w-3" /> Kazanıldı
+                          <CheckCircle className="h-3 w-3" /> Satış Yapıldı
                         </span>
                       ) : customer.is_lost ? (
                         <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-red-50 text-red-600 border-red-200">
                           <X className="h-3 w-3" /> Kaybedildi
                         </span>
-                      ) : customer.current_stage ? (
+                      ) : displayStage ? (
                         <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
-                          style={{ backgroundColor: customer.current_stage.color + '15', color: customer.current_stage.color, borderColor: customer.current_stage.color + '30' }}>
-                          <StageIcon className="h-3 w-3" /> {customer.current_stage.name}
+                          style={{ backgroundColor: displayStage.color + '15', color: displayStage.color, borderColor: displayStage.color + '30' }}>
+                          <StageIcon className="h-3 w-3" /> {displayStage.name}
                         </span>
                       ) : <span className="text-xs text-gray-400">—</span>}
                     </td>
                     <td className="px-3 py-2.5 hidden lg:table-cell">
                       <span className="text-xs text-gray-600">{customer.consultant?.full_name ?? '—'}</span>
+                    </td>
+                    <td className="px-3 py-2.5 hidden xl:table-cell">
+                      <div className="flex items-center gap-1">
+                        {(customer.insurance_kasko_sold || customer.insurance_trafik_sold) && (
+                          <span title={[customer.insurance_kasko_sold && 'Kasko', customer.insurance_trafik_sold && 'Trafik'].filter(Boolean).join(' + ') + ' Satıldı'}
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                            <Shield className="h-2.5 w-2.5" />
+                            {customer.insurance_kasko_sold && customer.insurance_trafik_sold ? 'K+T' : customer.insurance_kasko_sold ? 'Kasko' : 'Trafik'}
+                          </span>
+                        )}
+                        {customer.oto_koruma_sold && (
+                          <span title="Oto Koruma Satıldı"
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-100">
+                            <Lock className="h-2.5 w-2.5" /> OK
+                          </span>
+                        )}
+                        {!customer.insurance_kasko_sold && !customer.insurance_trafik_sold && !customer.oto_koruma_sold && (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 py-2.5 hidden md:table-cell">
                       <span className="text-xs text-gray-400">{formatDate(customer.created_at)}</span>

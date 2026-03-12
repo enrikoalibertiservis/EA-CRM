@@ -1,8 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { CustomerDetail } from '@/components/customers/customer-detail'
-import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
 import type { Customer, CustomerStageHistory, ContactLog, VehicleInterest } from '@/lib/types/database'
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -30,22 +28,16 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-            style={{ backgroundColor: customer.brand?.color ?? '#6B7280' }}>
-            {customer.full_name.charAt(0)}
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">{customer.full_name}</h1>
-            <p className="text-xs text-gray-500">{customer.brand?.name ?? ''} · {customer.location?.name ?? ''}</p>
-          </div>
+      {/* Customer name sub-header (under PageHero) */}
+      <div className="flex items-center gap-3 -mt-2 mb-1">
+        <div className="h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm"
+          style={{ backgroundColor: customer.brand?.color ?? '#6B7280' }}>
+          {customer.full_name.charAt(0)}
         </div>
-        <Link href="/customers"
-          className="flex items-center gap-1.5 h-9 px-4 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
-          <ChevronLeft className="h-3.5 w-3.5" />
-          Geri
-        </Link>
+        <div>
+          <h1 className="text-lg font-bold text-gray-900">{customer.full_name}</h1>
+          <p className="text-xs text-gray-500">{customer.brand?.name ?? ''} · {customer.location?.name ?? ''}</p>
+        </div>
       </div>
       <CustomerDetail
         customer={customer as Customer}

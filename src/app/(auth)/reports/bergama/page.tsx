@@ -16,9 +16,9 @@ import type {
   ContactChannel,
 } from '@/lib/types/database'
 
-const BERGAMA_LOCATION_ID = '00000000-0000-0000-0000-000000000002'
+const INCESU_LOCATION_ID = '00000000-0000-0000-0000-000000000002'
 
-export default async function BergamaReportPage() {
+export default async function IncesusReportPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -28,79 +28,68 @@ export default async function BergamaReportPage() {
     .eq('id', user!.id)
     .single()
 
-  // Only super_admin can view Bergama report
   if (profile?.role !== 'super_admin') {
     redirect('/dashboard')
   }
 
-  const { data: brands } = await supabase.from('brands').select('*').eq('is_active', true)
-  const { data: stages } = await supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order')
+  const { data: brands }   = await supabase.from('brands').select('*').eq('is_active', true)
+  const { data: stages }   = await supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order')
   const { data: channels } = await supabase.from('contact_channels').select('*').eq('is_active', true).order('sort_order')
 
-  // Bergama customers only
   const { data: customers } = await supabase
     .from('customers')
     .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id')
     .eq('is_active', true)
-    .eq('location_id', BERGAMA_LOCATION_ID)
+    .eq('location_id', INCESU_LOCATION_ID)
 
-  // Bergama consultants
   const { data: consultants } = await supabase
     .from('user_profiles')
     .select('id, full_name, is_active')
-    .eq('location_id', BERGAMA_LOCATION_ID)
+    .eq('location_id', INCESU_LOCATION_ID)
 
-  // Contact logs for Bergama customers
-  const bergamaCustomerIds = (customers ?? []).map((c) => c.id)
-
-  const { data: contactLogs } = bergamaCustomerIds.length > 0
+  const customerIds = (customers ?? []).map((c) => c.id)
+  const { data: contactLogs } = customerIds.length > 0
     ? await supabase
         .from('contact_logs')
         .select('id, channel_id, contact_date, created_by')
-        .in('customer_id', bergamaCustomerIds)
+        .in('customer_id', customerIds)
     : { data: [] }
 
-  // Recent Bergama customers
   const { data: recentCustomers } = await supabase
     .from('customers')
     .select('id, full_name, created_at, brand:brands(name, color), current_stage:sales_stages(name, color)')
     .eq('is_active', true)
-    .eq('location_id', BERGAMA_LOCATION_ID)
+    .eq('location_id', INCESU_LOCATION_ID)
     .order('created_at', { ascending: false })
     .limit(10)
 
-  // Consultant performance
   const consultantPerf = (consultants ?? []).map((c) => {
-    const custCount = (customers ?? []).filter((cu) => cu.consultant_id === c.id).length
-    const wonCount = (customers ?? []).filter((cu) => cu.consultant_id === c.id && cu.is_won).length
+    const custCount    = (customers ?? []).filter((cu) => cu.consultant_id === c.id).length
+    const wonCount     = (customers ?? []).filter((cu) => cu.consultant_id === c.id && cu.is_won).length
     const contactCount = (contactLogs ?? []).filter((l) => l.created_by === c.id).length
     return { ...c, custCount, wonCount, contactCount }
   }).sort((a, b) => b.custCount - a.custCount)
 
-  // Brand funnel data (Bergama only)
   const brandFunnelData: BrandFunnelData[] = (brands ?? []).map((brand: Brand) => {
-    const brandCustomers = (customers ?? []).filter((c) => c.brand_id === brand.id)
+    const bc = (customers ?? []).filter((c) => c.brand_id === brand.id)
     return {
       brand,
       stages: (stages ?? []).map((stage: SalesStage) => ({
         stage,
-        count: brandCustomers.filter((c) => c.current_stage_id === stage.id).length,
+        count: bc.filter((c) => c.current_stage_id === stage.id).length,
       })),
-      total: brandCustomers.length,
-      won: brandCustomers.filter((c) => c.is_won).length,
-      lost: brandCustomers.filter((c) => c.is_lost).length,
+      total: bc.length,
+      won:   bc.filter((c) => c.is_won).length,
+      lost:  bc.filter((c) => c.is_lost).length,
     }
   })
 
-  // Heatmap
   const heatmapData: HeatmapCell[] = []
   if (contactLogs) {
     const cellMap = new Map<string, number>()
     contactLogs.forEach((log) => {
-      const date = new Date(log.contact_date)
-      const day = (date.getDay() + 6) % 7
-      const hour = date.getHours()
-      const key = `${day}-${hour}`
+      const d   = new Date(log.contact_date)
+      const key = `${(d.getDay() + 6) % 7}-${d.getHours()}`
       cellMap.set(key, (cellMap.get(key) ?? 0) + 1)
     })
     cellMap.forEach((count, key) => {
@@ -109,7 +98,6 @@ export default async function BergamaReportPage() {
     })
   }
 
-  // Channel stats
   const channelStats: ChannelStats[] = (channels ?? []).map((channel: ContactChannel) => {
     const count = (contactLogs ?? []).filter((l) => l.channel_id === channel.id).length
     return { channel, count, percentage: 0 }
@@ -118,203 +106,188 @@ export default async function BergamaReportPage() {
   channelStats.forEach((s: ChannelStats) => { s.percentage = total > 0 ? (s.count / total) * 100 : 0 })
   channelStats.sort((a: ChannelStats, b: ChannelStats) => b.count - a.count)
 
-  // Activity chart (last 30 days)
   const activityData = Array.from({ length: 30 }, (_, i) => {
     const d = new Date()
     d.setDate(d.getDate() - (29 - i))
-    const label = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
+    const label   = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
     const dateStr = d.toISOString().split('T')[0]
-    const count = (contactLogs ?? []).filter((l) => l.contact_date.startsWith(dateStr)).length
+    const count   = (contactLogs ?? []).filter((l) => l.contact_date.startsWith(dateStr)).length
     return { label, count }
   })
 
-  // Conversion rates by stage
-  const stageConversions = (stages ?? []).map((stage: SalesStage) => {
-    const atStage = (customers ?? []).filter((c) => c.current_stage_id === stage.id).length
-    return { stage, count: atStage }
-  })
-
-  const totalCustomers = customers?.length ?? 0
-  const wonCustomers = customers?.filter((c) => c.is_won).length ?? 0
-  const lostCustomers = customers?.filter((c) => c.is_lost).length ?? 0
-  const activeCustomers = totalCustomers - wonCustomers - lostCustomers
-  const conversionRate = totalCustomers > 0 ? ((wonCustomers / totalCustomers) * 100).toFixed(1) : '0.0'
+  const totalCustomers    = customers?.length ?? 0
+  const wonCustomers      = customers?.filter((c) => c.is_won).length ?? 0
+  const lostCustomers     = customers?.filter((c) => c.is_lost).length ?? 0
+  const activeCustomers   = totalCustomers - wonCustomers - lostCustomers
+  const conversionRate    = totalCustomers > 0 ? ((wonCustomers / totalCustomers) * 100).toFixed(1) : '0.0'
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-            <MapPin className="h-5 w-5 text-emerald-600" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">Bergama Şube Raporu</h1>
-            <p className="text-xs text-gray-500">Uydu bayi detaylı performans analizi</p>
-          </div>
-        </div>
-        <Link href="/reports/main" className="text-xs text-blue-600 hover:text-blue-700 font-semibold border border-blue-200 rounded-lg px-4 h-9 flex items-center shadow-sm">
-          Merkez Raporu →
+      <div className="flex justify-end -mt-4 mb-2">
+        <Link href="/reports/main" className="text-xs text-blue-600 hover:text-blue-700 font-semibold border border-blue-200 rounded-lg px-4 h-9 flex items-center shadow-sm bg-white">
+          Merkez Raporu [char]0x2192
         </Link>
       </div>
-        {/* Header badge */}
-        <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-          <MapPin className="h-4 w-4 text-emerald-600" />
-          <p className="text-sm text-emerald-800 font-medium">Bergama Şube — Uydu Bayi Analizi</p>
-          <span className="ml-auto text-xs text-emerald-600">Sadece super admin görür</span>
-        </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          {[
-            { label: 'Toplam Müşteri', value: totalCustomers, icon: Users, color: '#3B82F6', bg: '#EFF6FF' },
-            { label: 'Aktif Takip', value: activeCustomers, icon: TrendingUp, color: '#F59E0B', bg: '#FFFBEB' },
-            { label: 'Kazanılan', value: wonCustomers, icon: CheckCircle, color: '#10B981', bg: '#ECFDF5' },
-            { label: 'Kaybedilen', value: lostCustomers, icon: XCircle, color: '#EF4444', bg: '#FEF2F2' },
-            { label: 'Toplam Temas', value: contactLogs?.length ?? 0, icon: MessageSquare, color: '#8B5CF6', bg: '#F5F3FF' },
-          ].map((stat) => {
-            const Icon = stat.icon
-            return (
-              <div key={stat.label} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                <div className="h-8 w-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: stat.bg }}>
-                  <Icon className="h-4 w-4" style={{ color: stat.color }} />
-                </div>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
+      {/* Header badge */}
+      <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+        <MapPin className="h-4 w-4 text-emerald-600" />
+        <p className="text-sm text-emerald-800 font-medium">?ncesu Otomotiv ? Uydu Bayi Analizi</p>
+        <span className="ml-auto text-xs text-emerald-600">Sadece y�netici g�r�r</span>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {[
+          { label: 'Toplam M�?teri', value: totalCustomers,          icon: Users,        color: '#3B82F6', bg: '#EFF6FF' },
+          { label: 'Aktif Takip',    value: activeCustomers,          icon: TrendingUp,   color: '#F59E0B', bg: '#FFFBEB' },
+          { label: 'Kazan?lan',      value: wonCustomers,             icon: CheckCircle,  color: '#10B981', bg: '#ECFDF5' },
+          { label: 'Kaybedilen',     value: lostCustomers,            icon: XCircle,      color: '#EF4444', bg: '#FEF2F2' },
+          { label: 'Toplam Temas',   value: contactLogs?.length ?? 0, icon: MessageSquare, color: '#8B5CF6', bg: '#F5F3FF' },
+        ].map((stat) => {
+          const Icon = stat.icon
+          return (
+            <div key={stat.label} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: stat.bg }}>
+                <Icon className="h-4 w-4" style={{ color: stat.color }} />
               </div>
-            )
-          })}
-        </div>
-
-        {/* Conversion rate highlight */}
-        <div className="bg-gradient-to-r from-[#1E3A5F] to-[#2D5A8E] rounded-xl p-5 text-white">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <p className="text-white/60 text-sm">Bergama Dönüşüm Oranı</p>
-              <p className="text-4xl font-bold mt-1">%{conversionRate}</p>
-              <p className="text-white/60 text-xs mt-1">{wonCustomers} kazanılan / {totalCustomers} toplam müşteri</p>
+              <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
             </div>
-            <div className="text-right">
-              <p className="text-white/60 text-xs">Aktif Danışman Sayısı</p>
-              <p className="text-2xl font-bold">{consultants?.filter((c) => c.is_active).length ?? 0}</p>
-            </div>
-          </div>
-        </div>
+          )
+        })}
+      </div>
 
-        {/* Brand Funnels */}
-        <div>
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">Bergama — Marka Bazlı Huni</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {brandFunnelData.filter((d) => d.total > 0).map((d) => (
-              <BrandFunnel key={d.brand.id} data={d} />
-            ))}
-            {brandFunnelData.every((d) => d.total === 0) && (
-              <div className="col-span-2 bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400 text-sm">
-                Bergama şubesinde henüz müşteri kaydı bulunmuyor
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Consultant Performance */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">Danışman Performansı</h2>
-          {consultantPerf.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">Danışman bulunamadı</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Danışman</th>
-                    <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Müşteri</th>
-                    <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Kazanılan</th>
-                    <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Temas</th>
-                    <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Dönüşüm</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {consultantPerf.map((c, i) => (
-                    <tr key={c.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                      <td className="py-2.5 px-3">
-                        <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-[#1E3A5F] text-white flex items-center justify-center text-xs font-bold">
-                            {c.full_name.charAt(0)}
-                          </div>
-                          <span className="font-medium text-gray-900">{c.full_name}</span>
-                          {!c.is_active && <span className="text-xs text-gray-400">(Pasif)</span>}
-                        </div>
-                      </td>
-                      <td className="py-2.5 px-3 text-right font-semibold text-gray-900">{c.custCount}</td>
-                      <td className="py-2.5 px-3 text-right">
-                        <span className="font-semibold text-green-600">{c.wonCount}</span>
-                      </td>
-                      <td className="py-2.5 px-3 text-right text-gray-600">{c.contactCount}</td>
-                      <td className="py-2.5 px-3 text-right">
-                        <span className="font-semibold">
-                          {c.custCount > 0 ? `%${((c.wonCount / c.custCount) * 100).toFixed(0)}` : '—'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Heatmap + Channel */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <ContactHeatmap data={heatmapData} title="Bergama — İletişim Yoğunluğu (Gün/Saat)" />
-          </div>
+      {/* Conversion rate highlight */}
+      <div className="bg-gradient-to-r from-[#1E3A5F] to-[#2D5A8E] rounded-xl p-5 text-white">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <ChannelChart data={channelStats} title="Bergama — Temas Kanalları" />
+            <p className="text-white/60 text-sm">?ncesu Otomotiv D�n�?�m Oran?</p>
+            <p className="text-4xl font-bold mt-1">%{conversionRate}</p>
+            <p className="text-white/60 text-xs mt-1">{wonCustomers} kazan?lan / {totalCustomers} toplam m�?teri</p>
+          </div>
+          <div className="text-right">
+            <p className="text-white/60 text-xs">Aktif Dan??man Say?s?</p>
+            <p className="text-2xl font-bold">{consultants?.filter((c) => c.is_active).length ?? 0}</p>
           </div>
         </div>
+      </div>
 
-        {/* Activity (30 days) */}
-        <ActivityChart data={activityData} title="Bergama — Son 30 Gün Temas Aktivitesi" color="#10B981" />
-
-        {/* Recent customers */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">Bergama Son Müşteriler</h2>
-          {!recentCustomers || recentCustomers.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">Henüz müşteri yok</p>
-          ) : (
-            <div className="space-y-1.5">
-              {recentCustomers.map((c) => {
-                const brand = Array.isArray(c.brand) ? c.brand[0] : c.brand
-                const stage = Array.isArray(c.current_stage) ? c.current_stage[0] : c.current_stage
-                return (
-                  <Link
-                    key={c.id}
-                    href={`/customers/${c.id}`}
-                    className="flex items-center gap-2.5 py-2 px-2 hover:bg-gray-50 rounded-lg transition-colors -mx-2"
-                  >
-                    <div
-                      className="h-7 w-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                      style={{ backgroundColor: brand?.color ?? '#6B7280' }}
-                    >
-                      {c.full_name.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-900 truncate">{c.full_name}</p>
-                      <p className="text-xs text-gray-400">{brand?.name} · {formatDate(c.created_at)}</p>
-                    </div>
-                    {stage && (
-                      <span
-                        className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: stage.color + '22', color: stage.color }}
-                      >
-                        {stage.name}
-                      </span>
-                    )}
-                  </Link>
-                )
-              })}
+      {/* Brand Funnels */}
+      <div>
+        <h2 className="text-sm font-semibold text-gray-700 mb-3">?ncesu Otomotiv ? Marka Bazl? Huni</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {brandFunnelData.filter((d) => d.total > 0).map((d) => (
+            <BrandFunnel key={d.brand.id} data={d} />
+          ))}
+          {brandFunnelData.every((d) => d.total === 0) && (
+            <div className="col-span-2 bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400 text-sm">
+              ?ncesu Otomotiv ?ubesinde hen�z m�?teri kayd? bulunmuyor
             </div>
           )}
         </div>
+      </div>
+
+      {/* Consultant Performance */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">Dan??man Performans?</h2>
+        {consultantPerf.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-6">Dan??man bulunamad?</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500">Dan??man</th>
+                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">M�?teri</th>
+                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Kazan?lan</th>
+                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">Temas</th>
+                  <th className="text-right py-2 px-3 text-xs font-semibold text-gray-500">D�n�?�m</th>
+                </tr>
+              </thead>
+              <tbody>
+                {consultantPerf.map((c, i) => (
+                  <tr key={c.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                    <td className="py-2.5 px-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-full bg-[#1E3A5F] text-white flex items-center justify-center text-xs font-bold">
+                          {c.full_name.charAt(0)}
+                        </div>
+                        <span className="font-medium text-gray-900">{c.full_name}</span>
+                        {!c.is_active && <span className="text-xs text-gray-400">(Pasif)</span>}
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-semibold text-gray-900">{c.custCount}</td>
+                    <td className="py-2.5 px-3 text-right">
+                      <span className="font-semibold text-green-600">{c.wonCount}</span>
+                    </td>
+                    <td className="py-2.5 px-3 text-right text-gray-600">{c.contactCount}</td>
+                    <td className="py-2.5 px-3 text-right">
+                      <span className="font-semibold">
+                        {c.custCount > 0 ? `%${((c.wonCount / c.custCount) * 100).toFixed(0)}` : '?'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Heatmap + Channel */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2">
+          <ContactHeatmap data={heatmapData} title="?ncesu Otomotiv ? ?leti?im Yo?unlu?u (G�n/Saat)" />
+        </div>
+        <div>
+          <ChannelChart data={channelStats} title="?ncesu Otomotiv ? Temas Kanallar?" />
+        </div>
+      </div>
+
+      {/* Activity */}
+      <ActivityChart data={activityData} title="?ncesu Otomotiv ? Son 30 G�n Temas Aktivitesi" color="#10B981" />
+
+      {/* Recent customers */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">?ncesu Otomotiv ? Son M�?teriler</h2>
+        {!recentCustomers || recentCustomers.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-6">Hen�z m�?teri yok</p>
+        ) : (
+          <div className="space-y-1.5">
+            {recentCustomers.map((c) => {
+              const brand = Array.isArray(c.brand) ? c.brand[0] : c.brand
+              const stage = Array.isArray(c.current_stage) ? c.current_stage[0] : c.current_stage
+              return (
+                <Link
+                  key={c.id}
+                  href={`/customers/${c.id}`}
+                  className="flex items-center gap-2.5 py-2 px-2 hover:bg-gray-50 rounded-lg transition-colors -mx-2"
+                >
+                  <div
+                    className="h-7 w-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                    style={{ backgroundColor: brand?.color ?? '#6B7280' }}
+                  >
+                    {c.full_name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-gray-900 truncate">{c.full_name}</p>
+                    <p className="text-xs text-gray-400">{brand?.name} � {formatDate(c.created_at)}</p>
+                  </div>
+                  {stage && (
+                    <span
+                      className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: stage.color + '22', color: stage.color }}
+                    >
+                      {stage.name}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
