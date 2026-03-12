@@ -6,8 +6,9 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import {
   User, MapPin, Car, MessageSquare, ChevronLeft,
-  Store, PhoneCall, Globe, Share2, UserCheck, CalendarCheck,
-  HelpCircle, Target, AtSign, MessageCircle, Building2, Phone,
+  PhoneCall, Globe, Share2, UserCheck,
+  HelpCircle, Building2, Phone, Users, Wrench, Shield,
+  Radio, Newspaper, BookOpen, Search, Heart,
   type LucideIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -25,16 +26,19 @@ function formatGSM(value: string): string {
 // ─── Kanal ikon haritası ───────────────────────────────────────────────────────
 
 const CHANNEL_ICONS: Record<string, { icon: LucideIcon; color: string; bg: string }> = {
-  'Showroom Ziyaret': { icon: Store,         color: '#6366F1', bg: '#EEF2FF' },
-  'Telefon':          { icon: PhoneCall,      color: '#10B981', bg: '#ECFDF5' },
-  'WhatsApp':         { icon: MessageCircle,  color: '#22C55E', bg: '#F0FDF4' },
-  'E-posta':          { icon: AtSign,         color: '#3B82F6', bg: '#EFF6FF' },
-  'Web Sitesi':       { icon: Globe,          color: '#06B6D4', bg: '#ECFEFF' },
-  'Sosyal Medya':     { icon: Share2,         color: '#EC4899', bg: '#FDF2F8' },
-  'Referans':         { icon: UserCheck,      color: '#F59E0B', bg: '#FFFBEB' },
-  'Fuar / Etkinlik':  { icon: CalendarCheck,  color: '#8B5CF6', bg: '#F5F3FF' },
-  'Lead':             { icon: Target,         color: '#EF4444', bg: '#FFF1F2' },
-  'Diğer':            { icon: HelpCircle,     color: '#9CA3AF', bg: '#F9FAFB' },
+  'Sosyal Medya':     { icon: Share2,      color: '#EC4899', bg: '#FDF2F8' },
+  'Telefon Araması':  { icon: PhoneCall,   color: '#10B981', bg: '#ECFDF5' },
+  '2. El Müşterisi':  { icon: Users,       color: '#F97316', bg: '#FFF7ED' },
+  'Servis Müşterisi': { icon: Wrench,      color: '#3B82F6', bg: '#EFF6FF' },
+  'Sigorta Müşterisi':{ icon: Shield,      color: '#8B5CF6', bg: '#F5F3FF' },
+  'Radyo Reklamı':    { icon: Radio,       color: '#F59E0B', bg: '#FFFBEB' },
+  'Gazete Reklamı':   { icon: Newspaper,   color: '#6B7280', bg: '#F9FAFB' },
+  'Dergi Reklamı':    { icon: BookOpen,    color: '#14B8A6', bg: '#F0FDFA' },
+  'Google Araması':   { icon: Search,      color: '#4285F4', bg: '#EFF6FF' },
+  'Web Sayfası':      { icon: Globe,       color: '#06B6D4', bg: '#ECFEFF' },
+  'Satış Referans':   { icon: UserCheck,   color: '#EAB308', bg: '#FEFCE8' },
+  'Sadık Müşteri':    { icon: Heart,       color: '#EF4444', bg: '#FFF1F2' },
+  'Diğer':            { icon: HelpCircle,  color: '#9CA3AF', bg: '#F9FAFB' },
 }
 
 function getChannelMeta(name: string) {
@@ -234,48 +238,53 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
               <p className="text-[11px] text-gray-400">Marka, model ve kaynak kanal</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium text-gray-700 block mb-1">
-                Marka <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {brands.map((brand) => (
-                  <button
-                    key={brand.id}
-                    type="button"
-                    onClick={() => update('brand_id', brand.id)}
-                    className={`h-9 rounded-lg border text-xs font-semibold transition-all ${
-                      form.brand_id === brand.id
-                        ? 'text-white shadow-sm'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                    }`}
-                    style={form.brand_id === brand.id ? { backgroundColor: brand.color, borderColor: brand.color } : {}}
-                  >
-                    {brand.name}
-                  </button>
-                ))}
+          <div className="space-y-4">
+            {/* Marka + Model */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1">
+                  Marka <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {brands.map((brand) => (
+                    <button
+                      key={brand.id}
+                      type="button"
+                      onClick={() => update('brand_id', brand.id)}
+                      className={`h-9 rounded-lg border text-xs font-semibold transition-all ${
+                        form.brand_id === brand.id
+                          ? 'text-white shadow-sm'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                      }`}
+                      style={form.brand_id === brand.id ? { backgroundColor: brand.color, borderColor: brand.color } : {}}
+                    >
+                      {brand.name}
+                    </button>
+                  ))}
+                </div>
+                {errors.brand_id && <p className="text-xs text-red-500 mt-1">{errors.brand_id}</p>}
               </div>
-              {errors.brand_id && <p className="text-xs text-red-500 mt-1">{errors.brand_id}</p>}
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1">İlgilendiği Model</label>
+                <select value={form.interested_model} onChange={(e) => update('interested_model', e.target.value)}
+                  className="w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Model seçin</option>
+                  {form.brand_id
+                    ? models.filter(m => m.brand_id === form.brand_id).map(m => (
+                      <option key={m.id} value={m.name}>{m.name}</option>
+                    ))
+                    : models.map(m => (
+                      <option key={m.id} value={m.name}>{m.name}</option>
+                    ))
+                  }
+                </select>
+              </div>
             </div>
+
+            {/* Nereden Ulaştı — yatay wrap */}
             <div>
-              <label className="text-xs font-medium text-gray-700 block mb-1">İlgilendiği Model</label>
-              <select value={form.interested_model} onChange={(e) => update('interested_model', e.target.value)}
-                className="w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Model seçin</option>
-                {form.brand_id
-                  ? models.filter(m => m.brand_id === form.brand_id).map(m => (
-                    <option key={m.id} value={m.name}>{m.name}</option>
-                  ))
-                  : models.map(m => (
-                    <option key={m.id} value={m.name}>{m.name}</option>
-                  ))
-                }
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-700 block mb-1">Nereden Ulaştı?</label>
-              <div className="grid grid-cols-2 gap-1.5">
+              <label className="text-xs font-medium text-gray-700 block mb-2">Nereden Ulaştı? <span className="text-red-500">*</span></label>
+              <div className="flex flex-wrap gap-1.5">
                 {channels.map((ch) => {
                   const meta = getChannelMeta(ch.name)
                   const ChIcon = meta.icon
@@ -284,21 +293,17 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
                     <button
                       key={ch.id}
                       type="button"
-                      onClick={() => update('source_channel_id', ch.id)}
-                      className={`flex items-center gap-2 h-9 px-3 rounded-lg border text-xs font-medium transition-all ${
+                      onClick={() => update('source_channel_id', isSelected ? '' : ch.id)}
+                      className={`flex items-center gap-1.5 h-8 px-3 rounded-lg border text-xs font-medium transition-all whitespace-nowrap ${
                         isSelected ? 'text-white shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
-                      style={isSelected
-                        ? { backgroundColor: meta.color, borderColor: meta.color }
-                        : {}}
+                      style={isSelected ? { backgroundColor: meta.color, borderColor: meta.color } : {}}
                     >
                       <div
-                        className="h-5 w-5 rounded-md flex items-center justify-center shrink-0 transition-all"
-                        style={isSelected
-                          ? { background: 'rgba(255,255,255,0.25)' }
-                          : { background: meta.bg }}
+                        className="h-4 w-4 rounded flex items-center justify-center shrink-0"
+                        style={isSelected ? { background: 'rgba(255,255,255,0.25)' } : { background: meta.bg }}
                       >
-                        <ChIcon className="h-3 w-3" style={{ color: isSelected ? '#fff' : meta.color }} />
+                        <ChIcon className="h-2.5 w-2.5" style={{ color: isSelected ? '#fff' : meta.color }} />
                       </div>
                       {ch.name}
                     </button>
@@ -306,21 +311,14 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
                 })}
               </div>
             </div>
+
+            {/* Temas Türü */}
             <div>
-              <label className="text-xs font-medium text-gray-700 block mb-1">Sorumlu Danışman</label>
-              <select value={form.consultant_id} onChange={(e) => update('consultant_id', e.target.value)} className="w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Bana ata (varsayılan)</option>
-                {consultants.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
-              </select>
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-xs font-medium text-gray-700 block mb-1.5">
-                Temas Türü
-              </label>
+              <label className="text-xs font-medium text-gray-700 block mb-1.5">Temas Türü</label>
               <div className="flex gap-2">
                 {[
-                  { value: 'visit',         label: 'Ziyaret',      icon: Building2,  color: '#6366F1', bg: '#EEF2FF' },
-                  { value: 'inbound_call',  label: 'Gelen Çağrı',  icon: PhoneCall,  color: '#10B981', bg: '#ECFDF5' },
+                  { value: 'visit',        label: 'Ziyaret',     icon: Building2, color: '#6366F1', bg: '#EEF2FF' },
+                  { value: 'inbound_call', label: 'Gelen Çağrı', icon: PhoneCall,  color: '#10B981', bg: '#ECFDF5' },
                 ].map(({ value, label, icon: Icon, color, bg }) => {
                   const isSelected = form.initial_contact_type === value
                   return (
@@ -343,6 +341,17 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
                     </button>
                   )
                 })}
+              </div>
+            </div>
+
+            {/* Sorumlu Danışman — en aşağıda */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1">Sorumlu Danışman</label>
+                <select value={form.consultant_id} onChange={(e) => update('consultant_id', e.target.value)} className="w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Bana ata (varsayılan)</option>
+                  {consultants.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
+                </select>
               </div>
             </div>
           </div>
