@@ -1,17 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { CustomerList } from '@/components/customers/customer-list'
 import Link from 'next/link'
-import { UserPlus, Users } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import type { Customer } from '@/lib/types/database'
 
 export default async function CustomersPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const [
     { data: customers },
     { data: brands },
     { data: stages },
     { data: consultants },
+    { data: profile },
   ] = await Promise.all([
     supabase
       .from('customers')
@@ -21,6 +23,7 @@ export default async function CustomersPage() {
     supabase.from('brands').select('id, name, color, slug').eq('is_active', true),
     supabase.from('sales_stages').select('id, name, color, slug, sort_order').eq('is_active', true).order('sort_order'),
     supabase.from('user_profiles').select('id, full_name').eq('is_active', true),
+    supabase.from('user_profiles').select('role').eq('id', user!.id).single(),
   ])
 
   return (
@@ -37,6 +40,7 @@ export default async function CustomersPage() {
         brands={brands ?? []}
         stages={stages ?? []}
         consultants={consultants ?? []}
+        userRole={profile?.role ?? 'consultant'}
       />
     </div>
   )

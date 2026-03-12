@@ -3,7 +3,12 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, Filter, ChevronRight, Phone, Car, FileText, Clock, CheckCircle, Shield, Lock, X } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
+import {
+  Search, Filter, ChevronRight, Phone, Car, FileText, Clock,
+  CheckCircle, Shield, Lock, X, Trash2, CalendarDays, AlertTriangle,
+} from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import type { Customer } from '@/lib/types/database'
 
@@ -17,29 +22,41 @@ interface CustomerListProps {
   brands: { id: string; name: string; color: string; slug: string }[]
   stages: { id: string; name: string; color: string; slug: string; sort_order: number }[]
   consultants: { id: string; full_name: string }[]
+  userRole: string
 }
 
 type SortField = 'created_at' | 'full_name' | 'brand'
 type SortDir = 'asc' | 'desc'
+type DateMode = '' | 'today' | 'week' | 'month' | 'custom'
 
-const DATE_TABS = [
+const DATE_TABS: { key: DateMode; label: string }[] = [
   { key: '', label: 'Tümü' },
   { key: 'today', label: 'Bugün' },
   { key: 'week', label: 'Bu Hafta' },
   { key: 'month', label: 'Bu Ay' },
+  { key: 'custom', label: 'Özel Tarih' },
 ]
 
-export function CustomerList({ customers, brands, stages, consultants }: CustomerListProps) {
+const CAN_DELETE = ['super_admin', 'manager']
+
+export function CustomerList({ customers, brands, stages, consultants, userRole }: CustomerListProps) {
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [filterBrand, setFilterBrand] = useState('')
   const [filterStage, setFilterStage] = useState('')
   const [filterConsultant, setFilterConsultant] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
-  const [filterDate, setFilterDate] = useState('')
+  const [filterDate, setFilterDate] = useState<DateMode>('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [sortField, setSortField] = useState<SortField>('created_at')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [showFilters, setShowFilters] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const canDelete = CAN_DELETE.includes(userRole)
 
   const filtered = useMemo(() => {
     let list = [...customers]
@@ -68,6 +85,9 @@ export function CustomerList({ customers, brands, stages, consultants }: Custome
     } else if (filterDate === 'month') {
       const monthAgo = new Date(now); monthAgo.setMonth(monthAgo.getMonth() - 1)
       list = list.filter(c => new Date(c.created_at) >= monthAgo)
+    } else if (filterDate === 'custom') {
+      if (dateFrom) list = list.filter(c => c.created_at >= dateFrom)
+      if (dateTo) list = list.filter(c => c.created_at <= dateTo + 'T23:59:59')
     }
 
     list.sort((a, b) => {
@@ -79,9 +99,50 @@ export function CustomerList({ customers, brands, stages, consultants }: Custome
       return aVal > bVal ? -1 : aVal < bVal ? 1 : 0
     })
     return list
-  }, [customers, search, filterBrand, filterStage, filterConsultant, filterStatus, filterDate, sortField, sortDir])
+  }, [customers, search, filterBrand, filterStage, filterConsultant, filterStatus, filterDate, dateFrom, dateTo, sortField, sortDir])
 
   const activeFilters = [filterBrand, filterStage, filterConsultant, filterStatus].filter(Boolean).length
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every(c => selectedIds.has(c.id))
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filtered.map(c => c.id)))
+    }
+  }
+
+  const toggleSelect = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const handleDeleteSelected = async () => {
+    if (!confirmDelete) { setConfirmDelete(true); return }
+    setIsDeleting(true)
+    try {
+      const supabase = createClient()
+      const ids = Array.from(selectedIds)
+      const { error } = await supabase
+        .from('customers')
+        .update({ is_active: false })
+        .in('id', ids)
+      if (error) throw error
+      toast.success(`${ids.length} müşteri silindi`)
+      setSelectedIds(new Set())
+      setConfirmDelete(false)
+      router.refresh()
+    } catch {
+      toast.error('Silme işlemi başarısız')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <div>
@@ -115,16 +176,44 @@ export function CustomerList({ customers, brands, stages, consultants }: Custome
       </div>
 
       {/* Date tabs */}
-      <div className="flex items-center gap-1 mb-3">
+      <div className="flex items-center gap-1 mb-3 flex-wrap">
         {DATE_TABS.map((tab) => (
           <button key={tab.key} onClick={() => setFilterDate(tab.key)}
-            className={`h-7 px-3 rounded-full text-xs font-medium transition-all ${
+            className={`h-7 px-3 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
               filterDate === tab.key ? 'bg-blue-600 text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}>
+            {tab.key === 'custom' && <CalendarDays className="h-3 w-3" />}
             {tab.label}
           </button>
         ))}
       </div>
+
+      {/* Custom date range picker */}
+      {filterDate === 'custom' && (
+        <div className="flex items-center gap-3 mb-3 p-3 rounded-xl bg-blue-50 border border-blue-100">
+          <CalendarDays className="h-4 w-4 text-blue-500 shrink-0" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <div>
+              <label className="text-xs font-medium text-blue-700 block mb-0.5">Başlangıç</label>
+              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+                className="h-8 rounded-lg border border-blue-200 bg-white text-xs px-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700" />
+            </div>
+            <span className="text-blue-400 font-bold mt-4">—</span>
+            <div>
+              <label className="text-xs font-medium text-blue-700 block mb-0.5">Bitiş</label>
+              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+                min={dateFrom}
+                className="h-8 rounded-lg border border-blue-200 bg-white text-xs px-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700" />
+            </div>
+            {(dateFrom || dateTo) && (
+              <button onClick={() => { setDateFrom(''); setDateTo('') }}
+                className="mt-4 text-xs text-blue-500 hover:text-blue-700 underline">
+                Temizle
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Expanded filters */}
       {showFilters && (
@@ -167,15 +256,52 @@ export function CustomerList({ customers, brands, stages, consultants }: Custome
       {/* Table */}
       <div className="rounded-xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-white">
-          <span className="text-sm font-semibold text-gray-900">{filtered.length} müşteri</span>
-          <select value={`${sortField}-${sortDir}`}
-            onChange={(e) => { const [f, d] = e.target.value.split('-') as [SortField, SortDir]; setSortField(f); setSortDir(d) }}
-            className="h-7 rounded border border-gray-200 bg-white text-xs px-2 focus:outline-none">
-            <option value="created_at-desc">En Yeni</option>
-            <option value="created_at-asc">En Eski</option>
-            <option value="full_name-asc">İsim A-Z</option>
-            <option value="brand-asc">Marka A-Z</option>
-          </select>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-gray-900">{filtered.length} müşteri</span>
+            {selectedIds.size > 0 && (
+              <span className="text-xs font-medium text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
+                {selectedIds.size} seçili
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Bulk delete */}
+            {canDelete && selectedIds.size > 0 && (
+              <div className="flex items-center gap-2">
+                {confirmDelete && (
+                  <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                    {selectedIds.size} müşteri silinecek, emin misiniz?
+                  </div>
+                )}
+                {confirmDelete && (
+                  <button onClick={() => setConfirmDelete(false)}
+                    className="h-7 px-3 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                    İptal
+                  </button>
+                )}
+                <button
+                  onClick={handleDeleteSelected}
+                  disabled={isDeleting}
+                  className={`flex items-center gap-1.5 h-7 px-3 rounded-lg text-xs font-semibold transition-all ${
+                    confirmDelete
+                      ? 'bg-red-600 border border-red-600 text-white hover:bg-red-700 shadow-sm'
+                      : 'bg-red-50 border border-red-200 text-red-600 hover:bg-red-100'
+                  } disabled:opacity-50`}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {isDeleting ? 'Siliniyor...' : confirmDelete ? 'Evet, Sil' : `Sil (${selectedIds.size})`}
+                </button>
+              </div>
+            )}
+            <select value={`${sortField}-${sortDir}`}
+              onChange={(e) => { const [f, d] = e.target.value.split('-') as [SortField, SortDir]; setSortField(f); setSortDir(d) }}
+              className="h-7 rounded border border-gray-200 bg-white text-xs px-2 focus:outline-none">
+              <option value="created_at-desc">En Yeni</option>
+              <option value="created_at-asc">En Eski</option>
+              <option value="full_name-asc">İsim A-Z</option>
+              <option value="brand-asc">Marka A-Z</option>
+            </select>
+          </div>
         </div>
 
         {filtered.length === 0 ? (
@@ -187,7 +313,16 @@ export function CustomerList({ customers, brands, stages, consultants }: Custome
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 hover:bg-slate-50">
+              <tr className="bg-slate-50">
+                {/* Checkbox column */}
+                {canDelete && (
+                  <th className="pl-4 pr-2 py-2.5 w-8">
+                    <input type="checkbox" checked={allFilteredSelected} onChange={toggleSelectAll}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                  </th>
+                )}
+                {/* Row number */}
+                <th className="px-2 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide w-10 text-center">#</th>
                 <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Müşteri</th>
                 <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">Marka</th>
                 <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden lg:table-cell">Telefon</th>
@@ -200,18 +335,31 @@ export function CustomerList({ customers, brands, stages, consultants }: Custome
             </thead>
             <tbody>
               {filtered.map((customer, idx) => {
-                // Sigorta ve Oto Koruma aşamaları listede gösterilmez, Kabul olarak kalır
                 const HIDDEN_STAGE_SLUGS = ['sigorta', 'oto-koruma']
                 const displayStage = customer.current_stage && HIDDEN_STAGE_SLUGS.includes(customer.current_stage.slug ?? '')
                   ? stages.find(s => s.slug === 'kabul') ?? customer.current_stage
                   : customer.current_stage
                 const StageIcon = displayStage?.slug ? (stageIcons[displayStage.slug] ?? Car) : Car
+                const isSelected = selectedIds.has(customer.id)
                 return (
                   <tr key={customer.id}
                     onClick={() => router.push(`/customers/${customer.id}`)}
-                    className={`border-b border-gray-50 hover:bg-blue-50/50 transition-colors cursor-pointer group ${idx % 2 === 1 ? 'bg-gray-50/60' : ''}`}>
+                    className={`border-b border-gray-50 hover:bg-blue-50/50 transition-colors cursor-pointer group ${
+                      isSelected ? 'bg-blue-50/70' : idx % 2 === 1 ? 'bg-gray-50/60' : ''
+                    }`}>
+                    {/* Checkbox */}
+                    {canDelete && (
+                      <td className="pl-4 pr-2 py-2.5 w-8" onClick={(e) => toggleSelect(customer.id, e)}>
+                        <input type="checkbox" checked={isSelected} onChange={() => {}}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                      </td>
+                    )}
+                    {/* Row number */}
+                    <td className="px-2 py-2.5 text-center">
+                      <span className="text-xs font-mono text-gray-400">{idx + 1}</span>
+                    </td>
                     <td className="px-4 py-2.5">
-                      <Link href={`/customers/${customer.id}`} className="flex items-center gap-2.5">
+                      <Link href={`/customers/${customer.id}`} className="flex items-center gap-2.5" onClick={e => e.stopPropagation()}>
                         <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
                           style={{ backgroundColor: customer.brand?.color ?? '#6B7280' }}>
                           {customer.full_name.charAt(0)}
@@ -274,7 +422,7 @@ export function CustomerList({ customers, brands, stages, consultants }: Custome
                       <span className="text-xs text-gray-400">{formatDate(customer.created_at)}</span>
                     </td>
                     <td className="px-3 py-2.5">
-                      <Link href={`/customers/${customer.id}`}>
+                      <Link href={`/customers/${customer.id}`} onClick={e => e.stopPropagation()}>
                         <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
                       </Link>
                     </td>

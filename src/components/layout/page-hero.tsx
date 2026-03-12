@@ -98,21 +98,16 @@ export function PageHero() {
 
   return (
     <div
-      className="relative mb-6 rounded-2xl overflow-hidden"
+      className="relative mb-6 rounded-2xl overflow-hidden shadow-md"
       style={{
-        background: `linear-gradient(135deg, ${c}12 0%, ${c}05 60%, transparent 100%)`,
-        border: `1px solid ${c}22`,
+        background: `linear-gradient(135deg, ${c} 0%, ${c}cc 100%)`,
+        boxShadow: `0 4px 24px ${c}50`,
       }}
     >
-      {/* Decorative blobs */}
-      <div
-        className="absolute -top-8 -right-8 h-32 w-32 rounded-full pointer-events-none"
-        style={{ background: `radial-gradient(circle, ${c}20 0%, transparent 70%)` }}
-      />
-      <div
-        className="absolute bottom-0 right-1/4 h-20 w-20 rounded-full pointer-events-none"
-        style={{ background: `radial-gradient(circle, ${c}10 0%, transparent 70%)` }}
-      />
+      {/* Decorative circles */}
+      <div className="absolute -top-8 -right-8 h-36 w-36 rounded-full pointer-events-none bg-white/10" />
+      <div className="absolute -bottom-6 right-24 h-24 w-24 rounded-full pointer-events-none bg-black/10" />
+      <div className="absolute top-1/2 right-1/3 h-12 w-12 rounded-full pointer-events-none bg-white/5" />
 
       {/* Content */}
       <div className="relative z-10 flex items-center gap-3 px-5 py-4">
@@ -121,31 +116,21 @@ export function PageHero() {
           <button
             onClick={() => router.back()}
             title="Geri Dön"
-            className="flex-shrink-0 h-8 w-8 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-            style={{
-              background: `${c}18`,
-              border: `1.5px solid ${c}30`,
-            }}
+            className="flex-shrink-0 h-8 w-8 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 bg-white/20 border border-white/30 hover:bg-white/30"
           >
-            <ArrowLeft className="h-4 w-4" style={{ color: c }} />
+            <ArrowLeft className="h-4 w-4 text-white" />
           </button>
         )}
 
         {/* Page icon */}
-        <div
-          className="flex-shrink-0 h-10 w-10 rounded-xl flex items-center justify-center shadow-sm"
-          style={{
-            background: `${c}18`,
-            border: `1.5px solid ${c}30`,
-          }}
-        >
-          <Icon className="h-5 w-5" style={{ color: c }} />
+        <div className="flex-shrink-0 h-10 w-10 rounded-xl flex items-center justify-center bg-white/20 border border-white/30 shadow-sm">
+          <Icon className="h-5 w-5 text-white" />
         </div>
 
         {/* Title */}
         <div className="min-w-0 flex-1">
-          <h1 className="text-base font-bold text-gray-900 leading-tight">{meta.title}</h1>
-          <p className="text-xs mt-0.5" style={{ color: `${c}cc` }}>{meta.subtitle}</p>
+          <h1 className="text-base font-bold text-white leading-tight">{meta.title}</h1>
+          <p className="text-xs mt-0.5 text-white/75">{meta.subtitle}</p>
         </div>
       </div>
     </div>
