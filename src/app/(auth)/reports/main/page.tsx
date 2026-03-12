@@ -17,15 +17,14 @@ export default async function MainReportPage() {
 
   if (!['super_admin', 'manager'].includes(profile?.role ?? '')) redirect('/dashboard')
 
-  // Tüm lokasyonları çek, İncesu olmayan (Enriko Aliberti) lokasyonu bul
-  const { data: allLocations } = await supabase.from('locations').select('id, name')
-  const mainLocation = allLocations?.find(
-    (l) => !l.name?.toLowerCase().includes('incesu')
-  )
-  // Manager kendi lokasyonunu görür; super_admin Enriko Aliberti lokasyonunu görür
+  // Ana lokasyonu type='main' ile bul (UUID bağımsız)
+  const { data: mainLocationRow } = await supabase
+    .from('locations').select('id, name').eq('type', 'main').single()
+
+  // Manager → kendi lokasyonu, super_admin → main lokasyon
   const locationFilter = profile?.role === 'manager'
     ? profile.location_id
-    : (mainLocation?.id ?? profile?.location_id)
+    : mainLocationRow?.id
 
   const [{ data: brands }, { data: stages }, { data: channels }] = await Promise.all([
     supabase.from('brands').select('*').eq('is_active', true),
@@ -33,6 +32,7 @@ export default async function MainReportPage() {
     supabase.from('contact_channels').select('*').eq('is_active', true).order('sort_order'),
   ])
 
+  // locationFilter yoksa tüm aktif müşterileri getir
   let customersQuery = supabase
     .from('customers')
     .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, insurance_kasko_offered, oto_koruma_sold')
@@ -127,7 +127,7 @@ export default async function MainReportPage() {
       )}
         <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl">
           <Building2 className="h-4 w-4 text-blue-600" />
-          <p className="text-sm text-blue-800 font-medium">{profile?.location?.name ?? 'Merkez Bayi'} — Rapor Dönemi</p>
+          <p className="text-sm text-blue-800 font-medium">{mainLocationRow?.name ?? profile?.location?.name ?? 'Enriko Aliberti'} — Rapor Dönemi</p>
         </div>
 
         {/* KPIs */}

@@ -30,11 +30,9 @@ export default async function IncesusReportPage() {
     redirect('/dashboard')
   }
 
-  // İncesu lokasyonunu DB'den bul
-  const { data: allLocations } = await supabase.from('locations').select('id, name')
-  const incesulocation = allLocations?.find(
-    (l) => l.name?.toLowerCase().includes('incesu')
-  )
+  // İncesu lokasyonunu type='satellite' ile bul (UUID bağımsız)
+  const { data: incesulocation } = await supabase
+    .from('locations').select('id, name').eq('type', 'satellite').single()
   const locationFilter = incesulocation?.id
 
   const { data: brands }   = await supabase.from('brands').select('*').eq('is_active', true)
