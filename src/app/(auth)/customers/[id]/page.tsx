@@ -28,17 +28,6 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="space-y-4">
-      {/* Customer name sub-header (under PageHero) */}
-      <div className="flex items-center gap-3 -mt-2 mb-1">
-        <div className="h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm"
-          style={{ backgroundColor: customer.brand?.color ?? '#6B7280' }}>
-          {customer.full_name.charAt(0)}
-        </div>
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">{customer.full_name}</h1>
-          <p className="text-xs text-gray-500">{customer.brand?.name ?? ''} · {customer.location?.name ?? ''}</p>
-        </div>
-      </div>
       <CustomerDetail
         customer={customer as Customer}
         stages={stages ?? []}

@@ -256,32 +256,28 @@ export function PipelineTimeline({
         const c = expandedStage.color
         return (
           <div
-            className="mt-4 rounded-2xl overflow-hidden"
-            style={{ background: `linear-gradient(135deg, ${c}10 0%, ${c}05 100%)`, border: `1px solid ${c}30` }}
+            className="mt-4 rounded-2xl overflow-hidden bg-white shadow-sm"
+            style={{ border: `1px solid #e5e7eb`, borderLeft: `4px solid ${c}` }}
           >
             {/* Panel header */}
-            <div
-              className="flex items-center justify-between px-4 py-3"
-              style={{ background: `linear-gradient(135deg, ${c}20 0%, ${c}08 100%)`, borderBottom: `1px solid ${c}20` }}
-            >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <div className="flex items-center gap-2.5">
                 <div
-                  className="h-9 w-9 rounded-xl flex items-center justify-center shadow-sm"
-                  style={{ background: `${c}25`, border: `1.5px solid ${c}40` }}
+                  className="h-8 w-8 rounded-lg flex items-center justify-center"
+                  style={{ background: `${c}18` }}
                 >
-                  <Icon className="h-4.5 w-4.5" style={{ color: c }} />
+                  <Icon className="h-4 w-4" style={{ color: c }} />
                 </div>
                 <div>
-                  <span className="text-sm font-bold" style={{ color: c }}>{expandedStage.name}</span>
+                  <span className="text-sm font-bold text-gray-800">{expandedStage.name}</span>
                   {expandedHistory.length > 0 && (
-                    <p className="text-[10px] text-gray-400">{formatDate(expandedHistory[0].entered_at)}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{formatDate(expandedHistory[0].entered_at)}</p>
                   )}
                 </div>
               </div>
               <button
                 onClick={() => setExpandedStageId(null)}
-                className="h-7 w-7 rounded-full flex items-center justify-center transition-colors hover:bg-white/60"
-                style={{ color: c + 'aa' }}
+                className="h-7 w-7 rounded-full flex items-center justify-center transition-colors text-gray-400 hover:bg-gray-100 hover:text-gray-600"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -289,49 +285,44 @@ export function PipelineTimeline({
 
             {/* Panel content */}
             {expandedOptions.length > 0 && (
-              <div className="p-4 space-y-3">
+              <div className="p-4 space-y-2.5">
 
                 {/* ── Paired toggles (yapıldı / yapılamadı) ── */}
                 {pairedOptions.length > 0 && (
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {pairedOptions.map((opt) => {
                       const isPositive = !!customerFields[opt.field]
                       const isNegative = !!customerFields[opt.negativeField!]
                       return (
                         <div
                           key={opt.field}
-                          className="rounded-xl overflow-hidden"
-                          style={{ border: `1px solid ${c}20`, background: 'rgba(255,255,255,0.55)' }}
+                          className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50/60"
                         >
                           {/* Option label */}
-                          <div
-                            className="px-3 py-1.5 text-xs font-semibold tracking-wide"
-                            style={{ color: c, background: `${c}12` }}
-                          >
+                          <div className="px-3 py-2 text-xs font-semibold text-gray-600 bg-white border-b border-gray-100">
                             {opt.label}
                           </div>
                           {/* Toggle buttons */}
-                          <div className="flex gap-2 p-2">
+                          <div className="flex gap-2 p-2.5">
                             <button
                               onClick={() => handlePairedClick(opt, true)}
                               className={cn(
-                                'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all border',
+                                'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all border',
                                 isPositive
-                                  ? 'bg-green-500/15 border-green-400/50 text-green-700 shadow-sm'
-                                  : 'bg-white/70 border-gray-200/80 text-gray-500 hover:bg-green-500/10 hover:border-green-300/70 hover:text-green-600',
+                                  ? 'bg-green-500 border-green-500 text-white shadow-sm'
+                                  : 'bg-white border-gray-200 text-gray-500 hover:border-green-400 hover:text-green-600 hover:bg-green-50',
                               )}
                             >
                               <Check className="h-3.5 w-3.5" />
                               Yapıldı
-                              {isPositive && <span className="ml-0.5 text-green-500">✓</span>}
                             </button>
                             <button
                               onClick={() => handlePairedClick(opt, false)}
                               className={cn(
-                                'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all border',
+                                'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all border',
                                 isNegative
-                                  ? 'bg-red-500/15 border-red-400/50 text-red-700 shadow-sm'
-                                  : 'bg-white/70 border-gray-200/80 text-gray-500 hover:bg-red-500/10 hover:border-red-300/70 hover:text-red-600',
+                                  ? 'bg-red-500 border-red-500 text-white shadow-sm'
+                                  : 'bg-white border-gray-200 text-gray-500 hover:border-red-400 hover:text-red-600 hover:bg-red-50',
                               )}
                             >
                               <X className="h-3.5 w-3.5" />
@@ -340,7 +331,7 @@ export function PipelineTimeline({
                           </div>
                           {/* Reason input */}
                           {isNegative && opt.reasonField && (
-                            <div className="px-2 pb-2">
+                            <div className="px-2.5 pb-2.5">
                               <input
                                 key={`${opt.reasonField}-${customerFields[opt.reasonField]}`}
                                 type="text"
@@ -350,7 +341,7 @@ export function PipelineTimeline({
                                   await onUpdateField(opt.reasonField!, raw || null)
                                 }}
                                 placeholder={opt.reasonPlaceholder ?? 'Sebep yazın...'}
-                                className="w-full h-8 rounded-lg border border-red-200/70 bg-red-50/40 px-3 text-xs text-red-800 placeholder:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-300/50 transition-colors"
+                                className="w-full h-8 rounded-lg border border-red-200 bg-red-50 px-3 text-xs text-red-700 placeholder:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-200 transition-colors"
                               />
                             </div>
                           )}
@@ -373,36 +364,29 @@ export function PipelineTimeline({
                             'flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all w-full',
                             checked
                               ? opt.green
-                                ? 'bg-green-500/12 border-green-400/40 shadow-sm'
-                                : 'bg-blue-500/12 border-blue-400/40 shadow-sm'
-                              : 'bg-white/60 border-gray-200/70 hover:bg-white/90 hover:border-gray-300/80',
+                                ? 'bg-green-50 border-green-300 shadow-sm'
+                                : 'bg-blue-50 border-blue-300 shadow-sm'
+                              : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50',
                           )}
-                          style={checked ? { background: checked ? (opt.green ? `${c}15` : undefined) : undefined } : {}}
                         >
                           <div
                             className={cn(
-                              'h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all',
+                              'h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all',
                               checked
-                                ? opt.green ? 'bg-green-500 border-green-500 shadow-sm' : 'bg-blue-500 border-blue-500 shadow-sm'
-                                : 'border-gray-300 bg-white/80',
+                                ? opt.green ? 'bg-green-500 border-green-500' : 'bg-blue-500 border-blue-500'
+                                : 'border-gray-300 bg-white',
                             )}
                           >
-                            {checked && <Check className="h-2.5 w-2.5 text-white" />}
+                            {checked && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                           </div>
                           <span className={cn(
                             'text-sm flex-1',
                             checked
-                              ? opt.green ? 'text-green-800 font-semibold' : 'text-blue-800 font-semibold'
+                              ? opt.green ? 'text-green-800 font-medium' : 'text-blue-800 font-medium'
                               : 'text-gray-600',
                           )}>
                             {opt.label}
                           </span>
-                          {checked && (
-                            <span
-                              className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
-                              style={{ background: `${c}20`, color: c }}
-                            >✓</span>
-                          )}
                         </button>
                       )
                     })}
@@ -550,16 +534,10 @@ function StageNoteField({
   }
 
   return (
-    <div
-      className="mx-4 mb-4 rounded-xl p-3"
-      style={{ background: `${color}08`, border: `1px solid ${color}20` }}
-    >
-      <label
-        className="text-xs font-semibold block mb-1.5 tracking-wide"
-        style={{ color: color + 'bb' }}
-      >
+    <div className="mx-4 mb-4 rounded-xl p-3 bg-gray-50 border border-gray-100">
+      <label className="text-xs font-semibold block mb-1.5 text-gray-500 tracking-wide">
         Aşama Notu
-        {enteredBy && <span className="font-normal ml-1 opacity-70">— {enteredBy}</span>}
+        {enteredBy && <span className="font-normal ml-1 text-gray-400">— {enteredBy}</span>}
       </label>
       <textarea
         value={note}
@@ -567,12 +545,9 @@ function StageNoteField({
         onBlur={handleSave}
         placeholder="Bu aşamaya ait not veya açıklama ekleyin..."
         rows={2}
-        className="w-full rounded-xl border px-3 py-2 text-sm focus:outline-none resize-none transition-all bg-white/60 backdrop-blur-sm placeholder:text-gray-300"
-        style={{ borderColor: `${color}30` }}
-        onFocus={e => { e.target.style.borderColor = `${color}60`; e.target.style.boxShadow = `0 0 0 3px ${color}12` }}
-        onBlurCapture={e => { e.currentTarget.style.borderColor = `${color}30`; e.currentTarget.style.boxShadow = 'none' }}
+        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-300 resize-none transition-all placeholder:text-gray-300"
       />
-      {saving && <p className="text-[10px] mt-0.5 opacity-50" style={{ color }}>Kaydediliyor...</p>}
+      {saving && <p className="text-[10px] mt-1 text-gray-400">Kaydediliyor...</p>}
     </div>
   )
 }
