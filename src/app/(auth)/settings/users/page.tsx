@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Topbar } from '@/components/layout/topbar'
-import { Users, Shield, MapPin, Building2, ToggleLeft, ToggleRight, UserPlus, X, Eye, EyeOff } from 'lucide-react'
+import { Users, Shield, MapPin, Building2, ToggleLeft, ToggleRight, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
 import type { UserProfile, Location } from '@/lib/types/database'
@@ -106,24 +105,18 @@ export default function UsersPage() {
 
   if (myRole !== 'super_admin') {
     return (
-      <div>
-        <Topbar title="Kullanıcı Yönetimi" />
-        <div className="p-6 flex flex-col items-center justify-center py-20 text-gray-400">
-          <Shield className="h-12 w-12 mb-3 opacity-30" />
-          <p className="text-sm font-medium">Bu sayfaya erişim yetkiniz yok</p>
-          <p className="text-xs mt-1">Sadece Süper Admin kullanıcı yönetimini yapabilir</p>
-        </div>
+      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+        <Shield className="h-12 w-12 mb-3 opacity-30" />
+        <p className="text-sm font-medium">Bu sayfaya erişim yetkiniz yok</p>
+        <p className="text-xs mt-1">Sadece Süper Admin kullanıcı yönetimini yapabilir</p>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div>
-        <Topbar title="Kullanıcı Yönetimi" />
-        <div className="p-6 flex items-center justify-center py-20">
-          <div className="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full" />
-        </div>
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full" />
       </div>
     )
   }
@@ -132,12 +125,16 @@ export default function UsersPage() {
   const bergamaUsers = users.filter((u) => u.location?.type === 'satellite')
 
   return (
-    <div>
-      <Topbar
-        title="Kullanıcı Yönetimi"
-        subtitle={`${users.length} kayıtlı kullanıcı`}
-      />
-      <div className="p-6 space-y-6">
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+          <Settings className="h-5 w-5 text-gray-600" />
+        </div>
+        <div>
+          <h1 className="text-lg font-bold text-gray-900">Kullanıcı Yönetimi</h1>
+          <p className="text-xs text-gray-500">{users.length} kayıtlı kullanıcı</p>
+        </div>
+      </div>
         {/* Info */}
         <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
           <strong>Not:</strong> Yeni kullanıcılar sisteme Google ile giriş yaptıktan sonra Supabase&apos;de manuel olarak <code>user_profiles</code> tablosuna eklenir. Burada mevcut kullanıcıların rol ve lokasyonlarını yönetebilirsiniz.
@@ -243,7 +240,6 @@ export default function UsersPage() {
             </table>
           </div>
         </div>
-      </div>
     </div>
   )
 }

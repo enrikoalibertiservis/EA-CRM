@@ -1,12 +1,7 @@
 'use client'
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { type ChannelStats } from '@/lib/types/database'
-
-interface ChannelChartProps {
-  data: ChannelStats[]
-  title?: string
-}
 
 const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { name: string; value: number; payload: ChannelStats }[] }) => {
   if (active && payload && payload.length) {
@@ -21,7 +16,7 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { name
   return null
 }
 
-export function ChannelChart({ data, title = 'Temas Kanalları Dağılımı' }: ChannelChartProps) {
+export function ChannelChart({ data, title = 'Temas Kanalları Dağılımı' }: { data: ChannelStats[]; title?: string }) {
   const chartData = data.map((d) => ({
     name: d.channel.name,
     value: d.count,
@@ -30,7 +25,7 @@ export function ChannelChart({ data, title = 'Temas Kanalları Dağılımı' }: 
   }))
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+    <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{title}</h3>
       {data.length === 0 ? (
         <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
@@ -38,18 +33,10 @@ export function ChannelChart({ data, title = 'Temas Kanalları Dağılımı' }: 
         </div>
       ) : (
         <div className="flex items-center gap-4">
-          <div className="w-40 h-40 flex-shrink-0">
+          <div className="w-40 h-40 shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={60}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
+                <Pie data={chartData} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={2} dataKey="value">
                   {chartData.map((entry, index) => (
                     <Cell key={index} fill={entry.color} />
                   ))}
@@ -61,10 +48,7 @@ export function ChannelChart({ data, title = 'Temas Kanalları Dağılımı' }: 
           <div className="flex-1 space-y-1.5">
             {data.map((item) => (
               <div key={item.channel.id} className="flex items-center gap-2">
-                <div
-                  className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: item.channel.color }}
-                />
+                <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.channel.color }} />
                 <span className="text-xs text-gray-600 flex-1 truncate">{item.channel.name}</span>
                 <span className="text-xs font-semibold text-gray-900">{item.count}</span>
                 <span className="text-xs text-gray-400 w-10 text-right">{item.percentage.toFixed(0)}%</span>

@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Topbar } from '@/components/layout/topbar'
 import { BrandFunnel } from '@/components/charts/brand-funnel'
 import { ContactHeatmap } from '@/components/charts/contact-heatmap'
 import { ChannelChart } from '@/components/charts/channel-chart'
@@ -142,18 +141,21 @@ export default async function BergamaReportPage() {
   const conversionRate = totalCustomers > 0 ? ((wonCustomers / totalCustomers) * 100).toFixed(1) : '0.0'
 
   return (
-    <div>
-      <Topbar
-        title="Bergama Şube Raporu"
-        subtitle="Uydu bayi detaylı performans analizi"
-        actions={
-          <Link href="/reports/main" className="text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 rounded-lg px-3 h-8 flex items-center">
-            Merkez Raporu
-          </Link>
-        }
-      />
-
-      <div className="p-6 space-y-6">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+            <MapPin className="h-5 w-5 text-emerald-600" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">Bergama Şube Raporu</h1>
+            <p className="text-xs text-gray-500">Uydu bayi detaylı performans analizi</p>
+          </div>
+        </div>
+        <Link href="/reports/main" className="text-xs text-blue-600 hover:text-blue-700 font-semibold border border-blue-200 rounded-lg px-4 h-9 flex items-center shadow-sm">
+          Merkez Raporu →
+        </Link>
+      </div>
         {/* Header badge */}
         <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
           <MapPin className="h-4 w-4 text-emerald-600" />
@@ -313,7 +315,6 @@ export default async function BergamaReportPage() {
             </div>
           )}
         </div>
-      </div>
     </div>
   )
 }

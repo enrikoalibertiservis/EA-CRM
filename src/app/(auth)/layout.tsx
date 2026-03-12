@@ -16,10 +16,12 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
     .single()
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#F0F2F5' }}>
+    <div className="flex h-screen overflow-hidden">
       <Sidebar profile={profile as UserProfile | null} />
-      <main className="flex-1 ml-[220px] min-h-screen overflow-x-hidden">
-        {children}
+      <main className="flex-1 overflow-y-auto dot-grid">
+        <div className="p-4 md:p-6 max-w-[1400px] mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   )

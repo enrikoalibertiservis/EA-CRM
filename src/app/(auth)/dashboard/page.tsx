@@ -1,12 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { Topbar } from '@/components/layout/topbar'
 import { BrandFunnel } from '@/components/charts/brand-funnel'
 import { ContactHeatmap } from '@/components/charts/contact-heatmap'
 import { ChannelChart } from '@/components/charts/channel-chart'
 import { ActivityChart } from '@/components/charts/activity-chart'
 import {
-  Users, TrendingUp, MessageSquare, CheckCircle,
-  Clock, UserPlus, ArrowUpRight,
+  Users, MessageSquare, CheckCircle, Clock, UserPlus, FileText,
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
@@ -31,7 +29,6 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(7)
 
-  // Brand funnel
   const brandFunnelData: BrandFunnelData[] = (brands ?? []).map((brand: Brand) => {
     const bc = (customers ?? []).filter((c) => c.brand_id === brand.id)
     return {
@@ -43,7 +40,6 @@ export default async function DashboardPage() {
     }
   })
 
-  // Heatmap
   const heatmapData: HeatmapCell[] = []
   if (contactLogs) {
     const cellMap = new Map<string, number>()
@@ -58,7 +54,6 @@ export default async function DashboardPage() {
     })
   }
 
-  // Channel stats
   const channelStats: ChannelStats[] = (channels ?? []).map((ch: ContactChannel) => {
     const count = (contactLogs ?? []).filter((l) => l.channel_id === ch.id).length
     return { channel: ch, count, percentage: 0 }
@@ -67,7 +62,6 @@ export default async function DashboardPage() {
   channelStats.forEach((s: ChannelStats) => { s.percentage = totalContacts > 0 ? (s.count / totalContacts) * 100 : 0 })
   channelStats.sort((a: ChannelStats, b: ChannelStats) => b.count - a.count)
 
-  // Activity
   const activityData = Array.from({ length: 14 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (13 - i))
     const label = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
@@ -83,141 +77,125 @@ export default async function DashboardPage() {
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Kullanıcı'
   const today = new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
-  const stats = [
-    { label: 'Toplam Müşteri', value: totalCustomers, icon: Users, cls: 'stat-card-blue', change: '+12%' },
-    { label: 'Aktif Takip', value: activeCustomers, icon: Clock, cls: 'stat-card-teal', change: 'devam ediyor' },
-    { label: 'Kazanılan', value: wonCustomers, icon: CheckCircle, cls: 'stat-card-green', change: '+3 bu hafta' },
-    { label: 'Toplam Temas', value: totalContactCount, icon: MessageSquare, cls: 'stat-card-purple', change: 'tüm zamanlar' },
+  const statCards = [
+    { label: 'MÜŞTERİLER', value: totalCustomers, sub: 'toplam müşteri', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', dot: 'bg-blue-500' },
+    { label: 'AKTİF TAKİP', value: activeCustomers, sub: 'devam ediyor', icon: Clock, color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-100', dot: 'bg-teal-500' },
+    { label: 'KAZANILAN', value: wonCustomers, sub: 'satış tamamlandı', icon: CheckCircle, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', dot: 'bg-amber-500' },
+    { label: 'TEMAS', value: totalContactCount, sub: 'toplam temas', icon: MessageSquare, color: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100', dot: 'bg-violet-500' },
   ]
 
   return (
-    <div className="min-h-screen" style={{ background: '#F0F2F5' }}>
-      <Topbar
-        title="Dashboard"
-        subtitle={today}
-        actions={
+    <div className="space-y-6">
+      {/* Hero Banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-700 px-6 py-8 text-white shadow-lg min-h-[110px]">
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10" />
+        <div className="absolute -bottom-8 right-20 w-28 h-28 rounded-full bg-indigo-800/30" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 rounded-full bg-white/5" />
+
+        <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <p className="text-blue-200 text-sm font-medium mb-1">{today}</p>
+            <h1 className="text-2xl font-bold">Hoş Geldiniz, {firstName} 👋</h1>
+            <p className="text-blue-200 text-sm mt-1">
+              {profile?.role === 'super_admin' ? 'Yönetici Paneli' : profile?.role === 'manager' ? 'Yönetici Paneli' : 'Danışman Paneli'}
+            </p>
+          </div>
           <Link href="/customers/new"
-            className="flex items-center gap-2 h-9 px-4 rounded-xl text-white text-sm font-semibold shadow-sm hover:opacity-90 transition-opacity"
-            style={{ background: 'linear-gradient(135deg, #1A3A6B, #2D5A9E)' }}>
+            className="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-6 py-3 font-bold text-gray-900 shadow-lg shadow-amber-500/50 hover:bg-amber-300 hover:scale-105 transition-all text-sm">
             <UserPlus className="h-4 w-4" />
             Yeni Müşteri
           </Link>
-        }
-      />
+        </div>
+      </div>
 
-      <div className="p-6 space-y-5">
-
-        {/* Welcome Banner */}
-        <div className="welcome-banner p-6 text-white relative">
-          <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <p className="text-white/60 text-sm font-medium mb-1">{today}</p>
-              <h2 className="text-2xl font-bold">Hoş Geldiniz, {firstName} 👋</h2>
-              <p className="text-white/60 text-sm mt-1">
-                {profile?.role === 'super_admin' ? 'Süper Admin Paneli' : profile?.role === 'manager' ? 'Yönetici Paneli' : 'Danışman Paneli'}
-                {' · '}{profile?.location?.name}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-white/60 text-xs">Toplam Müşteri</p>
-                <p className="text-3xl font-bold">{totalCustomers}</p>
+      {/* Stat Cards */}
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        {statCards.map((s) => {
+          const Icon = s.icon
+          return (
+            <div key={s.label} className={`flex items-center gap-4 rounded-xl border ${s.border} ${s.bg} px-4 py-3.5 shadow-sm`}>
+              <div className={`rounded-lg bg-white/80 p-2.5 shadow-sm ${s.color}`}>
+                <Icon className="h-5 w-5" />
               </div>
-              <div className="h-12 w-px bg-white/20" />
-              <div className="text-right">
-                <p className="text-white/60 text-xs">Kazanılan</p>
-                <p className="text-3xl font-bold text-green-300">{wonCustomers}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">{s.label}</p>
+                <p className="text-2xl font-bold leading-tight text-gray-900">{s.value}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{s.sub}</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className={`w-1.5 rounded-full opacity-30 ${s.dot}`} style={{ height: `${8 + i * 4}px` }} />
+                ))}
               </div>
             </div>
-          </div>
-        </div>
+          )
+        })}
+      </div>
 
-        {/* Stat Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon
-            return (
-              <div key={stat.label} className={`${stat.cls} rounded-2xl p-5 text-white card-hover`}>
-                <div className="flex items-start justify-between">
-                  <div className="h-10 w-10 rounded-xl bg-white/15 flex items-center justify-center">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <ArrowUpRight className="h-4 w-4 opacity-50" />
-                </div>
-                <p className="text-3xl font-bold mt-3">{stat.value}</p>
-                <p className="text-white/70 text-sm mt-0.5 font-medium">{stat.label}</p>
-                <p className="text-white/50 text-xs mt-1">{stat.change}</p>
-              </div>
-            )
-          })}
-        </div>
+      {/* Brand Funnels */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {brandFunnelData.map((d) => <BrandFunnel key={d.brand.id} data={d} />)}
+      </div>
 
-        {/* Brand Funnels */}
+      {/* Heatmap + Channel */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2">
+          <ContactHeatmap data={heatmapData} />
+        </div>
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Marka Bazlı Satış Hunisi</h2>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {brandFunnelData.map((d) => <BrandFunnel key={d.brand.id} data={d} />)}
-          </div>
+          <ChannelChart data={channelStats} />
+        </div>
+      </div>
+
+      {/* Activity + Recent Customers */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2">
+          <ActivityChart data={activityData} title="Son 14 Gün — Günlük Temas Aktivitesi" />
         </div>
 
-        {/* Heatmap + Channel */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <ContactHeatmap data={heatmapData} />
-          </div>
-          <div>
-            <ChannelChart data={channelStats} />
-          </div>
-        </div>
-
-        {/* Activity + Recent */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <ActivityChart data={activityData} title="Son 14 Gün — Günlük Temas Aktivitesi" />
-          </div>
-
-          {/* Recent Customers */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-gray-900">Son Eklenen Müşteriler</h3>
-              <Link href="/customers" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
-                Tümü →
-              </Link>
+        <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                <FileText className="h-4 w-4 text-blue-600" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-900">Son Müşteriler</h3>
             </div>
-            <div className="space-y-1">
-              {(recentCustomers ?? []).length === 0 ? (
-                <p className="text-xs text-gray-400 text-center py-6">Henüz müşteri yok</p>
-              ) : (
-                (recentCustomers ?? []).map((c) => {
-                  const brand = Array.isArray(c.brand) ? c.brand[0] : c.brand
-                  const stage = Array.isArray(c.current_stage) ? c.current_stage[0] : c.current_stage
-                  return (
-                    <Link key={c.id} href={`/customers/${c.id}`}
-                      className="flex items-center gap-2.5 py-2 px-2 -mx-2 rounded-xl hover:bg-gray-50 transition-colors">
-                      <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                        style={{ background: `linear-gradient(135deg, ${brand?.color ?? '#6B7280'}, ${brand?.color ?? '#6B7280'}99)` }}>
-                        {c.full_name.charAt(0)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-900 truncate">{c.full_name}</p>
-                        <p className="text-[10px] text-gray-400">{brand?.name} · {formatDate(c.created_at)}</p>
-                      </div>
-                      {stage && (
-                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: stage.color + '20', color: stage.color }}>
-                          {stage.name}
-                        </span>
-                      )}
-                    </Link>
-                  )
-                })
-              )}
-            </div>
+            <Link href="/customers" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
+              Tümünü Gör →
+            </Link>
+          </div>
+
+          <div className="space-y-1">
+            {(recentCustomers ?? []).length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-8">Henüz müşteri yok</p>
+            ) : (
+              (recentCustomers ?? []).map((c) => {
+                const brand = Array.isArray(c.brand) ? c.brand[0] : c.brand
+                const stage = Array.isArray(c.current_stage) ? c.current_stage[0] : c.current_stage
+                return (
+                  <Link key={c.id} href={`/customers/${c.id}`}
+                    className="flex items-center gap-2.5 py-2 px-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors">
+                    <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                      style={{ backgroundColor: brand?.color ?? '#6B7280' }}>
+                      {c.full_name.charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{c.full_name}</p>
+                      <p className="text-[11px] text-gray-400">{brand?.name} · {formatDate(c.created_at)}</p>
+                    </div>
+                    {stage && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0"
+                        style={{ backgroundColor: stage.color + '15', color: stage.color, borderColor: stage.color + '30' }}>
+                        {stage.name}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })
+            )}
           </div>
         </div>
-
       </div>
     </div>
   )
