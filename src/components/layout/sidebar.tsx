@@ -81,8 +81,18 @@ export function Sidebar({ profile }: { profile: UserProfile | null }) {
   const roleName = isAdmin ? 'Yönetici' : isManager ? 'Satış Müdürü' : 'Satış Danışmanı'
   const groups = getNavGroups(isAdmin, isManager)
 
-  const isActive = (href: string) =>
-    pathname === href || (href !== '/dashboard' && pathname.startsWith(href + '/'))
+  const allHrefs = groups.flatMap(g => g.items.map(i => i.href))
+
+  const isActive = (href: string) => {
+    if (pathname === href) return true
+    // Exact-only routes: /new suffix, /dashboard, /settings
+    if (href.endsWith('/new') || href === '/dashboard' || href === '/settings') return false
+    // Parent route active on sub-pages, but NOT when a more specific nav item matches
+    return (
+      pathname.startsWith(href + '/') &&
+      !allHrefs.some(other => other !== href && pathname.startsWith(other))
+    )
+  }
 
   return (
     <aside className="w-60 bg-slate-900 flex flex-col h-screen shrink-0">
