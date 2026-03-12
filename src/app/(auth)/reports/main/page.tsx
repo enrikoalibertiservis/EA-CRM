@@ -8,8 +8,6 @@ import { Building2, Users, CheckCircle, MessageSquare, TrendingUp, Shield, Shiel
 import Link from 'next/link'
 import type { Brand, SalesStage, BrandFunnelData, HeatmapCell, ChannelStats, ContactChannel } from '@/lib/types/database'
 
-const MAIN_LOCATION_ID = '00000000-0000-0000-0000-000000000001'
-
 export default async function MainReportPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -19,8 +17,8 @@ export default async function MainReportPage() {
 
   if (!['super_admin', 'manager'].includes(profile?.role ?? '')) redirect('/dashboard')
 
-  // If manager, only show their location's data
-  const locationFilter = profile?.role === 'manager' ? profile.location_id : MAIN_LOCATION_ID
+  // Her zaman kullanıcının kendi location'ını kullan
+  const locationFilter = profile?.location_id
 
   const [{ data: brands }, { data: stages }, { data: channels }] = await Promise.all([
     supabase.from('brands').select('*').eq('is_active', true),
@@ -28,16 +26,16 @@ export default async function MainReportPage() {
     supabase.from('contact_channels').select('*').eq('is_active', true).order('sort_order'),
   ])
 
-  const { data: customers } = await supabase
+  let customersQuery = supabase
     .from('customers')
     .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, insurance_kasko_offered, oto_koruma_sold')
     .eq('is_active', true)
-    .eq('location_id', locationFilter)
+  if (locationFilter) customersQuery = customersQuery.eq('location_id', locationFilter)
+  const { data: customers } = await customersQuery
 
-  const { data: consultants } = await supabase
-    .from('user_profiles')
-    .select('id, full_name, is_active')
-    .eq('location_id', locationFilter)
+  let consultantsQuery = supabase.from('user_profiles').select('id, full_name, is_active')
+  if (locationFilter) consultantsQuery = consultantsQuery.eq('location_id', locationFilter)
+  const { data: consultants } = await consultantsQuery
 
   const customerIds = (customers ?? []).map((c) => c.id)
   const { data: contactLogs } = customerIds.length > 0
