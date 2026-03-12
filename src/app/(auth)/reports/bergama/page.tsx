@@ -16,8 +16,6 @@ import type {
   ContactChannel,
 } from '@/lib/types/database'
 
-const INCESU_LOCATION_ID = '00000000-0000-0000-0000-000000000002'
-
 export default async function IncesusReportPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -32,20 +30,27 @@ export default async function IncesusReportPage() {
     redirect('/dashboard')
   }
 
+  // İncesu lokasyonunu DB'den bul
+  const { data: allLocations } = await supabase.from('locations').select('id, name')
+  const incesulocation = allLocations?.find(
+    (l) => l.name?.toLowerCase().includes('incesu')
+  )
+  const locationFilter = incesulocation?.id
+
   const { data: brands }   = await supabase.from('brands').select('*').eq('is_active', true)
   const { data: stages }   = await supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order')
   const { data: channels } = await supabase.from('contact_channels').select('*').eq('is_active', true).order('sort_order')
 
-  const { data: customers } = await supabase
+  let customersQuery = supabase
     .from('customers')
     .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id')
     .eq('is_active', true)
-    .eq('location_id', INCESU_LOCATION_ID)
+  if (locationFilter) customersQuery = customersQuery.eq('location_id', locationFilter)
+  const { data: customers } = await customersQuery
 
-  const { data: consultants } = await supabase
-    .from('user_profiles')
-    .select('id, full_name, is_active')
-    .eq('location_id', INCESU_LOCATION_ID)
+  let consultantsQuery = supabase.from('user_profiles').select('id, full_name, is_active')
+  if (locationFilter) consultantsQuery = consultantsQuery.eq('location_id', locationFilter)
+  const { data: consultants } = await consultantsQuery
 
   const customerIds = (customers ?? []).map((c) => c.id)
   const { data: contactLogs } = customerIds.length > 0
@@ -55,13 +60,14 @@ export default async function IncesusReportPage() {
         .in('customer_id', customerIds)
     : { data: [] }
 
-  const { data: recentCustomers } = await supabase
+  let recentQuery = supabase
     .from('customers')
     .select('id, full_name, created_at, brand:brands(name, color), current_stage:sales_stages(name, color)')
     .eq('is_active', true)
-    .eq('location_id', INCESU_LOCATION_ID)
     .order('created_at', { ascending: false })
     .limit(10)
+  if (locationFilter) recentQuery = recentQuery.eq('location_id', locationFilter)
+  const { data: recentCustomers } = await recentQuery
 
   const consultantPerf = (consultants ?? []).map((c) => {
     const custCount    = (customers ?? []).filter((cu) => cu.consultant_id === c.id).length

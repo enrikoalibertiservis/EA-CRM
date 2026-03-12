@@ -17,8 +17,15 @@ export default async function MainReportPage() {
 
   if (!['super_admin', 'manager'].includes(profile?.role ?? '')) redirect('/dashboard')
 
-  // Her zaman kullanıcının kendi location'ını kullan
-  const locationFilter = profile?.location_id
+  // Tüm lokasyonları çek, İncesu olmayan (Enriko Aliberti) lokasyonu bul
+  const { data: allLocations } = await supabase.from('locations').select('id, name')
+  const mainLocation = allLocations?.find(
+    (l) => !l.name?.toLowerCase().includes('incesu')
+  )
+  // Manager kendi lokasyonunu görür; super_admin Enriko Aliberti lokasyonunu görür
+  const locationFilter = profile?.role === 'manager'
+    ? profile.location_id
+    : (mainLocation?.id ?? profile?.location_id)
 
   const [{ data: brands }, { data: stages }, { data: channels }] = await Promise.all([
     supabase.from('brands').select('*').eq('is_active', true),
