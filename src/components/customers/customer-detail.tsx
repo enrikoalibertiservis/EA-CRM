@@ -223,7 +223,7 @@ export function CustomerDetail({
                   className={`h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 border-2 transition-all ${
                     isWon
                       ? 'bg-green-600 border-green-600 text-white shadow-sm'
-                      : 'bg-white border-gray-200 text-gray-400 hover:border-green-400 hover:text-green-600 disabled:opacity-40 disabled:cursor-not-allowed'
+                      : 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100 hover:border-green-400 disabled:opacity-40 disabled:cursor-not-allowed'
                   }`}
                 >
                   <CheckCircle className="h-3.5 w-3.5" />
@@ -238,7 +238,7 @@ export function CustomerDetail({
                     className={`h-8 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 border-2 transition-all ${
                       isLost
                         ? 'bg-red-600 border-red-600 text-white shadow-sm hover:bg-red-700'
-                        : 'bg-white border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-600 hover:bg-red-50'
+                        : 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100 hover:border-red-400'
                     }`}
                   >
                     <XCircle className="h-3.5 w-3.5" />
@@ -250,7 +250,7 @@ export function CustomerDetail({
           </div>
 
           {/* Info grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4 pt-4 border-t border-gray-100">
 
             {/* Marka */}
             <div className="group">

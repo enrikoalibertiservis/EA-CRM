@@ -45,16 +45,40 @@ function getChannelMeta(name: string) {
   return CHANNEL_ICONS[name] ?? { icon: MessageSquare, color: '#6B7280', bg: '#F9FAFB' }
 }
 
+interface ContactType {
+  id: string
+  name: string
+  slug: string
+  icon_name: string | null
+  color: string
+}
+
 interface CustomerFormProps {
   brands: { id: string; name: string; color: string }[]
   models: { id: string; brand_id: string; name: string }[]
   channels: { id: string; name: string; icon_name: string; color: string }[]
   consultants: { id: string; full_name: string }[]
+  contactTypes: ContactType[]
   currentUserId: string
   currentLocationId: string
 }
 
-export function CustomerForm({ brands, models, channels, consultants, currentUserId, currentLocationId }: CustomerFormProps) {
+// İkon adından LucideIcon'a dönüşüm haritası
+const CONTACT_TYPE_ICONS: Record<string, LucideIcon> = {
+  'building2':   Building2,
+  'phone-call':  PhoneCall,
+  'phone':       Phone,
+  'message-square': MessageSquare,
+  'users':       User,
+  'car':         Car,
+}
+
+function getContactTypeIcon(iconName: string | null): LucideIcon {
+  if (!iconName) return MessageSquare
+  return CONTACT_TYPE_ICONS[iconName] ?? MessageSquare
+}
+
+export function CustomerForm({ brands, models, channels, consultants, contactTypes, currentUserId, currentLocationId }: CustomerFormProps) {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
@@ -312,37 +336,38 @@ export function CustomerForm({ brands, models, channels, consultants, currentUse
               </div>
             </div>
 
-            {/* Temas Türü */}
-            <div>
-              <label className="text-xs font-medium text-gray-700 block mb-1.5">Temas Türü</label>
-              <div className="flex gap-2">
-                {[
-                  { value: 'visit',        label: 'Ziyaret',     icon: Building2, color: '#6366F1', bg: '#EEF2FF' },
-                  { value: 'inbound_call', label: 'Gelen Çağrı', icon: PhoneCall,  color: '#10B981', bg: '#ECFDF5' },
-                ].map(({ value, label, icon: Icon, color, bg }) => {
-                  const isSelected = form.initial_contact_type === value
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => update('initial_contact_type', isSelected ? '' : value)}
-                      className={`flex items-center gap-2 h-9 px-4 rounded-lg border text-xs font-semibold transition-all ${
-                        isSelected ? 'text-white shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
-                      style={isSelected ? { backgroundColor: color, borderColor: color } : {}}
-                    >
-                      <div
-                        className="h-5 w-5 rounded-md flex items-center justify-center shrink-0"
-                        style={isSelected ? { background: 'rgba(255,255,255,0.25)' } : { background: bg }}
+            {/* Temas Türü — parametrik */}
+            {contactTypes.length > 0 && (
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">Temas Türü</label>
+                <div className="flex flex-wrap gap-2">
+                  {contactTypes.map((ct) => {
+                    const Icon = getContactTypeIcon(ct.icon_name)
+                    const isSelected = form.initial_contact_type === ct.slug
+                    const bg = ct.color + '18'
+                    return (
+                      <button
+                        key={ct.id}
+                        type="button"
+                        onClick={() => update('initial_contact_type', isSelected ? '' : ct.slug)}
+                        className={`flex items-center gap-2 h-9 px-4 rounded-lg border text-xs font-semibold transition-all ${
+                          isSelected ? 'text-white shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                        style={isSelected ? { backgroundColor: ct.color, borderColor: ct.color } : {}}
                       >
-                        <Icon className="h-3 w-3" style={{ color: isSelected ? '#fff' : color }} />
-                      </div>
-                      {label}
-                    </button>
-                  )
-                })}
+                        <div
+                          className="h-5 w-5 rounded-md flex items-center justify-center shrink-0"
+                          style={isSelected ? { background: 'rgba(255,255,255,0.25)' } : { background: bg }}
+                        >
+                          <Icon className="h-3 w-3" style={{ color: isSelected ? '#fff' : ct.color }} />
+                        </div>
+                        {ct.name}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Sorumlu Danışman — en aşağıda */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

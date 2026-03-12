@@ -8,7 +8,7 @@ import {
 } from 'recharts'
 import {
   TrendingUp, Users, CheckCircle, XCircle, Activity,
-  Filter, ChevronDown, ChevronUp, CalendarDays,
+  Filter, CalendarDays,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -138,11 +138,10 @@ export default function ConsultantReportPage() {
   const [authorized, setAuthorized] = useState(true)
   const [stats, setStats] = useState<ConsultantStats[]>([])
   const [allReasons, setAllReasons] = useState<string[]>([])
-  const [selectedReasons, setSelectedReasons] = useState<string[]>([])
-  const [reasonFilterOpen, setReasonFilterOpen] = useState(false)
   const [dateMode, setDateMode] = useState<DateMode>('')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
+  const [selectedConsultantFilter, setSelectedConsultantFilter] = useState<string>('toplam')
 
   const { from: dateFrom, to: dateTo } = getDateRange(dateMode, customFrom, customTo)
 
@@ -158,7 +157,6 @@ export default function ConsultantReportPage() {
       const { data: lrData } = await supabase.from('lost_reasons').select('name').eq('is_active', true).order('sort_order')
       const reasonNames = (lrData ?? []).map((r: { name: string }) => r.name)
       setAllReasons(reasonNames)
-      setSelectedReasons(reasonNames)
 
       // Fetch consultants
       const { data: consultants } = await supabase
@@ -219,23 +217,24 @@ export default function ConsultantReportPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateFrom, dateTo])
 
-  const reasonChartData = useMemo(() => {
-    return stats.map(s => {
-      const row: Record<string, string | number> = { name: s.name.split(' ')[0] + (s.name.split(' ')[1] ? ' ' + s.name.split(' ')[1][0] + '.' : '') }
-      selectedReasons.forEach(r => {
-        row[r] = s.lostReasons[r] ?? 0
-      })
-      return row
-    })
-  }, [stats, selectedReasons])
+  // Seçili danışmana göre sebep dağılımı (Toplam = tümü topla)
+  const reasonBarData = useMemo(() => {
+    const filteredStats = selectedConsultantFilter === 'toplam'
+      ? stats
+      : stats.filter(s => s.id === selectedConsultantFilter)
+
+    return allReasons.map((reason, i) => ({
+      reason,
+      shortReason: reason.length > 18 ? reason.slice(0, 18) + '…' : reason,
+      count: filteredStats.reduce((sum, s) => sum + (s.lostReasons[reason] ?? 0), 0),
+      color: REASON_COLORS[i % REASON_COLORS.length],
+    })).filter(d => d.count > 0)
+  }, [stats, allReasons, selectedConsultantFilter])
 
   const totalWon = stats.reduce((s, c) => s + c.won, 0)
   const totalLost = stats.reduce((s, c) => s + c.lost, 0)
   const totalAll = stats.reduce((s, c) => s + c.total, 0)
   const avgRate = totalAll > 0 ? (totalWon / totalAll * 100) : 0
-
-  const toggleReason = (r: string) =>
-    setSelectedReasons(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r])
 
   if (!authorized) {
     return (
@@ -460,69 +459,48 @@ export default function ConsultantReportPage() {
             </div>
             <div>
               <h2 className="text-sm font-bold text-gray-900">Satış Yapılamama Kök Sebepleri</h2>
-              <p className="text-xs text-gray-400">Danışman bazında kaybedilen müşterilerin sebep dağılımı</p>
+              <p className="text-xs text-gray-400">
+                {selectedConsultantFilter === 'toplam' ? 'Tüm danışmanlar — toplam dağılım' : (stats.find(s => s.id === selectedConsultantFilter)?.name ?? '') + ' — sebep dağılımı'}
+              </p>
             </div>
           </div>
 
-          {/* Reason filter */}
-          <div className="relative">
-            <button
-              onClick={() => setReasonFilterOpen(p => !p)}
-              className="flex items-center gap-2 h-8 px-3 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:border-gray-300 bg-white transition-colors"
+          {/* Danışman filtresi */}
+          <div className="flex items-center gap-2">
+            <Filter className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+            <select
+              value={selectedConsultantFilter}
+              onChange={e => setSelectedConsultantFilter(e.target.value)}
+              className="h-8 rounded-lg border border-gray-200 bg-white text-xs px-3 pr-7 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 cursor-pointer"
             >
-              <Filter className="h-3.5 w-3.5 text-gray-400" />
-              Sebep Filtrele
-              <span className="bg-indigo-100 text-indigo-700 rounded-full px-1.5 font-semibold">{selectedReasons.length}</span>
-              {reasonFilterOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            </button>
-
-            {reasonFilterOpen && (
-              <div className="absolute right-0 top-10 z-20 bg-white border border-gray-200 rounded-xl shadow-xl p-3 w-72 space-y-1">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-gray-700">Sebepler</span>
-                  <div className="flex gap-2">
-                    <button onClick={() => setSelectedReasons(allReasons)} className="text-[10px] text-blue-600 hover:underline">Tümü</button>
-                    <button onClick={() => setSelectedReasons([])} className="text-[10px] text-red-500 hover:underline">Temizle</button>
-                  </div>
-                </div>
-                {allReasons.map((r, i) => {
-                  const active = selectedReasons.includes(r)
-                  return (
-                    <button
-                      key={r}
-                      onClick={() => toggleReason(r)}
-                      className={cn(
-                        'w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-left transition-colors',
-                        active ? 'bg-indigo-50 text-indigo-800' : 'text-gray-600 hover:bg-gray-50',
-                      )}
-                    >
-                      <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: REASON_COLORS[i % REASON_COLORS.length] }} />
-                      <span className="flex-1 truncate">{r}</span>
-                      {active && <span className="text-indigo-500 font-bold text-[10px]">✓</span>}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
+              <option value="toplam">Toplam (Tüm Danışmanlar)</option>
+              {stats.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {stats.length === 0 || stats.every(s => Object.keys(s.lostReasons).length === 0) ? (
+        {reasonBarData.length === 0 ? (
           <div className="flex items-center justify-center h-40 text-gray-400 text-sm">Kayıp verisi bulunamadı</div>
         ) : (
           <>
-            <ResponsiveContainer width="100%" height={Math.max(260, stats.length * 48 + 60)}>
+            <ResponsiveContainer width="100%" height={Math.max(260, reasonBarData.length * 44 + 80)}>
               <BarChart
-                data={reasonChartData}
-                margin={{ top: 8, right: 20, left: 0, bottom: 60 }}
-                barCategoryGap="30%"
+                data={reasonBarData}
+                margin={{ top: 8, right: 40, left: 0, bottom: 70 }}
+                barCategoryGap="25%"
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 12, fill: '#374151', fontWeight: 500 }}
+                  dataKey="shortReason"
+                  tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }}
                   axisLine={false}
                   tickLine={false}
+                  interval={0}
+                  angle={-35}
+                  textAnchor="end"
+                  height={70}
                 />
                 <YAxis
                   allowDecimals={false}
@@ -530,30 +508,38 @@ export default function ConsultantReportPage() {
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip content={<ReasonsTooltip />} cursor={{ fill: '#f8fafc' }} />
-                {selectedReasons.map((r, i) => (
-                  <Bar
-                    key={r}
-                    dataKey={r}
-                    name={r}
-                    stackId="a"
-                    fill={REASON_COLORS[allReasons.indexOf(r) % REASON_COLORS.length]}
-                    radius={i === selectedReasons.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
-                    maxBarSize={48}
+                <Tooltip
+                  cursor={{ fill: '#f8fafc' }}
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.[0]) return null
+                    const d = payload[0].payload as { reason: string; count: number }
+                    return (
+                      <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-4 py-2.5 text-xs">
+                        <p className="font-bold text-gray-900 mb-1">{d.reason}</p>
+                        <p className="text-gray-600">Adet: <span className="font-semibold text-gray-900">{d.count}</span></p>
+                      </div>
+                    )
+                  }}
+                />
+                <Bar dataKey="count" radius={[5, 5, 0, 0]} maxBarSize={52}>
+                  {reasonBarData.map((d, i) => (
+                    <Cell key={d.reason} fill={REASON_COLORS[i % REASON_COLORS.length]} />
+                  ))}
+                  <LabelList
+                    dataKey="count"
+                    position="top"
+                    style={{ fontSize: 11, fontWeight: 700, fill: '#374151' }}
                   />
-                ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
 
-            {/* Reason legend */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2 justify-center">
-              {selectedReasons.map((r, i) => (
-                <span key={r} className="flex items-center gap-1.5 text-[11px] text-gray-600">
-                  <span
-                    className="h-2.5 w-2.5 rounded-sm shrink-0"
-                    style={{ backgroundColor: REASON_COLORS[allReasons.indexOf(r) % REASON_COLORS.length] }}
-                  />
-                  {r}
+            {/* Renk legend */}
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 justify-center">
+              {reasonBarData.map((d, i) => (
+                <span key={d.reason} className="flex items-center gap-1.5 text-[11px] text-gray-600">
+                  <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: REASON_COLORS[i % REASON_COLORS.length] }} />
+                  {d.reason}
                 </span>
               ))}
             </div>
@@ -577,7 +563,7 @@ export default function ConsultantReportPage() {
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Toplam</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-green-400 uppercase tracking-wide">Satış</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-red-400 uppercase tracking-wide">Kayıp</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-blue-400 uppercase tracking-wide">Aktif</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-blue-400 uppercase tracking-wide">Takip</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-indigo-400 uppercase tracking-wide">Kapama %</th>
               </tr>
             </thead>

@@ -38,12 +38,12 @@ function getNavGroups(isAdmin: boolean, isManager: boolean): NavGroup[] {
 
   if (isAdmin || isManager) {
     const reportItems: NavItem[] = [
-      { label: 'Enriko Aliberti',       href: '/reports/main',        icon: BarChart3,  color: 'text-amber-400' },
-      { label: 'Danışman Performansı', href: '/reports/consultants', icon: TrendingUp, color: 'text-emerald-400' },
+      { label: 'Enriko Aliberti', href: '/reports/main', icon: BarChart3, color: 'text-amber-400' },
     ]
     if (isAdmin) {
       reportItems.push({ label: 'İncesu Otomotiv', href: '/reports/bergama', icon: MapPin, color: 'text-cyan-400' })
     }
+    reportItems.push({ label: 'Danışman Performansı', href: '/reports/consultants', icon: TrendingUp, color: 'text-emerald-400' })
     groups.push({ title: 'RAPORLAR', items: reportItems })
   }
 

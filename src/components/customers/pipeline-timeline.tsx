@@ -186,7 +186,8 @@ export function PipelineTimeline({
               : '0%',
           }}
         />
-        <div className="flex items-start justify-between relative z-10 overflow-x-auto pb-2">
+        <div className="overflow-x-auto">
+        <div className="flex items-start justify-between relative z-10 pb-2 pt-2 min-w-max w-full">
           {sortedStages.map((stage) => {
             const Icon       = stageIcons[stage.slug] ?? Gauge
             const completed  = isCompleted(stage)
@@ -247,6 +248,7 @@ export function PipelineTimeline({
               </div>
             )
           })}
+        </div>
         </div>
       </div>
 

@@ -57,7 +57,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
   const [dateTo, setDateTo] = useState('')
   const [sortField, setSortField] = useState<SortField>('created_at')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
-  const [showFilters, setShowFilters] = useState(false)
+  const [showFilters, setShowFilters] = useState(true)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isDeleting, setIsDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
