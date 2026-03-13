@@ -138,6 +138,8 @@ export default function ConsultantReportPage() {
   const [authorized, setAuthorized] = useState(true)
   const [stats, setStats] = useState<ConsultantStats[]>([])
   const [allReasons, setAllReasons] = useState<string[]>([])
+  const [locations, setLocations] = useState<{ id: string; name: string }[]>([])
+  const [locationFilter, setLocationFilter] = useState<string>('all')
   const [dateMode, setDateMode] = useState<DateMode>('')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
@@ -152,6 +154,10 @@ export default function ConsultantReportPage() {
       if (!user) { setAuthorized(false); return }
       const { data: profile } = await supabase.from('user_profiles').select('role').eq('id', user.id).single()
       if (!['super_admin', 'manager'].includes(profile?.role ?? '')) { setAuthorized(false); return }
+
+      // Fetch locations
+      const { data: locData } = await supabase.from('locations').select('id, name').order('name')
+      setLocations(locData ?? [])
 
       // Fetch lost reasons for filter
       const { data: lrData } = await supabase.from('lost_reasons').select('name').eq('is_active', true).order('sort_order')
@@ -168,7 +174,7 @@ export default function ConsultantReportPage() {
       // Fetch customers with date range
       let query = supabase
         .from('customers')
-        .select('id, consultant_id, is_won, is_lost, lost_reason, created_at')
+        .select('id, consultant_id, is_won, is_lost, lost_reason, created_at, location_id')
         .eq('is_active', true)
       if (dateFrom) query = query.gte('created_at', dateFrom)
       if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59')
@@ -177,7 +183,9 @@ export default function ConsultantReportPage() {
 
       // Build stats per consultant
       const consultantList = consultants ?? []
-      const customerList = customers ?? []
+      const customerList = (customers ?? []).filter(cu =>
+        locationFilter === 'all' || cu.location_id === locationFilter
+      )
 
       const statsArr: ConsultantStats[] = consultantList.map(c => {
         const mine = customerList.filter(cu => cu.consultant_id === c.id)
@@ -215,7 +223,7 @@ export default function ConsultantReportPage() {
     }
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, locationFilter])
 
   // Seçili danışmana göre sebep dağılımı (Toplam = tümü topla)
   const reasonBarData = useMemo(() => {
@@ -255,8 +263,37 @@ export default function ConsultantReportPage() {
   return (
     <div className="space-y-7">
 
+      {/* ── Location filters ── */}
+      {locations.length > 0 && (
+        <div className="-mt-4 mb-1 flex items-center gap-1.5 flex-wrap">
+          <button
+            onClick={() => setLocationFilter('all')}
+            className={`h-7 px-3 rounded-full text-xs font-medium transition-all border ${
+              locationFilter === 'all'
+                ? 'border-slate-400 text-slate-700 bg-slate-100'
+                : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
+            }`}
+          >
+            Tüm Şubeler
+          </button>
+          {locations.map(loc => (
+            <button
+              key={loc.id}
+              onClick={() => setLocationFilter(loc.id)}
+              className={`h-7 px-3 rounded-full text-xs font-medium transition-all border ${
+                locationFilter === loc.id
+                  ? 'border-slate-400 text-slate-700 bg-slate-100'
+                  : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
+              }`}
+            >
+              {loc.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── Date filters ── */}
-      <div className="-mt-4 mb-2">
+      <div className="mb-2">
         <div className="flex items-center gap-1 flex-wrap">
           {DATE_TABS.map((tab) => (
             <button
