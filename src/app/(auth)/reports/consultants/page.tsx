@@ -428,69 +428,6 @@ export default function ConsultantReportPage() {
         </div>
       </div>
 
-      {/* ── Sector Benchmark Reference ── */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center">
-            <TrendingUp className="h-4 w-4 text-amber-500" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-gray-900">Sektör Benchmark — Satış Kapatma Oranı</h2>
-            <p className="text-xs text-gray-400">Otomotiv bayii sektörü ortalamaları (referans)</p>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Seviye</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Satış Kapatma Oranı</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Yorum</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {[
-                {
-                  level: 'Düşük',
-                  range: '%10 – %20',
-                  comment: 'Süreçte problem olabilir. Karşılama, ihtiyaç analizi veya takip zayıf olabilir.',
-                  color: 'bg-amber-50 text-amber-700 border-amber-200',
-                  dot: 'bg-amber-400',
-                },
-                {
-                  level: 'Orta (Sektör Ortalaması)',
-                  range: '%20 – %35',
-                  comment: 'Sağlıklı ve kabul edilebilir performans. Çoğu bayi bu aralıkta çalışır.',
-                  color: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-                  dot: 'bg-indigo-500',
-                },
-                {
-                  level: 'Yüksek (Başarılı satış danışmanı)',
-                  range: '%35 – %50+',
-                  comment: 'Güçlü satış becerisi, iyi müşteri yönetimi ve doğru lead kalitesi.',
-                  color: 'bg-green-50 text-green-700 border-green-200',
-                  dot: 'bg-green-500',
-                },
-              ].map((row) => (
-                <tr key={row.level} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-2">
-                      <span className={`h-2 w-2 rounded-full ${row.dot}`} />
-                      <span className="font-semibold text-gray-800 text-sm">{row.level}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${row.color}`}>
-                      {row.range}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5 text-xs text-gray-600 max-w-xs">{row.comment}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
       {/* ── Lost Reasons Chart ── */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
