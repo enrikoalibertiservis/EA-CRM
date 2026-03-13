@@ -79,130 +79,132 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
   }
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-green-400 shadow-md overflow-hidden h-full flex flex-col"
-      style={{ boxShadow: '0 4px 24px 0 #22c55e22' }}>
-      {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-green-100"
-        style={{ background: 'linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%)' }}>
-        <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-sm"
-          style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)', boxShadow: '0 2px 8px #22c55e55' }}>
-          <Zap className="h-5 w-5 text-white" />
+    <div className="bg-white rounded-2xl border-2 border-green-300 overflow-hidden h-full flex flex-col"
+      style={{ boxShadow: '0 2px 12px 0 #22c55e18' }}>
+
+      {/* Header — kompakt */}
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-green-100"
+        style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' }}>
+        <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0"
+          style={{ background: '#16a34a' }}>
+          <Zap className="h-3.5 w-3.5 text-white" />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-gray-900">Hızlı Müşteri Kaydı</h3>
-          <p className="text-[11px] text-green-600 font-medium">Müşteriyi bekletmeden sisteme girin</p>
+          <h3 className="text-sm font-bold text-gray-900 leading-tight">Hızlı Müşteri Kaydı</h3>
+          <p className="text-[10px] text-green-600">Müşteriyi bekletmeden sisteme girin</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-5 space-y-4 flex-1 flex flex-col justify-between">
-        {/* Ad + Telefon */}
-        <div className="grid grid-cols-1 gap-3">
+      <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3 flex-1">
+
+        {/* Ad Soyad + Telefon — yan yana */}
+        <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1">
+            <label className="text-[11px] font-medium text-gray-500 block mb-1">
               Ad Soyad <span className="text-red-400">*</span>
             </label>
             <div className="relative">
-              <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+              <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
               <input
                 type="text"
                 value={name}
                 onChange={e => { setName(e.target.value); setErrors(p => { const n={...p}; delete n.name; return n }) }}
-                placeholder="Müşteri adı soyadı"
-                className={`w-full h-9 rounded-lg border pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${errors.name ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'}`}
+                placeholder="Ad Soyad"
+                className={`w-full h-8 rounded-lg border pl-7 pr-2 text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${errors.name ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'}`}
               />
             </div>
-            {errors.name && <p className="text-[11px] text-red-500 mt-0.5">{errors.name}</p>}
+            {errors.name && <p className="text-[10px] text-red-500 mt-0.5">{errors.name}</p>}
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1">
+            <label className="text-[11px] font-medium text-gray-500 block mb-1">
               Telefon <span className="text-red-400">*</span>
             </label>
             <div className="relative">
-              <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+              <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
               <input
                 type="tel"
                 value={phone}
                 onChange={e => { setPhone(formatGSM(e.target.value)); setErrors(p => { const n={...p}; delete n.phone; return n }) }}
                 placeholder="0532 456 78 90"
                 maxLength={14}
-                className={`w-full h-9 rounded-lg border pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${errors.phone ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'}`}
+                className={`w-full h-8 rounded-lg border pl-7 pr-2 text-xs focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${errors.phone ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'}`}
               />
             </div>
-            {errors.phone && <p className="text-[11px] text-red-500 mt-0.5">{errors.phone}</p>}
+            {errors.phone && <p className="text-[10px] text-red-500 mt-0.5">{errors.phone}</p>}
           </div>
         </div>
 
         {/* Marka */}
         <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
+          <label className="text-[11px] font-medium text-gray-500 block mb-1">
             Marka <span className="text-red-400">*</span>
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {brands.map(b => (
               <button
                 key={b.id}
                 type="button"
                 onClick={() => { handleBrand(b.id); setErrors(p => { const n={...p}; delete n.brand; return n }) }}
-                className="h-8 px-4 rounded-lg border text-xs font-semibold transition-all"
+                className="h-7 px-3 rounded-lg border text-xs font-semibold transition-all"
                 style={brandId === b.id
                   ? { backgroundColor: b.color + 'cc', borderColor: b.color, color: '#fff' }
-                  : { backgroundColor: b.color + '12', borderColor: b.color + '35', color: b.color + 'cc' }
+                  : { backgroundColor: b.color + '10', borderColor: b.color + '40', color: b.color }
                 }
               >
                 {b.name}
               </button>
             ))}
           </div>
-          {errors.brand && <p className="text-[11px] text-red-500 mt-0.5">{errors.brand}</p>}
+          {errors.brand && <p className="text-[10px] text-red-500 mt-0.5">{errors.brand}</p>}
         </div>
 
-        {/* Model */}
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1">
-            <Car className="inline h-3 w-3 mr-1 text-gray-400" />
-            İlgilendiği Model
-          </label>
-          <select
-            value={model}
-            onChange={e => setModel(e.target.value)}
-            className="w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Model seçin (opsiyonel)</option>
-            {filteredModels.map(m => (
-              <option key={m.id} value={m.name}>{m.name}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Şube seçimi */}
-        {locations && locations.length > 0 && (
+        {/* Model + Lokasyon — yan yana */}
+        <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1.5">Şube</label>
-            <div className="flex gap-2">
-              {locations.map(loc => (
-                <button
-                  key={loc.id}
-                  type="button"
-                  onClick={() => setLocationId(loc.id)}
-                  className="flex-1 h-8 rounded-lg border text-xs font-semibold transition-all"
-                  style={locationId === loc.id
-                    ? { backgroundColor: '#1E3A5F', borderColor: '#1E3A5F', color: '#fff' }
-                    : { backgroundColor: '#fff', borderColor: '#E5E7EB', color: '#6B7280' }
-                  }
-                >
-                  {loc.name}
-                </button>
+            <label className="text-[11px] font-medium text-gray-500 block mb-1">
+              <Car className="inline h-3 w-3 mr-0.5 text-gray-400" />
+              Model
+            </label>
+            <select
+              value={model}
+              onChange={e => setModel(e.target.value)}
+              className="w-full h-8 rounded-lg border border-gray-200 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-green-400"
+            >
+              <option value="">Seçin</option>
+              {filteredModels.map(m => (
+                <option key={m.id} value={m.name}>{m.name}</option>
               ))}
-            </div>
+            </select>
           </div>
-        )}
 
-        {/* Submit */}
+          {locations && locations.length > 0 && (
+            <div>
+              <label className="text-[11px] font-medium text-gray-500 block mb-1">Lokasyon</label>
+              <div className="flex gap-1">
+                {locations.map(loc => (
+                  <button
+                    key={loc.id}
+                    type="button"
+                    onClick={() => setLocationId(loc.id)}
+                    className="flex-1 h-8 rounded-lg border text-[10px] font-semibold transition-all truncate px-1"
+                    style={locationId === loc.id
+                      ? { backgroundColor: '#1E3A5F', borderColor: '#1E3A5F', color: '#fff' }
+                      : { backgroundColor: '#fff', borderColor: '#E2E8F0', color: '#64748b' }
+                    }
+                  >
+                    {loc.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Submit — kibar, hover ile dolgun */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full h-10 rounded-xl text-white text-sm font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm hover:opacity-90 active:scale-[0.98]"
-          style={{ background: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)', boxShadow: '0 2px 8px #22c55e44' }}
+          className="w-full h-9 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 border-2 border-green-500 text-green-700 bg-white hover:bg-green-500 hover:text-white active:scale-[0.98] mt-auto"
         >
           {loading
             ? <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
