@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import {
   ArrowLeft, Users, UserPlus, BarChart3, TrendingUp,
-  MapPin, Settings, UserCog, User,
+  MapPin, Settings, UserCog, User, Smartphone,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -64,6 +64,12 @@ const EXACT: Record<string, PageMeta> = {
     subtitle: 'Sisteme yeni kullanıcı ekle',
     color: '#14B8A6',
     icon: UserPlus,
+  },
+  '/settings/security': {
+    title: '2FA Yönetimi',
+    subtitle: 'Google Authenticator ile iki faktörlü doğrulama',
+    color: '#3B82F6',
+    icon: Smartphone,
   },
 }
 

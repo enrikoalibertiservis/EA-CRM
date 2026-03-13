@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Users, UserPlus, BarChart3,
   MapPin, Settings, Car, LogOut, ChevronRight,
-  ShieldCheck, UserCog, TrendingUp,
+  ShieldCheck, UserCog, TrendingUp, Smartphone,
   type LucideIcon,
 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
@@ -62,6 +62,14 @@ function getNavGroups(isAdmin: boolean, isManager: boolean): NavGroup[] {
       ],
     })
   }
+
+  // Tüm kullanıcılar güvenlik ayarlarına erişebilir
+  groups.push({
+    title: 'GÜVENLİK',
+    items: [
+      { label: '2FA Yönetimi', href: '/settings/security', icon: Smartphone, color: 'text-blue-400' },
+    ],
+  })
 
   return groups
 }
