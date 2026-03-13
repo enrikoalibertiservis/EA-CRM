@@ -86,9 +86,6 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
   const [form, setForm] = useState({
     full_name: '',
     phone: '',
-    phone_alt: '',
-    email: '',
-    address: '',
     city: '',
     district: '',
     brand_id: '',
@@ -130,9 +127,6 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
         .insert({
           full_name: form.full_name,
           phone: form.phone,
-          phone_alt: form.phone_alt || null,
-          email: form.email || null,
-          address: form.address || null,
           city: form.city || null,
           district: form.district || null,
           brand_id: form.brand_id,
@@ -210,17 +204,6 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
               </div>
               {errors.phone && <p className="text-xs text-red-500 mt-0.5">{errors.phone}</p>}
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-700 block mb-1">Alternatif Telefon</label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                <input type="tel" value={form.phone_alt} onChange={(e) => update('phone_alt', formatGSM(e.target.value))} placeholder="0532 456 78 90" maxLength={14} className="w-full h-9 rounded-lg border border-gray-300 pl-9 pr-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              </div>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-700 block mb-1">E-posta</label>
-              <input type="email" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="ornek@email.com" className="w-full h-9 rounded-lg border border-gray-300 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
           </div>
         </div>
 
@@ -235,11 +218,7 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
               <p className="text-[11px] text-gray-400">İl, ilçe ve açık adres</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-3">
-              <label className="text-xs font-medium text-gray-700 block mb-1">Adres</label>
-              <input type="text" value={form.address} onChange={(e) => update('address', e.target.value)} placeholder="Açık adres" className="w-full h-9 rounded-lg border border-gray-300 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-medium text-gray-700 block mb-1">İl</label>
               <input type="text" value={form.city} onChange={(e) => update('city', e.target.value)} placeholder="İzmir" className="w-full h-9 rounded-lg border border-gray-300 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />

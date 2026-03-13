@@ -12,6 +12,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { formatDate } from '@/lib/utils'
 import type { Brand, SalesStage, BrandFunnelData, HeatmapCell, ChannelStats, ContactChannel } from '@/lib/types/database'
+import { QuickRegister } from '@/components/customers/quick-register'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -21,6 +22,7 @@ export default async function DashboardPage() {
     .from('user_profiles').select('*, location:locations(*)').eq('id', user!.id).single()
 
   const { data: brands } = await supabase.from('brands').select('*').eq('is_active', true).order('name')
+  const { data: models } = await supabase.from('vehicle_models').select('id, brand_id, name').eq('is_active', true).order('sort_order')
   const { data: stages } = await supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order')
   const { data: customers } = await supabase.from('customers').select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id').eq('is_active', true)
   const { data: contactLogs } = await supabase.from('contact_logs').select('id, channel_id, contact_date, created_by')
@@ -135,9 +137,19 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* Brand Funnels */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {brandFunnelData.map((d) => <BrandFunnel key={d.brand.id} data={d} />)}
+      {/* Quick Register + Brand Funnels */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div>
+          <QuickRegister
+            brands={brands ?? []}
+            models={models ?? []}
+            currentUserId={user!.id}
+            currentLocationId={profile?.location_id ?? ''}
+          />
+        </div>
+        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {brandFunnelData.map((d) => <BrandFunnel key={d.brand.id} data={d} />)}
+        </div>
       </div>
 
       {/* Heatmap + Channel */}
