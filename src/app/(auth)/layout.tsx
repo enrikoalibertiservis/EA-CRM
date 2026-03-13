@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Sidebar } from '@/components/layout/sidebar'
-import { PageHero } from '@/components/layout/page-hero'
+import { LayoutShell } from '@/components/layout/layout-shell'
 import type { UserProfile } from '@/lib/types/database'
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -17,14 +16,8 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
     .single()
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar profile={profile as UserProfile | null} />
-      <main className="flex-1 overflow-y-auto dot-grid">
-        <div className="p-4 md:p-6 max-w-[1400px] mx-auto">
-          <PageHero />
-          {children}
-        </div>
-      </main>
-    </div>
+    <LayoutShell profile={profile as UserProfile | null}>
+      {children}
+    </LayoutShell>
   )
 }

@@ -89,7 +89,7 @@ export function QuickRegister({ brands, models, currentUserId, currentLocationId
 
       <form onSubmit={handleSubmit} className="p-5 space-y-4 flex-1 flex flex-col justify-between">
         {/* Ad + Telefon */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-1">
               Ad Soyad <span className="text-red-400">*</span>

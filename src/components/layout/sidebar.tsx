@@ -193,7 +193,11 @@ function SidebarTotpModal({ onClose }: { onClose: () => void }) {
   )
 }
 
-export function Sidebar({ profile }: { profile: UserProfile | null }) {
+export function Sidebar({ profile, mobileOpen = false, onClose }: {
+  profile: UserProfile | null
+  mobileOpen?: boolean
+  onClose?: () => void
+}) {
   const pathname = usePathname()
   const router = useRouter()
   const [showTotpModal, setShowTotpModal] = useState(false)
@@ -213,27 +217,45 @@ export function Sidebar({ profile }: { profile: UserProfile | null }) {
 
   const isActive = (href: string) => {
     if (pathname === href) return true
-    // Exact-only routes: /new suffix, /dashboard, /settings
     if (href.endsWith('/new') || href === '/dashboard' || href === '/settings') return false
-    // Parent route active on sub-pages, but NOT when a more specific nav item matches
     return (
       pathname.startsWith(href + '/') &&
       !allHrefs.some(other => other !== href && pathname.startsWith(other))
     )
   }
 
+  const handleNavClick = () => { onClose?.() }
+
   return (
-    <aside className="w-60 bg-slate-900 flex flex-col h-screen shrink-0">
-      {/* Logo */}
-      <Link href="/dashboard" className="p-4 border-b border-slate-700/60 flex items-center gap-2.5 hover:bg-slate-800/60 transition-colors">
-        <div className="w-9 h-9 bg-blue-500 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/30">
-          <Car className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h2 className="font-bold text-sm leading-tight text-white">Enriko Aliberti</h2>
-          <p className="text-xs text-slate-400">CRM Sistemi</p>
-        </div>
-      </Link>
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 flex flex-col h-full transition-transform duration-300 ease-in-out
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:static md:translate-x-0 md:w-60 md:z-auto md:h-screen md:shrink-0
+      `}>
+      {/* Logo + close button */}
+      <div className="flex items-center border-b border-slate-700/60">
+        <Link href="/dashboard" onClick={handleNavClick} className="flex-1 p-4 flex items-center gap-2.5 hover:bg-slate-800/60 transition-colors">
+          <div className="w-9 h-9 bg-blue-500 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/30">
+            <Car className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h2 className="font-bold text-sm leading-tight text-white">Enriko Aliberti</h2>
+            <p className="text-xs text-slate-400">CRM Sistemi</p>
+          </div>
+        </Link>
+        <button onClick={onClose} className="md:hidden p-4 text-slate-400 hover:text-white">
+          <X className="h-5 w-5" />
+        </button>
+      </div>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
@@ -250,7 +272,8 @@ export function Sidebar({ profile }: { profile: UserProfile | null }) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${
+                    onClick={handleNavClick}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all ${
                       active
                         ? 'bg-white/[0.08] text-white'
                         : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
@@ -300,5 +323,6 @@ export function Sidebar({ profile }: { profile: UserProfile | null }) {
 
       {showTotpModal && <SidebarTotpModal onClose={() => setShowTotpModal(false)} />}
     </aside>
+    </>
   )
 }

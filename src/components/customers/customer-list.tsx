@@ -232,9 +232,9 @@ export function CustomerList({ customers, brands, stages, consultants, locations
 
       {/* Search + Filters */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative flex-1 min-w-[160px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input type="text" placeholder="İsim, telefon, e-posta veya araç ara..."
+          <input type="text" placeholder="İsim, telefon veya araç ara..."
             value={search} onChange={(e) => { setSearch(e.target.value); resetPage() }}
             className="w-full h-10 pl-9 pr-4 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
           {search && (
@@ -244,7 +244,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
           )}
         </div>
         <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); resetPage() }}
-          className="h-10 w-36 rounded-lg border border-gray-200 bg-white text-sm px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+          className="h-10 w-32 sm:w-36 rounded-lg border border-gray-200 bg-white text-sm px-2 sm:px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
           <option value="">Tüm Durumlar</option>
           <option value="active">Aktif Takip</option>
           <option value="won">Kazanılan</option>
