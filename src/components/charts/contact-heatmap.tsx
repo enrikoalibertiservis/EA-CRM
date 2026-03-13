@@ -189,9 +189,10 @@ export function ContactHeatmap({
 
       {/* Bar chart */}
       <div className="flex-1 flex flex-col">
-        <div className="flex items-end gap-1 h-28 px-1">
+        <div className="flex items-end gap-1 px-1" style={{ height: '112px' }}>
           {dayData.map(({ hour, count }) => {
-            const heightPct = count === 0 ? 5 : Math.max((count / maxCount) * 100, 10)
+            const MAX_BAR = 96
+            const barHeight = count === 0 ? 3 : Math.max(Math.round((count / maxCount) * MAX_BAR), 12)
             const isPeak = count > 0 && count === peakHour.count
             return (
               <div key={hour} className="flex-1 flex flex-col items-center justify-end gap-0.5 group"
@@ -203,7 +204,7 @@ export function ContactHeatmap({
                   </span>
                 )}
                 <div className="w-full rounded-t-sm transition-all duration-300"
-                  style={{ height: `${heightPct}%`, backgroundColor: getBarColor(count, isPeak), minHeight: '3px' }} />
+                  style={{ height: `${barHeight}px`, backgroundColor: getBarColor(count, isPeak) }} />
               </div>
             )
           })}
