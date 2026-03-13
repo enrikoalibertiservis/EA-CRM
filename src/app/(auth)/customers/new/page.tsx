@@ -25,7 +25,7 @@ export default async function NewCustomerPage() {
         channels={channels ?? []}
         consultants={consultants ?? []}
         contactTypes={contactTypes ?? []}
-        locations={profile?.role === 'super_admin' ? (locations ?? []) : undefined}
+        locations={locations ?? []}
         currentUserId={user!.id}
         currentLocationId={profile?.location_id ?? ''}
       />

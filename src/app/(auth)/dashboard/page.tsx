@@ -146,7 +146,7 @@ export default async function DashboardPage() {
         <QuickRegister
           brands={(brands ?? []).filter((b) => b.slug !== 'ikinci-el' && !b.name.toLowerCase().includes('ikinci'))}
           models={models ?? []}
-          locations={profile?.role === 'super_admin' ? (locations ?? []) : undefined}
+          locations={locations ?? []}
           currentUserId={user!.id}
           currentLocationId={profile?.location_id ?? ''}
         />
@@ -156,7 +156,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ContactHeatmap
           customers={(customers ?? []) as never[]}
-          locations={profile?.role === 'super_admin' ? (locations ?? []) : undefined}
+          locations={locations ?? []}
         />
         <ChannelChart data={channelStats} />
       </div>
