@@ -420,9 +420,29 @@ export default function UsersPage() {
                         style={{ backgroundColor: ROLE_COLORS[user.role] ?? '#6B7280' }}>
                         {user.full_name.charAt(0)}
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900 text-sm">{user.full_name}</p>
-                        <p className="text-[11px] text-gray-400">{user.phone ?? '—'}</p>
+                      <div className="min-w-0">
+                        {isEditing ? (
+                          <div className="space-y-1">
+                            <input
+                              value={user.full_name}
+                              onChange={e => setUsers(prev => prev.map(u => u.id === user.id ? { ...u, full_name: e.target.value } : u))}
+                              onBlur={e => updateField(user.id, 'full_name', e.target.value)}
+                              className="h-7 w-36 rounded border border-gray-200 bg-white text-xs px-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            />
+                            <input
+                              value={user.phone ?? ''}
+                              onChange={e => setUsers(prev => prev.map(u => u.id === user.id ? { ...u, phone: e.target.value } : u))}
+                              onBlur={e => updateField(user.id, 'phone', e.target.value)}
+                              placeholder="Telefon"
+                              className="h-7 w-36 rounded border border-gray-200 bg-white text-xs px-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            <p className="font-medium text-gray-900 text-sm">{user.full_name}</p>
+                            <p className="text-[11px] text-gray-400">{user.phone ?? '—'}</p>
+                          </>
+                        )}
                       </div>
                     </div>
                   </td>
