@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   const { data: brands } = await supabase.from('brands').select('*').eq('is_active', true).order('name')
   const { data: models } = await supabase.from('vehicle_models').select('id, brand_id, name').eq('is_active', true).order('sort_order')
   const { data: stages } = await supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order')
-  const { data: customers } = await supabase.from('customers').select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id').eq('is_active', true)
+  const { data: customers } = await supabase.from('customers').select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id, brand:brands(id, name, color)').eq('is_active', true)
   const { data: contactLogs } = await supabase.from('contact_logs').select('id, channel_id, contact_date, created_by')
   const { data: channels } = await supabase.from('contact_channels').select('*').eq('is_active', true).order('sort_order')
   const { data: recentCustomers } = await supabase
@@ -152,7 +152,7 @@ export default async function DashboardPage() {
 
       {/* Heatmap + Channel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ContactHeatmap data={heatmapData} />
+        <ContactHeatmap customers={(customers ?? []) as never[]} />
         <ChannelChart data={channelStats} />
       </div>
 

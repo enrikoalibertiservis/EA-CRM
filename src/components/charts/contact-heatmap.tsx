@@ -1,75 +1,185 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { type HeatmapCell } from '@/lib/types/database'
+import type { HeatmapCell } from '@/lib/types/database'
 
-const DAYS = ['PZT', 'SAL', 'ÇAR', 'PER', 'CUM', 'CMT', 'PAZ']
+const DAYS     = ['PZT', 'SAL', 'ÇAR', 'PER', 'CUM', 'CMT', 'PAZ']
 const DAYS_FULL = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar']
+const HOURS    = Array.from({ length: 11 }, (_, i) => i + 8) // 08–18
 
-// 08:00 – 18:00
-const HOURS = Array.from({ length: 11 }, (_, i) => i + 8)
+type CustomerEntry = {
+  brand_id: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  brand?: any
+  created_at: string
+}
 
-export function ContactHeatmap({ data, title = 'İletişim Yoğunluğu' }: { data: HeatmapCell[]; title?: string }) {
+type BrandGroup = {
+  key: string
+  label: string
+  color: string
+  filter: (c: CustomerEntry) => boolean
+}
+
+function buildHeatmap(entries: CustomerEntry[]) {
+  const map = new Map<string, number>()
+  entries.forEach(c => {
+    const d = new Date(c.created_at)
+    const key = `${(d.getDay() + 6) % 7}-${d.getHours()}`
+    map.set(key, (map.get(key) ?? 0) + 1)
+  })
+  return map
+}
+
+export function ContactHeatmap({
+  customers,
+  data,
+  title = 'Müşteri Kayıt Yoğunluğu',
+}: {
+  customers?: CustomerEntry[]
+  data?: HeatmapCell[]         // legacy prop — reports sayfaları için
+  title?: string
+}) {
+  // Legacy mode: data prop verilmişse eski heatmap render et
+  if (data && !customers) return <LegacyHeatmap data={data} title={title} />
+
+  const safeCustomers = customers ?? []
   const now = new Date()
-  const todayIdx = (now.getDay() + 6) % 7 // Mon=0
-  const [selectedDay, setSelectedDay] = useState(todayIdx)
+  const todayIdx = (now.getDay() + 6) % 7
+  const [selectedDay, setSelectedDay]     = useState(todayIdx)
+  const [selectedBrand, setSelectedBrand] = useState('all')
 
-  const dayData = useMemo(() => {
-    return HOURS.map(hour => {
-      const cell = data.find(d => d.day === selectedDay && d.hour === hour)
-      return { hour, count: cell?.count ?? 0 }
+  // Build brand groups from customer data
+  const brandGroups: BrandGroup[] = useMemo(() => {
+    const groups: BrandGroup[] = [
+      { key: 'all', label: 'Genel Toplam', color: '#6366f1', filter: () => true },
+    ]
+
+    // Collect unique brand names
+    const seenNames = new Set<string>()
+    const alfaJeepNames = new Set<string>()
+
+    safeCustomers.forEach(c => {
+      const name = Array.isArray(c.brand) ? (c.brand[0]?.name ?? '') : (c.brand?.name ?? '')
+      if (!name || name.toLowerCase().includes('ikinci')) return
+      if (name.includes('Alfa') || name.includes('Jeep')) {
+        alfaJeepNames.add(name)
+      } else {
+        seenNames.add(name)
+      }
     })
-  }, [data, selectedDay])
+
+    // Add individual brands (non Alfa/Jeep)
+    seenNames.forEach(name => {
+      const sample = safeCustomers.find(c => {
+        const n = Array.isArray(c.brand) ? c.brand[0]?.name : c.brand?.name
+        return n === name
+      })
+      const color = (Array.isArray(sample?.brand) ? sample?.brand[0]?.color : sample?.brand?.color) ?? '#6B7280'
+      groups.push({
+        key: name,
+        label: name,
+        color,
+        filter: c => {
+          const n = Array.isArray(c.brand) ? c.brand[0]?.name : c.brand?.name
+          return n === name
+        },
+      })
+    })
+
+    // Add Alfa & Jeep combined if both/either present
+    if (alfaJeepNames.size > 0) {
+      const names = Array.from(alfaJeepNames)
+      groups.push({
+        key: 'alfa-jeep',
+        label: names.length > 1 ? 'Alfa & Jeep' : names[0],
+        color: '#dc2626',
+        filter: c => {
+          const n = Array.isArray(c.brand) ? c.brand[0]?.name : c.brand?.name
+          return !!n && (n.includes('Alfa') || n.includes('Jeep'))
+        },
+      })
+    }
+
+    return groups
+  }, [safeCustomers])
+
+  const activeBrand = brandGroups.find(g => g.key === selectedBrand) ?? brandGroups[0]
+  const filtered    = useMemo(() => safeCustomers.filter(activeBrand.filter), [safeCustomers, activeBrand])
+
+  const heatmap = useMemo(() => buildHeatmap(filtered), [filtered])
+
+  const dayData = useMemo(() =>
+    HOURS.map(hour => ({ hour, count: heatmap.get(`${selectedDay}-${hour}`) ?? 0 })),
+    [heatmap, selectedDay]
+  )
 
   const maxCount = Math.max(...dayData.map(d => d.count), 1)
   const peakHour = dayData.reduce((best, cur) => cur.count > best.count ? cur : best, dayData[0])
 
-  // Color based on intensity
   const getBarColor = (count: number, isPeak: boolean) => {
     if (count === 0) return '#E5E7EB'
-    if (isPeak) return '#1d4ed8'
+    const c = activeBrand.color
+    if (isPeak) return c
     const ratio = count / maxCount
-    if (ratio > 0.7) return '#3b82f6'
-    if (ratio > 0.4) return '#60a5fa'
-    return '#93c5fd'
+    return ratio > 0.7 ? c + 'cc' : ratio > 0.4 ? c + '88' : c + '44'
   }
 
   return (
     <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 shrink-0">
+      <div className="flex items-center justify-between mb-3 shrink-0">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-          <p className="text-[10px] text-gray-400 mt-0.5">Gün & saat bazlı temas dağılımı</p>
+          <p className="text-[10px] text-gray-400 mt-0.5">Müşteri kayıt zamanı dağılımı</p>
         </div>
         {peakHour.count > 0 && (
-          <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-1.5">
-            <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-            <span className="text-[11px] font-semibold text-blue-700">
+          <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 border"
+            style={{ backgroundColor: activeBrand.color + '12', borderColor: activeBrand.color + '30' }}>
+            <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: activeBrand.color }} />
+            <span className="text-[11px] font-semibold" style={{ color: activeBrand.color }}>
               {String(peakHour.hour).padStart(2, '0')}:00 — en yoğun
             </span>
           </div>
         )}
       </div>
 
+      {/* Brand filter tabs */}
+      <div className="flex items-center gap-1.5 mb-3 flex-wrap shrink-0">
+        {brandGroups.map(g => (
+          <button
+            key={g.key}
+            onClick={() => setSelectedBrand(g.key)}
+            className="h-7 px-3 rounded-full text-xs font-semibold transition-all border"
+            style={selectedBrand === g.key
+              ? { backgroundColor: g.color, borderColor: g.color, color: '#fff' }
+              : { backgroundColor: g.color + '12', borderColor: g.color + '35', color: g.color }
+            }
+          >
+            {g.label}
+          </button>
+        ))}
+      </div>
+
       {/* Day tabs */}
-      <div className="flex items-center justify-between mb-4 shrink-0">
+      <div className="flex items-center justify-between mb-3 shrink-0">
         {DAYS.map((day, idx) => {
-          const dayTotal = data.filter(d => d.day === idx).reduce((s, d) => s + d.count, 0)
+          const dayTotal = Array.from({ length: 24 }, (_, h) => heatmap.get(`${idx}-${h}`) ?? 0)
+            .reduce((s, v) => s + v, 0)
           const isSelected = selectedDay === idx
           return (
             <button
               key={day}
               onClick={() => setSelectedDay(idx)}
-              className={`flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                isSelected
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-gray-500 hover:bg-gray-100'
-              }`}
+              className="flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+              style={isSelected
+                ? { backgroundColor: activeBrand.color, color: '#fff' }
+                : { color: '#6B7280' }
+              }
             >
               {day}
               {dayTotal > 0 && (
-                <span className={`text-[9px] font-bold ${isSelected ? 'text-blue-200' : 'text-gray-400'}`}>
+                <span className="text-[9px] font-bold" style={{ color: isSelected ? 'rgba(255,255,255,0.7)' : '#9CA3AF' }}>
                   {dayTotal}
                 </span>
               )}
@@ -80,33 +190,21 @@ export function ContactHeatmap({ data, title = 'İletişim Yoğunluğu' }: { dat
 
       {/* Bar chart */}
       <div className="flex-1 flex flex-col">
-        {/* Bars */}
         <div className="flex items-end gap-1 h-28 px-1">
           {dayData.map(({ hour, count }) => {
-            const heightPct = count === 0 ? 6 : Math.max((count / maxCount) * 100, 12)
+            const heightPct = count === 0 ? 5 : Math.max((count / maxCount) * 100, 10)
             const isPeak = count > 0 && count === peakHour.count
-            const barColor = getBarColor(count, isPeak)
             return (
-              <div
-                key={hour}
-                className="flex-1 flex flex-col items-center justify-end gap-0.5 group"
-                title={`${DAYS_FULL[selectedDay]} ${String(hour).padStart(2, '0')}:00 → ${count} temas`}
-              >
-                {/* Count label on hover */}
+              <div key={hour} className="flex-1 flex flex-col items-center justify-end gap-0.5 group"
+                title={`${DAYS_FULL[selectedDay]} ${String(hour).padStart(2, '0')}:00 → ${count} kayıt`}>
                 {count > 0 && (
-                  <span className="text-[9px] font-bold text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[9px] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ color: activeBrand.color }}>
                     {count}
                   </span>
                 )}
-                {/* Bar */}
-                <div
-                  className="w-full rounded-t-sm transition-all duration-300"
-                  style={{
-                    height: `${heightPct}%`,
-                    backgroundColor: barColor,
-                    minHeight: '4px',
-                  }}
-                />
+                <div className="w-full rounded-t-sm transition-all duration-300"
+                  style={{ height: `${heightPct}%`, backgroundColor: getBarColor(count, isPeak), minHeight: '3px' }} />
               </div>
             )
           })}
@@ -123,28 +221,74 @@ export function ContactHeatmap({ data, title = 'İletişim Yoğunluğu' }: { dat
 
         {/* Empty state */}
         {dayData.every(d => d.count === 0) && (
-          <div className="absolute inset-x-0 flex flex-col items-center justify-center gap-1 pointer-events-none" style={{ top: '50%', transform: 'translateY(-50%)' }}>
-            <p className="text-xs text-gray-400 text-center">Bu gün için temas kaydı yok</p>
+          <div className="flex flex-col items-center justify-center py-4 gap-1">
+            <p className="text-xs text-gray-400">Bu gün için kayıt yok</p>
           </div>
         )}
       </div>
 
-      {/* Legend */}
+      {/* Footer */}
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 shrink-0">
-        <div className="flex items-center gap-1.5">
-          {[
-            { color: '#93c5fd', label: 'Düşük' },
-            { color: '#60a5fa', label: 'Orta' },
-            { color: '#3b82f6', label: 'Yüksek' },
-            { color: '#1d4ed8', label: 'Zirve' },
-          ].map(item => (
-            <div key={item.label} className="flex items-center gap-1">
-              <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: item.color }} />
-              <span className="text-[10px] text-gray-400">{item.label}</span>
-            </div>
-          ))}
-        </div>
+        <span className="text-[10px] text-gray-400">Toplam: <strong className="text-gray-600">{filtered.length}</strong> müşteri</span>
         <span className="text-[10px] text-gray-400">08:00 – 18:00</span>
+      </div>
+    </div>
+  )
+}
+
+// ── Legacy heatmap (grid view) — used in reports pages ──────────────────────
+const DISPLAY_HOURS = Array.from({ length: 11 }, (_, i) => i + 8)
+const DAYS_TR = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
+
+function LegacyHeatmap({ data, title }: { data: HeatmapCell[]; title?: string }) {
+  const visibleData = data.filter(d => d.hour >= 8 && d.hour <= 18)
+  const maxCount    = Math.max(...visibleData.map(d => d.count), 1)
+  const getCell     = (day: number, hour: number) => data.find(d => d.day === day && d.hour === hour)
+  const getOpacity  = (count: number) => count === 0 ? 0.04 : 0.15 + (count / maxCount) * 0.85
+
+  return (
+    <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5 flex flex-col">
+      <div className="flex items-center justify-between mb-4 shrink-0">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">{title ?? 'İletişim Yoğunluğu'}</h3>
+          <p className="text-[10px] text-gray-400 mt-0.5">08:30 – 18:00 mesai saatleri</p>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <span>Az</span>
+          <div className="flex gap-0.5">
+            {[0.1, 0.3, 0.5, 0.7, 0.9].map(o => (
+              <div key={o} className="h-3 w-3 rounded-sm" style={{ backgroundColor: `rgba(37,99,235,${o})` }} />
+            ))}
+          </div>
+          <span>Çok</span>
+        </div>
+      </div>
+      <div className="flex-1 w-full">
+        <div className="flex items-center mb-1 w-full">
+          <div className="w-9 shrink-0" />
+          <div className="flex flex-1 gap-px">
+            {DISPLAY_HOURS.map(h => (
+              <div key={h} className="flex-1 text-center text-[9px] font-medium text-gray-500">
+                {String(h).padStart(2, '0')}
+              </div>
+            ))}
+          </div>
+        </div>
+        {DAYS_TR.map((day, dayIdx) => (
+          <div key={day} className="flex items-center gap-px mb-px w-full">
+            <div className="w-9 shrink-0 text-[11px] text-gray-500 font-medium pr-1 text-right">{day}</div>
+            <div className="flex flex-1 gap-px">
+              {DISPLAY_HOURS.map(hour => {
+                const count = getCell(dayIdx, hour)?.count ?? 0
+                return (
+                  <div key={hour} title={`${day} ${String(hour).padStart(2, '0')}:00 → ${count} temas`}
+                    className="flex-1 h-7 rounded-sm cursor-pointer transition-all hover:brightness-90"
+                    style={{ backgroundColor: `rgba(37,99,235,${getOpacity(count)})`, border: count > 0 ? '1px solid rgba(37,99,235,0.2)' : '1px solid #F3F4F6' }} />
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
