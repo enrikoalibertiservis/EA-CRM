@@ -9,9 +9,15 @@ const HOURS    = Array.from({ length: 11 }, (_, i) => i + 8) // 08–18
 
 type CustomerEntry = {
   brand_id: string
+  location_id?: string | null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   brand?: any
   created_at: string
+}
+
+type LocationOption = {
+  id: string
+  name: string
 }
 
 type BrandGroup = {
@@ -35,10 +41,12 @@ export function ContactHeatmap({
   customers,
   data,
   title = 'Müşteri Kayıt Yoğunluğu',
+  locations,
 }: {
   customers?: CustomerEntry[]
   data?: HeatmapCell[]         // legacy prop — reports sayfaları için
   title?: string
+  locations?: LocationOption[]
 }) {
   // Legacy mode: data prop verilmişse eski heatmap render et
   if (data && !customers) return <LegacyHeatmap data={data} title={title} />
@@ -46,20 +54,28 @@ export function ContactHeatmap({
   const safeCustomers = customers ?? []
   const now = new Date()
   const todayIdx = (now.getDay() + 6) % 7
-  const [selectedDay, setSelectedDay]     = useState(todayIdx)
-  const [selectedBrand, setSelectedBrand] = useState('all')
+  const [selectedDay, setSelectedDay]       = useState(todayIdx)
+  const [selectedBrand, setSelectedBrand]   = useState('all')
+  const [selectedLocation, setSelectedLocation] = useState('all')
 
-  // Build brand groups from customer data
+  // Lokasyon filtrelenmiş müşteriler
+  const locationFiltered = useMemo(() =>
+    selectedLocation === 'all'
+      ? safeCustomers
+      : safeCustomers.filter(c => c.location_id === selectedLocation),
+    [safeCustomers, selectedLocation]
+  )
+
+  // Build brand groups from location-filtered customer data
   const brandGroups: BrandGroup[] = useMemo(() => {
     const groups: BrandGroup[] = [
       { key: 'all', label: 'Toplam', color: '#6366f1', filter: () => true },
     ]
 
-    // Collect unique brand names
     const seenNames = new Set<string>()
     const alfaJeepNames = new Set<string>()
 
-    safeCustomers.forEach(c => {
+    locationFiltered.forEach(c => {
       const name = Array.isArray(c.brand) ? (c.brand[0]?.name ?? '') : (c.brand?.name ?? '')
       if (!name || name.toLowerCase().includes('ikinci')) return
       if (name.includes('Alfa') || name.includes('Jeep')) {
@@ -69,9 +85,8 @@ export function ContactHeatmap({
       }
     })
 
-    // Add individual brands (non Alfa/Jeep)
     seenNames.forEach(name => {
-      const sample = safeCustomers.find(c => {
+      const sample = locationFiltered.find(c => {
         const n = Array.isArray(c.brand) ? c.brand[0]?.name : c.brand?.name
         return n === name
       })
@@ -87,7 +102,6 @@ export function ContactHeatmap({
       })
     })
 
-    // Add ARJ (Alfa Romeo + Jeep) combined if present
     if (alfaJeepNames.size > 0) {
       groups.push({
         key: 'alfa-jeep',
@@ -101,10 +115,10 @@ export function ContactHeatmap({
     }
 
     return groups
-  }, [safeCustomers])
+  }, [locationFiltered])
 
   const activeBrand = brandGroups.find(g => g.key === selectedBrand) ?? brandGroups[0]
-  const filtered    = useMemo(() => safeCustomers.filter(activeBrand.filter), [safeCustomers, activeBrand])
+  const filtered    = useMemo(() => locationFiltered.filter(activeBrand.filter), [locationFiltered, activeBrand])
 
   const heatmap = useMemo(() => buildHeatmap(filtered), [filtered])
 
@@ -142,6 +156,35 @@ export function ContactHeatmap({
           </div>
         )}
       </div>
+
+      {/* Location filter tabs — shown only when locations prop provided */}
+      {locations && locations.length > 0 && (
+        <div className="flex items-center gap-1.5 mb-2 flex-wrap shrink-0">
+          <button
+            onClick={() => setSelectedLocation('all')}
+            className="h-6 px-2.5 rounded-full text-[10px] font-semibold transition-all border bg-transparent"
+            style={selectedLocation === 'all'
+              ? { borderColor: '#64748b', color: '#64748b', backgroundColor: '#64748b18' }
+              : { borderColor: '#E2E8F0', color: '#94A3B8' }
+            }
+          >
+            Tüm Şubeler
+          </button>
+          {locations.map(loc => (
+            <button
+              key={loc.id}
+              onClick={() => setSelectedLocation(loc.id)}
+              className="h-6 px-2.5 rounded-full text-[10px] font-semibold transition-all border bg-transparent"
+              style={selectedLocation === loc.id
+                ? { borderColor: '#0ea5e9', color: '#0ea5e9', backgroundColor: '#0ea5e918' }
+                : { borderColor: '#E2E8F0', color: '#94A3B8' }
+              }
+            >
+              {loc.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Brand filter tabs — outlined (dolgusuz) */}
       <div className="flex items-center gap-1.5 mb-3 flex-wrap shrink-0">

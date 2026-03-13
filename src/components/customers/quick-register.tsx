@@ -6,10 +6,16 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { UserPlus, Phone, User, Car, Zap } from 'lucide-react'
 
+interface LocationOption {
+  id: string
+  name: string
+}
+
 interface Props {
-  brands:  { id: string; name: string; color: string }[]
-  models:  { id: string; brand_id: string; name: string }[]
-  currentUserId:    string
+  brands:    { id: string; name: string; color: string }[]
+  models:    { id: string; brand_id: string; name: string }[]
+  locations?: LocationOption[]
+  currentUserId:     string
   currentLocationId: string
 }
 
@@ -21,14 +27,15 @@ function formatGSM(v: string) {
   return `${d.slice(0, 4)} ${d.slice(4, 7)} ${d.slice(7, 9)} ${d.slice(9)}`
 }
 
-export function QuickRegister({ brands, models, currentUserId, currentLocationId }: Props) {
+export function QuickRegister({ brands, models, locations, currentUserId, currentLocationId }: Props) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [name, setName]       = useState('')
-  const [phone, setPhone]     = useState('')
-  const [brandId, setBrandId] = useState('')
-  const [model, setModel]     = useState('')
-  const [errors, setErrors]   = useState<Record<string, string>>({})
+  const [loading, setLoading]   = useState(false)
+  const [name, setName]         = useState('')
+  const [phone, setPhone]       = useState('')
+  const [brandId, setBrandId]   = useState('')
+  const [model, setModel]       = useState('')
+  const [locationId, setLocationId] = useState(currentLocationId)
+  const [errors, setErrors]     = useState<Record<string, string>>({})
 
   const filteredModels = brandId ? models.filter(m => m.brand_id === brandId) : models
 
@@ -58,7 +65,7 @@ export function QuickRegister({ brands, models, currentUserId, currentLocationId
         brand_id:         brandId,
         interested_model: model || null,
         consultant_id:    currentUserId,
-        location_id:      currentLocationId,
+        location_id:      locationId || currentLocationId,
         created_by:       currentUserId,
       }).select().single()
       if (error) throw error
@@ -166,6 +173,29 @@ export function QuickRegister({ brands, models, currentUserId, currentLocationId
             ))}
           </select>
         </div>
+
+        {/* Şube seçimi */}
+        {locations && locations.length > 0 && (
+          <div>
+            <label className="text-xs font-medium text-gray-600 block mb-1.5">Şube</label>
+            <div className="flex gap-2">
+              {locations.map(loc => (
+                <button
+                  key={loc.id}
+                  type="button"
+                  onClick={() => setLocationId(loc.id)}
+                  className="flex-1 h-8 rounded-lg border text-xs font-semibold transition-all"
+                  style={locationId === loc.id
+                    ? { backgroundColor: '#1E3A5F', borderColor: '#1E3A5F', color: '#fff' }
+                    : { backgroundColor: '#fff', borderColor: '#E5E7EB', color: '#6B7280' }
+                  }
+                >
+                  {loc.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Submit */}
         <button

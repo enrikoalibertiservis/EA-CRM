@@ -23,6 +23,7 @@ export default async function DashboardPage() {
 
   const { data: brands } = await supabase.from('brands').select('*').eq('is_active', true).order('name')
   const { data: models } = await supabase.from('vehicle_models').select('id, brand_id, name').eq('is_active', true).order('sort_order')
+  const { data: locations } = await supabase.from('locations').select('id, name').eq('is_active', true).order('sort_order')
   const { data: stages } = await supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order')
   const { data: customers } = await supabase.from('customers').select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id, brand:brands(id, name, color)').eq('is_active', true)
   const { data: contactLogs } = await supabase.from('contact_logs').select('id, channel_id, contact_date, created_by')
@@ -145,6 +146,7 @@ export default async function DashboardPage() {
         <QuickRegister
           brands={(brands ?? []).filter((b) => b.slug !== 'ikinci-el' && !b.name.toLowerCase().includes('ikinci'))}
           models={models ?? []}
+          locations={profile?.role === 'super_admin' ? (locations ?? []) : undefined}
           currentUserId={user!.id}
           currentLocationId={profile?.location_id ?? ''}
         />
@@ -152,7 +154,10 @@ export default async function DashboardPage() {
 
       {/* Heatmap + Channel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ContactHeatmap customers={(customers ?? []) as never[]} />
+        <ContactHeatmap
+          customers={(customers ?? []) as never[]}
+          locations={profile?.role === 'super_admin' ? (locations ?? []) : undefined}
+        />
         <ChannelChart data={channelStats} />
       </div>
 

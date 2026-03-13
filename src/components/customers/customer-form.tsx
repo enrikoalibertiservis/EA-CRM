@@ -53,12 +53,18 @@ interface ContactType {
   color: string
 }
 
+interface LocationOption {
+  id: string
+  name: string
+}
+
 interface CustomerFormProps {
   brands: { id: string; name: string; color: string }[]
   models: { id: string; brand_id: string; name: string }[]
   channels: { id: string; name: string; icon_name: string; color: string }[]
   consultants: { id: string; full_name: string }[]
   contactTypes: ContactType[]
+  locations?: LocationOption[]
   currentUserId: string
   currentLocationId: string
 }
@@ -78,7 +84,7 @@ function getContactTypeIcon(iconName: string | null): LucideIcon {
   return CONTACT_TYPE_ICONS[iconName] ?? MessageSquare
 }
 
-export function CustomerForm({ brands, models, channels, consultants, contactTypes, currentUserId, currentLocationId }: CustomerFormProps) {
+export function CustomerForm({ brands, models, channels, consultants, contactTypes, locations, currentUserId, currentLocationId }: CustomerFormProps) {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
@@ -94,6 +100,7 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
     initial_contact_type: '',
     notes: '',
     consultant_id: '',
+    location_id: currentLocationId,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -135,7 +142,7 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
           initial_contact_type: form.initial_contact_type || null,
           notes: form.notes || null,
           consultant_id: form.consultant_id || currentUserId,
-          location_id: currentLocationId,
+          location_id: form.location_id || currentLocationId,
           created_by: currentUserId,
         })
         .select()
@@ -348,7 +355,7 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
               </div>
             )}
 
-            {/* Sorumlu Danışman — en aşağıda */}
+            {/* Sorumlu Danışman + Şube */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-gray-700 block mb-1">Sorumlu Danışman</label>
@@ -357,6 +364,30 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
                   {consultants.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
                 </select>
               </div>
+              {locations && locations.length > 0 && (
+                <div>
+                  <label className="text-xs font-medium text-gray-700 block mb-1">
+                    <Building2 className="inline h-3 w-3 mr-1 text-gray-400" />
+                    Şube
+                  </label>
+                  <div className="flex gap-2">
+                    {locations.map((loc) => (
+                      <button
+                        key={loc.id}
+                        type="button"
+                        onClick={() => update('location_id', loc.id)}
+                        className={`flex-1 h-9 rounded-lg border text-xs font-semibold transition-all ${
+                          form.location_id === loc.id
+                            ? 'bg-[#1E3A5F] text-white border-[#1E3A5F]'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        {loc.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <div className="mt-4">

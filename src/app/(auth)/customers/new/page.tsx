@@ -6,14 +6,15 @@ export default async function NewCustomerPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: profile } = await supabase
-    .from('user_profiles').select('id, location_id').eq('id', user!.id).single()
+    .from('user_profiles').select('id, role, location_id').eq('id', user!.id).single()
 
-  const [{ data: brands }, { data: models }, { data: channels }, { data: consultants }, { data: contactTypes }] = await Promise.all([
+  const [{ data: brands }, { data: models }, { data: channels }, { data: consultants }, { data: contactTypes }, { data: locations }] = await Promise.all([
     supabase.from('brands').select('id, name, color').eq('is_active', true),
     supabase.from('vehicle_models').select('id, brand_id, name').eq('is_active', true).order('sort_order'),
     supabase.from('contact_channels').select('id, name, icon_name, color').eq('is_active', true).order('sort_order'),
     supabase.from('user_profiles').select('id, full_name').eq('is_active', true).eq('location_id', profile?.location_id ?? ''),
     supabase.from('contact_types').select('id, name, slug, icon_name, color').eq('is_active', true).order('sort_order'),
+    supabase.from('locations').select('id, name').eq('is_active', true).order('sort_order'),
   ])
 
   return (
@@ -24,6 +25,7 @@ export default async function NewCustomerPage() {
         channels={channels ?? []}
         consultants={consultants ?? []}
         contactTypes={contactTypes ?? []}
+        locations={profile?.role === 'super_admin' ? (locations ?? []) : undefined}
         currentUserId={user!.id}
         currentLocationId={profile?.location_id ?? ''}
       />
