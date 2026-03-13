@@ -158,8 +158,8 @@ export default async function DashboardPage() {
 
       {/* Activity + Recent Customers */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
-        <div className="lg:col-span-2 flex">
-          <ActivityChart data={activityData} title="Son 14 Gün — Günlük Temas Aktivitesi" className="flex-1" />
+        <div className="lg:col-span-2 flex h-full">
+          <ActivityChart data={activityData} title="Son 14 Gün — Günlük Temas Aktivitesi" className="flex-1 h-full" />
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5 flex flex-col">

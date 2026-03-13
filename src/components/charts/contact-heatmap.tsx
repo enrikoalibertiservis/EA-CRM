@@ -52,7 +52,7 @@ export function ContactHeatmap({
   // Build brand groups from customer data
   const brandGroups: BrandGroup[] = useMemo(() => {
     const groups: BrandGroup[] = [
-      { key: 'all', label: 'Genel Toplam', color: '#6366f1', filter: () => true },
+      { key: 'all', label: 'Toplam', color: '#6366f1', filter: () => true },
     ]
 
     // Collect unique brand names
@@ -87,12 +87,11 @@ export function ContactHeatmap({
       })
     })
 
-    // Add Alfa & Jeep combined if both/either present
+    // Add ARJ (Alfa Romeo + Jeep) combined if present
     if (alfaJeepNames.size > 0) {
-      const names = Array.from(alfaJeepNames)
       groups.push({
         key: 'alfa-jeep',
-        label: names.length > 1 ? 'Alfa & Jeep' : names[0],
+        label: 'ARJ',
         color: '#dc2626',
         filter: c => {
           const n = Array.isArray(c.brand) ? c.brand[0]?.name : c.brand?.name
@@ -144,16 +143,16 @@ export function ContactHeatmap({
         )}
       </div>
 
-      {/* Brand filter tabs */}
+      {/* Brand filter tabs — outlined (dolgusuz) */}
       <div className="flex items-center gap-1.5 mb-3 flex-wrap shrink-0">
         {brandGroups.map(g => (
           <button
             key={g.key}
             onClick={() => setSelectedBrand(g.key)}
-            className="h-7 px-3 rounded-full text-xs font-semibold transition-all border"
+            className="h-7 px-3 rounded-full text-xs font-semibold transition-all border-2 bg-transparent"
             style={selectedBrand === g.key
-              ? { backgroundColor: g.color, borderColor: g.color, color: '#fff' }
-              : { backgroundColor: g.color + '12', borderColor: g.color + '35', color: g.color }
+              ? { borderColor: g.color, color: g.color }
+              : { borderColor: '#D1D5DB', color: '#9CA3AF' }
             }
           >
             {g.label}
