@@ -82,6 +82,13 @@ function SidebarTotpModal({ onClose }: { onClose: () => void }) {
   const startEnroll = async () => {
     setLoading(true)
     try {
+      // Mevcut tüm TOTP faktörlerini temizle (doğrulanmış veya doğrulanmamış)
+      const { data: listData } = await supabase.auth.mfa.listFactors()
+      const existing = listData?.totp ?? []
+      for (const f of existing) {
+        await supabase.auth.mfa.unenroll({ factorId: f.id })
+      }
+
       const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Google Authenticator' })
       if (error) throw error
       setQrSvg(data.totp.qr_code)
