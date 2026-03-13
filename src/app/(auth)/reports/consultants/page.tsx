@@ -294,8 +294,28 @@ export default function ConsultantReportPage() {
   return (
     <div className="space-y-7">
 
-      {/* ── Date filters ── */}
+      {/* ── Location + Date filters ── */}
       <div className="-mt-4 mb-2">
+        {locations.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap mb-2">
+            {[{ id: 'all', name: 'Tüm Şubeler' }, ...locations].map(loc => (
+              <button
+                key={loc.id}
+                onClick={() => setLocationFilter(loc.id)}
+                className={`h-7 px-3 rounded-full text-xs font-medium transition-all border ${
+                  locationFilter === loc.id
+                    ? 'border-slate-400 bg-slate-100 text-slate-700'
+                    : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                {loc.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="-mt-2 mb-2">
         <div className="flex items-center gap-1 flex-wrap">
           {DATE_TABS.map((tab) => (
             <button
@@ -361,17 +381,14 @@ export default function ConsultantReportPage() {
 
       {/* ── Closing Rate Chart ── */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-              <TrendingUp className="h-4 w-4 text-indigo-500" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-gray-900">Satış Kapatma Oranı</h2>
-              <p className="text-xs text-gray-400">Danışman bazında satış / toplam temas oranı</p>
-            </div>
+        <div className="flex items-center gap-2 mb-5">
+          <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+            <TrendingUp className="h-4 w-4 text-indigo-500" />
           </div>
-          <LocationFilterRow locations={locations} value={locationFilter} onChange={setLocationFilter} />
+          <div>
+            <h2 className="text-sm font-bold text-gray-900">Satış Kapatma Oranı</h2>
+            <p className="text-xs text-gray-400">Danışman bazında satış / toplam temas oranı</p>
+          </div>
         </div>
 
         {stats.length === 0 ? (
@@ -494,9 +511,9 @@ export default function ConsultantReportPage() {
 
       {/* ── Lost Reasons Chart ── */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
+        <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+            <div className="h-8 w-8 rounded-lg bg-red-50 flex items-center justify-center">
               <XCircle className="h-4 w-4 text-red-400" />
             </div>
             <div>
@@ -506,22 +523,18 @@ export default function ConsultantReportPage() {
               </p>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <LocationFilterRow locations={locations} value={locationFilter} onChange={setLocationFilter} />
-            {/* Danışman filtresi */}
-            <div className="flex items-center gap-2">
-              <Filter className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-              <select
-                value={selectedConsultantFilter}
-                onChange={e => setSelectedConsultantFilter(e.target.value)}
-                className="h-8 rounded-lg border border-gray-200 bg-white text-xs px-3 pr-7 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 cursor-pointer"
-              >
-                <option value="toplam">Toplam (Tüm Danışmanlar)</option>
-                {stats.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </div>
+          <div className="flex items-center gap-2">
+            <Filter className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+            <select
+              value={selectedConsultantFilter}
+              onChange={e => setSelectedConsultantFilter(e.target.value)}
+              className="h-8 rounded-lg border border-gray-200 bg-white text-xs px-3 pr-7 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 cursor-pointer"
+            >
+              <option value="toplam">Toplam (Tüm Danışmanlar)</option>
+              {stats.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -593,14 +606,11 @@ export default function ConsultantReportPage() {
 
       {/* ── Consultant Table ── */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-              <Users className="h-4 w-4 text-blue-500" />
-            </div>
-            <h2 className="text-sm font-bold text-gray-900">Danışman Detay Tablosu</h2>
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <Users className="h-4 w-4 text-blue-500" />
           </div>
-          <LocationFilterRow locations={locations} value={locationFilter} onChange={setLocationFilter} />
+          <h2 className="text-sm font-bold text-gray-900">Danışman Detay Tablosu</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
