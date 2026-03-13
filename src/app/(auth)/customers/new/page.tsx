@@ -14,7 +14,7 @@ export default async function NewCustomerPage() {
     supabase.from('contact_channels').select('id, name, icon_name, color').eq('is_active', true).order('sort_order'),
     supabase.from('user_profiles').select('id, full_name').eq('is_active', true).eq('location_id', profile?.location_id ?? ''),
     supabase.from('contact_types').select('id, name, slug, icon_name, color').eq('is_active', true).order('sort_order'),
-    supabase.from('locations').select('id, name').eq('is_active', true).order('sort_order'),
+    supabase.from('locations').select('id, name').order('name'),
   ])
 
   return (

@@ -23,7 +23,7 @@ export default async function DashboardPage() {
 
   const { data: brands } = await supabase.from('brands').select('*').eq('is_active', true).order('name')
   const { data: models } = await supabase.from('vehicle_models').select('id, brand_id, name').eq('is_active', true).order('sort_order')
-  const { data: locations } = await supabase.from('locations').select('id, name').eq('is_active', true).order('sort_order')
+  const { data: locations } = await supabase.from('locations').select('id, name').order('name')
   const { data: stages } = await supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order')
   const { data: customers } = await supabase.from('customers').select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id, brand:brands(id, name, color)').eq('is_active', true)
   const { data: contactLogs } = await supabase.from('contact_logs').select('id, channel_id, contact_date, created_by')
