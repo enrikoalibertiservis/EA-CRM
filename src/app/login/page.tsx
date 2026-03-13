@@ -105,11 +105,11 @@ export default function LoginPage() {
       </div>
 
       <div className="relative w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className={`bg-white rounded-2xl shadow-2xl overflow-hidden ${step === 'totp' ? '' : 'p-8'}`}>
 
           {/* ── Credentials step ── */}
           {step === 'credentials' && (
-            <>
+            <div className="p-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-1">Giriş Yap</h2>
               <p className="text-sm text-gray-500 mb-6">Yetkili personel hesabınızla devam edin.</p>
 
@@ -170,41 +170,106 @@ export default function LoginPage() {
                 <Shield className="h-3.5 w-3.5 text-gray-400 mt-0.5 shrink-0" />
                 <p className="text-xs text-gray-500">Hesabınız yoksa sistem yöneticinizle iletişime geçin.</p>
               </div>
-            </>
+            </div>
           )}
 
           {/* ── TOTP step ── */}
           {step === 'totp' && (
-            <>
-              <div className="flex justify-center mb-5">
-                <div className="h-14 w-14 rounded-2xl bg-[#1E3A5F]/10 flex items-center justify-center">
-                  <Smartphone className="h-7 w-7 text-[#1E3A5F]" />
+            <div>
+              {/* Google Authenticator branded header */}
+              <div className="relative mb-6 px-8 pt-8 pb-6 overflow-hidden"
+                style={{ background: 'linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%)' }}>
+                {/* decorative circles */}
+                <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full opacity-20" style={{ background: 'rgba(255,255,255,0.3)' }} />
+                <div className="absolute bottom-0 left-1/3 h-20 w-20 rounded-full opacity-10" style={{ background: 'rgba(255,255,255,0.5)' }} />
+
+                <div className="relative z-10 flex flex-col items-center gap-3">
+                  {/* Google Authenticator icon (official-style) */}
+                  <div className="h-16 w-16 rounded-2xl bg-white shadow-lg flex items-center justify-center"
+                    style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
+                    <svg viewBox="0 0 48 48" className="h-10 w-10">
+                      <circle cx="24" cy="24" r="22" fill="#1a73e8" />
+                      <circle cx="24" cy="24" r="14" fill="none" stroke="white" strokeWidth="3" />
+                      <circle cx="24" cy="24" r="5" fill="white" />
+                      {/* tick marks */}
+                      {[0,45,90,135,180,225,270,315].map((deg, i) => (
+                        <line key={i}
+                          x1={24 + 11 * Math.cos((deg - 90) * Math.PI / 180)}
+                          y1={24 + 11 * Math.sin((deg - 90) * Math.PI / 180)}
+                          x2={24 + 13.5 * Math.cos((deg - 90) * Math.PI / 180)}
+                          y2={24 + 13.5 * Math.sin((deg - 90) * Math.PI / 180)}
+                          stroke="white" strokeWidth={deg % 90 === 0 ? 2.5 : 1.5} />
+                      ))}
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <h2 className="text-lg font-bold text-white">İki Faktörlü Doğrulama</h2>
+                    <p className="text-blue-100 text-xs mt-0.5">Google Authenticator</p>
+                  </div>
                 </div>
               </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-1 text-center">Kimlik Doğrulama</h2>
-              <p className="text-sm text-gray-500 mb-6 text-center">
-                Google Authenticator uygulamasındaki <span className="font-medium text-gray-700">6 haneli kodu</span> girin.
+
+              <p className="text-sm text-gray-500 mb-5 text-center px-8">
+                Uygulamadaki <span className="font-semibold text-gray-800">6 haneli kodu</span> girin.
+                <br />
+                <span className="text-xs text-gray-400">Kod 30 saniyede bir yenilenir.</span>
               </p>
 
-              <form onSubmit={handleTotp} className="space-y-4">
+              <form onSubmit={handleTotp} className="space-y-4 px-8 pb-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 text-center">Doğrulama Kodu</label>
+                  {/* Individual digit boxes */}
+                  <div className="flex gap-2 justify-center">
+                    {[0,1,2,3,4,5].map(i => (
+                      <div key={i}
+                        className="h-12 w-10 rounded-xl flex items-center justify-center text-xl font-mono font-bold border-2 transition-all"
+                        style={{
+                          borderColor: totpCode[i]
+                            ? '#1a73e8'
+                            : i === totpCode.length ? '#1a73e8' : '#E5E7EB',
+                          background: totpCode[i] ? '#EFF6FF' : '#F9FAFB',
+                          color: '#1a73e8',
+                          boxShadow: i === totpCode.length ? '0 0 0 3px #1a73e820' : 'none',
+                        }}>
+                        {totpCode[i] ?? ''}
+                      </div>
+                    ))}
+                  </div>
+                  {/* hidden real input */}
                   <input
                     type="text"
                     inputMode="numeric"
                     maxLength={6}
                     value={totpCode}
-                    onChange={e => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="000000"
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 6)
+                      setTotpCode(val)
+                      if (val.length === 6) {
+                        // auto-submit after tiny delay so UI updates first
+                        setTimeout(() => {
+                          const form = e.target.closest('form')
+                          form?.requestSubmit()
+                        }, 80)
+                      }
+                    }}
                     autoFocus
-                    className="w-full h-14 rounded-xl border-2 border-gray-300 bg-white text-2xl font-mono text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent transition-all"
+                    className="sr-only"
+                    aria-label="Doğrulama kodu"
+                  />
+                  {/* invisible clickable overlay to focus hidden input */}
+                  <div
+                    className="mt-0 cursor-text"
+                    onClick={() => {
+                      const inp = document.querySelector<HTMLInputElement>('input[aria-label="Doğrulama kodu"]')
+                      inp?.focus()
+                    }}
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading || totpCode.length < 6}
-                  className="w-full h-11 rounded-xl bg-[#1E3A5F] text-white font-semibold text-sm hover:bg-[#162d4a] transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
+                  className="w-full h-11 rounded-xl font-semibold text-sm transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-sm text-white"
+                  style={{ background: 'linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%)' }}
                 >
                   {loading ? (
                     <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -224,11 +289,11 @@ export default function LoginPage() {
                 </button>
               </form>
 
-              <div className="flex items-start gap-2 mt-5 p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <div className="flex items-start gap-2 mx-8 mb-6 p-3 bg-blue-50 rounded-lg border border-blue-100">
                 <Shield className="h-3.5 w-3.5 text-blue-400 mt-0.5 shrink-0" />
                 <p className="text-xs text-blue-600">Uygulama kodları 30 saniyede bir yenilenir. Kod çalışmıyorsa saatinizi kontrol edin.</p>
               </div>
-            </>
+            </div>
           )}
         </div>
 
