@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { BrandFunnel } from '@/components/charts/brand-funnel'
 
@@ -43,7 +43,7 @@ export default async function IncesusReportPage() {
 
   let customersQuery = supabase
     .from('customers')
-    .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id')
+    .select('id, brand_id, brand:brands(name, color), current_stage_id, is_won, is_lost, created_at, consultant_id')
     .eq('is_active', true)
   if (locationFilter) customersQuery = customersQuery.eq('location_id', locationFilter)
   const { data: customers } = await customersQuery
@@ -243,7 +243,7 @@ export default async function IncesusReportPage() {
 
       {/* Heatmap + Channel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ContactHeatmap data={heatmapData} title="İncesu Otomotiv — İletişim Yoğunluğu (Gün/Saat)" />
+        <ContactHeatmap customers={customers as never[]} />
         <ChannelChart data={channelStats} title="İncesu Otomotiv — Temas Kanalları" />
       </div>
 

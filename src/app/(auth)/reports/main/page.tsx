@@ -37,7 +37,7 @@ export default async function MainReportPage() {
   // locationFilter yoksa tüm aktif müşterileri getir
   let customersQuery = supabase
     .from('customers')
-    .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, insurance_kasko_offered, oto_koruma_sold, location_id')
+    .select('id, brand_id, brand:brands(name, color), current_stage_id, is_won, is_lost, created_at, consultant_id, insurance_kasko_offered, oto_koruma_sold, location_id')
     .eq('is_active', true)
   if (locationFilter) customersQuery = customersQuery.eq('location_id', locationFilter)
   let { data: customers, error: customersError } = await customersQuery
@@ -47,7 +47,7 @@ export default async function MainReportPage() {
     console.error('[MainReport] customers error:', customersError.message)
     let fallbackQuery = supabase
       .from('customers')
-      .select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id')
+      .select('id, brand_id, brand:brands(name, color), current_stage_id, is_won, is_lost, created_at, consultant_id, location_id')
       .eq('is_active', true)
     if (locationFilter) fallbackQuery = fallbackQuery.eq('location_id', locationFilter)
     const { data: fallbackData } = await fallbackQuery
@@ -297,7 +297,7 @@ export default async function MainReportPage() {
 
         {/* Heatmap + Channel */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <ContactHeatmap data={heatmapData} />
+          <ContactHeatmap customers={customers as never[]} title="Müşteri Kayıt Yoğunluğu" />
           <ChannelChart data={channelStats} />
         </div>
 
