@@ -138,7 +138,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Brand Funnels + Quick Register — equal boxes */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-stretch">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
         {brandFunnelData
           .filter((d) => d.brand.slug !== 'ikinci-el' && !d.brand.name.toLowerCase().includes('ikinci'))
           .map((d) => <BrandFunnel key={d.brand.id} data={d} />)}
