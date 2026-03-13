@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   Users, Shield, MapPin, Building2, ToggleLeft, ToggleRight,
-  Trash2, Key, Pencil, X, Search, ChevronDown,
+  Trash2, Key, Pencil, X, Search, ShieldCheck, ShieldOff,
+  Smartphone, Copy, CheckCheck,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
@@ -29,23 +30,222 @@ const DEPT_LABELS: Record<string, string> = {
   diger: 'Diğer',
 }
 
+// ─── 2FA Setup Modal ─────────────────────────────────────────────────────────
+
+interface TotpModalProps {
+  userName: string
+  onClose: () => void
+  onSuccess: () => void
+}
+
+function TotpSetupModal({ userName, onClose, onSuccess }: TotpModalProps) {
+  const [step, setStep]           = useState<'start' | 'qr' | 'verify'>('start')
+  const [qrSvg, setQrSvg]         = useState('')
+  const [secret, setSecret]       = useState('')
+  const [factorId, setFactorId]   = useState('')
+  const [code, setCode]           = useState('')
+  const [loading, setLoading]     = useState(false)
+  const [copied, setCopied]       = useState(false)
+
+  const startEnroll = async () => {
+    setLoading(true)
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase.auth.mfa.enroll({
+        factorType: 'totp',
+        friendlyName: 'Google Authenticator',
+      })
+      if (error) throw error
+      setQrSvg(data.totp.qr_code)
+      setSecret(data.totp.secret)
+      setFactorId(data.id)
+      setStep('qr')
+    } catch (e: unknown) {
+      toast.error((e as Error).message ?? 'Kayıt başlatılamadı')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const verifyCode = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const clean = code.replace(/\D/g, '')
+    if (clean.length !== 6) { toast.error('6 haneli kodu girin'); return }
+    setLoading(true)
+    try {
+      const supabase = createClient()
+      const { data: ch, error: cErr } = await supabase.auth.mfa.challenge({ factorId })
+      if (cErr) throw cErr
+      const { error: vErr } = await supabase.auth.mfa.verify({
+        factorId, challengeId: ch.id, code: clean,
+      })
+      if (vErr) { toast.error('Kod hatalı, tekrar deneyin'); setCode(''); return }
+      toast.success('Google Authenticator başarıyla etkinleştirildi!')
+      onSuccess()
+    } catch (e: unknown) {
+      toast.error((e as Error).message ?? 'Doğrulama hatası')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const cancel = async () => {
+    if (factorId) {
+      const supabase = createClient()
+      await supabase.auth.mfa.unenroll({ factorId })
+    }
+    onClose()
+  }
+
+  const copySecret = () => {
+    navigator.clipboard.writeText(secret)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center">
+              <Smartphone className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-gray-900">Google Authenticator Kur</p>
+              <p className="text-xs text-gray-400">{userName}</p>
+            </div>
+          </div>
+          <button onClick={cancel} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+
+          {/* Step: start */}
+          {step === 'start' && (
+            <>
+              <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 text-sm text-blue-800">
+                <p className="font-medium mb-1">Adımlar:</p>
+                <ol className="list-decimal ml-4 space-y-1 text-xs text-blue-700">
+                  <li>Telefonunuza <strong>Google Authenticator</strong> indirin</li>
+                  <li>Uygulamada <strong>+</strong> → <strong>QR kodu tara</strong></li>
+                  <li>Gösterilen 6 haneli kodu girerek doğrulayın</li>
+                </ol>
+              </div>
+              <button
+                onClick={startEnroll}
+                disabled={loading}
+                className="w-full h-10 rounded-xl bg-[#1E3A5F] text-white text-sm font-semibold hover:bg-[#162d4a] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading
+                  ? <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                  : <Smartphone className="h-4 w-4" />
+                }
+                {loading ? 'Hazırlanıyor...' : 'Başlat'}
+              </button>
+            </>
+          )}
+
+          {/* Step: QR */}
+          {step === 'qr' && (
+            <>
+              <p className="text-xs text-gray-500 text-center">QR kodu Google Authenticator ile tarayın</p>
+              <div className="flex justify-center">
+                <div className="p-3 bg-white rounded-xl border-2 border-gray-100 shadow-sm"
+                  dangerouslySetInnerHTML={{ __html: qrSvg }}
+                />
+              </div>
+              {/* Manuel giriş */}
+              <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
+                <p className="text-[11px] text-gray-400 mb-1.5">QR taranamıyorsa manuel girin:</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-[11px] font-mono text-gray-700 break-all">{secret}</code>
+                  <button onClick={copySecret}
+                    className="shrink-0 h-7 w-7 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors">
+                    {copied
+                      ? <CheckCheck className="h-3.5 w-3.5 text-green-600" />
+                      : <Copy className="h-3.5 w-3.5 text-gray-400" />
+                    }
+                  </button>
+                </div>
+              </div>
+              <button onClick={() => setStep('verify')}
+                className="w-full h-10 rounded-xl bg-[#1E3A5F] text-white text-sm font-semibold hover:bg-[#162d4a] transition-all">
+                Taradım, Devam Et →
+              </button>
+            </>
+          )}
+
+          {/* Step: verify */}
+          {step === 'verify' && (
+            <form onSubmit={verifyCode} className="space-y-4">
+              <p className="text-xs text-gray-500 text-center">Uygulamadaki 6 haneli kodu girin</p>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={code}
+                onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                autoFocus
+                className="w-full h-14 rounded-xl border-2 border-gray-300 text-2xl font-mono text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent transition-all"
+              />
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setStep('qr')}
+                  className="flex-1 h-10 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                  Geri
+                </button>
+                <button type="submit" disabled={loading || code.length < 6}
+                  className="flex-1 h-10 rounded-xl bg-[#1E3A5F] text-white text-sm font-semibold hover:bg-[#162d4a] disabled:opacity-50 flex items-center justify-center gap-1.5 transition-all">
+                  {loading && <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
+                  {loading ? 'Doğrulanıyor...' : 'Etkinleştir'}
+                </button>
+              </div>
+            </form>
+          )}
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
 export default function UsersPage() {
-  const [users, setUsers] = useState<UserProfile[]>([])
-  const [locations, setLocations] = useState<Location[]>([])
-  const [loading, setLoading] = useState(true)
-  const [myRole, setMyRole] = useState('')
-  const [search, setSearch] = useState('')
-  const [editingUser, setEditingUser] = useState<string | null>(null)
+  const [users, setUsers]               = useState<UserProfile[]>([])
+  const [locations, setLocations]       = useState<Location[]>([])
+  const [loading, setLoading]           = useState(true)
+  const [myRole, setMyRole]             = useState('')
+  const [myUserId, setMyUserId]         = useState('')
+  const [search, setSearch]             = useState('')
+  const [editingUser, setEditingUser]   = useState<string | null>(null)
   const [passwordModal, setPasswordModal] = useState<string | null>(null)
-  const [deleteModal, setDeleteModal] = useState<string | null>(null)
-  const [newPassword, setNewPassword] = useState('')
+  const [deleteModal, setDeleteModal]   = useState<string | null>(null)
+  const [totpModal, setTotpModal]       = useState<string | null>(null)  // userId for 2FA setup
+  const [newPassword, setNewPassword]   = useState('')
   const [actionLoading, setActionLoading] = useState(false)
+  const [mfaStatus, setMfaStatus]       = useState<Record<string, boolean>>({})
 
   const supabase = createClient()
+
+  const loadMfaStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/mfa-status')
+      if (res.ok) {
+        const data = await res.json()
+        setMfaStatus(data)
+      }
+    } catch { /* ignore */ }
+  }, [])
 
   const loadData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    setMyUserId(user.id)
 
     const { data: profile } = await supabase.from('user_profiles').select('role').eq('id', user.id).single()
     setMyRole(profile?.role ?? '')
@@ -57,8 +257,9 @@ export default function UsersPage() {
     ])
     setUsers((usersData ?? []) as UserProfile[])
     setLocations(locsData ?? [])
+    await loadMfaStatus()
     setLoading(false)
-  }, [supabase])
+  }, [supabase, loadMfaStatus])
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -144,6 +345,7 @@ export default function UsersPage() {
   })
 
   const locCounts = locations.map(l => ({ ...l, count: users.filter(u => u.location_id === l.id).length }))
+  const totpUser = totpModal ? users.find(u => u.id === totpModal) : null
 
   return (
     <div className="space-y-6">
@@ -199,13 +401,17 @@ export default function UsersPage() {
               <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Lokasyon</th>
               <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden lg:table-cell">Departman</th>
               <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">Kayıt</th>
+              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">2FA</th>
               <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Durum</th>
               <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">İşlem</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((user, idx) => {
-              const isEditing = editingUser === user.id
+              const isEditing  = editingUser === user.id
+              const hasMfa     = mfaStatus[user.id] === true
+              const isMe       = user.id === myUserId
+
               return (
                 <tr key={user.id} className={`border-t border-gray-50 hover:bg-blue-50/30 transition-colors ${idx % 2 === 1 ? 'bg-gray-50/60' : ''}`}>
                   <td className="px-4 py-2.5">
@@ -263,6 +469,29 @@ export default function UsersPage() {
                   <td className="px-3 py-2.5 hidden md:table-cell">
                     <span className="text-xs text-gray-400">{formatDate(user.created_at)}</span>
                   </td>
+
+                  {/* ── 2FA column ── */}
+                  <td className="px-3 py-2.5 text-center">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <span title={hasMfa ? '2FA Aktif' : '2FA Yok'}>
+                        {hasMfa
+                          ? <ShieldCheck className="h-4 w-4 text-green-500" />
+                          : <ShieldOff className="h-4 w-4 text-gray-300" />
+                        }
+                      </span>
+                      {/* Setup button only for current user */}
+                      {isMe && !hasMfa && (
+                        <button
+                          onClick={() => setTotpModal(user.id)}
+                          title="2FA Kur"
+                          className="h-6 w-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
+                        >
+                          <Smartphone className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+
                   <td className="px-3 py-2.5 text-center">
                     <button onClick={() => toggleActive(user.id, user.is_active)}
                       className="inline-flex items-center gap-1 text-xs font-medium transition-colors"
@@ -293,7 +522,19 @@ export default function UsersPage() {
         </table>
       </div>
 
-      {/* Password Modal */}
+      {/* ── 2FA Setup Modal ── */}
+      {totpModal && totpUser && (
+        <TotpSetupModal
+          userName={totpUser.full_name}
+          onClose={() => setTotpModal(null)}
+          onSuccess={async () => {
+            setTotpModal(null)
+            await loadMfaStatus()
+          }}
+        />
+      )}
+
+      {/* ── Password Modal ── */}
       {passwordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
@@ -317,7 +558,7 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* Delete Modal */}
+      {/* ── Delete Modal ── */}
       {deleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
