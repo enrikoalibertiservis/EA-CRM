@@ -188,8 +188,8 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
                     onClick={() => setLocationId(loc.id)}
                     className={`flex-1 h-8 rounded-lg border text-[10px] font-semibold transition-all duration-200 truncate px-1
                       ${locationId === loc.id
-                        ? 'bg-[#1E3A5F] border-[#1E3A5F] text-white'
-                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-700 hover:border-slate-700 hover:text-white'
+                        ? 'bg-slate-100 border-slate-400 text-slate-700'
+                        : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-600'
                       }`}
                   >
                     {loc.name}
