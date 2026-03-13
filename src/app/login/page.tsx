@@ -217,11 +217,11 @@ export default function LoginPage() {
 
               <form onSubmit={handleTotp} className="space-y-4 px-8 pb-2">
                 <div>
-                  {/* Individual digit boxes */}
-                  <div className="flex gap-2 justify-center">
+                  {/* Digit boxes + transparent real input overlaid on top */}
+                  <div className="relative flex gap-2 justify-center">
                     {[0,1,2,3,4,5].map(i => (
                       <div key={i}
-                        className="h-12 w-10 rounded-xl flex items-center justify-center text-xl font-mono font-bold border-2 transition-all"
+                        className="h-12 w-10 rounded-xl flex items-center justify-center text-xl font-mono font-bold border-2 transition-all pointer-events-none select-none"
                         style={{
                           borderColor: totpCode[i]
                             ? '#1a73e8'
@@ -233,36 +233,29 @@ export default function LoginPage() {
                         {totpCode[i] ?? ''}
                       </div>
                     ))}
+                    {/* Transparent input overlaid — full size, tappable on mobile */}
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      value={totpCode}
+                      onChange={e => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6)
+                        setTotpCode(val)
+                        if (val.length === 6) {
+                          setTimeout(() => {
+                            const form = e.target.closest('form')
+                            form?.requestSubmit()
+                          }, 80)
+                        }
+                      }}
+                      autoFocus
+                      aria-label="Doğrulama kodu"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-text z-10"
+                    />
                   </div>
-                  {/* hidden real input */}
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    value={totpCode}
-                    onChange={e => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 6)
-                      setTotpCode(val)
-                      if (val.length === 6) {
-                        // auto-submit after tiny delay so UI updates first
-                        setTimeout(() => {
-                          const form = e.target.closest('form')
-                          form?.requestSubmit()
-                        }, 80)
-                      }
-                    }}
-                    autoFocus
-                    className="sr-only"
-                    aria-label="Doğrulama kodu"
-                  />
-                  {/* invisible clickable overlay to focus hidden input */}
-                  <div
-                    className="mt-0 cursor-text"
-                    onClick={() => {
-                      const inp = document.querySelector<HTMLInputElement>('input[aria-label="Doğrulama kodu"]')
-                      inp?.focus()
-                    }}
-                  />
+                  <p className="text-center text-[11px] text-blue-400 mt-2">Kutulara dokunarak klavyeyi açın</p>
                 </div>
 
                 <button
