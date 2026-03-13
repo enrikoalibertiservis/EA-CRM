@@ -252,7 +252,7 @@ export default function LoginPage() {
                       }}
                       autoFocus
                       aria-label="Doğrulama kodu"
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-text z-10"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-text z-10 caret-transparent"
                     />
                   </div>
                   <p className="text-center text-[11px] text-blue-400 mt-2">Kutulara dokunarak klavyeyi açın</p>
