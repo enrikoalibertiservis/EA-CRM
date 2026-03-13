@@ -138,8 +138,8 @@ export function QuickRegister({ brands, models, currentUserId, currentLocationId
                 onClick={() => { handleBrand(b.id); setErrors(p => { const n={...p}; delete n.brand; return n }) }}
                 className="h-8 px-4 rounded-lg border text-xs font-semibold transition-all"
                 style={brandId === b.id
-                  ? { backgroundColor: b.color, borderColor: b.color, color: '#fff' }
-                  : { backgroundColor: '#fff', borderColor: '#E5E7EB', color: '#374151' }
+                  ? { backgroundColor: b.color, borderColor: b.color, color: '#fff', boxShadow: `0 2px 8px ${b.color}55` }
+                  : { backgroundColor: b.color + '18', borderColor: b.color + '55', color: b.color }
                 }
               >
                 {b.name}

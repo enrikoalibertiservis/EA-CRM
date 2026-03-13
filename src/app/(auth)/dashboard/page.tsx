@@ -140,10 +140,10 @@ export default async function DashboardPage() {
       {/* Brand Funnels + Quick Register — equal boxes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-stretch">
         {brandFunnelData
-          .filter((d) => d.brand.name !== 'İkinci El')
+          .filter((d) => d.brand.slug !== 'ikinci-el' && !d.brand.name.toLowerCase().includes('ikinci'))
           .map((d) => <BrandFunnel key={d.brand.id} data={d} />)}
         <QuickRegister
-          brands={(brands ?? []).filter((b) => b.name !== 'İkinci El')}
+          brands={(brands ?? []).filter((b) => b.slug !== 'ikinci-el' && !b.name.toLowerCase().includes('ikinci'))}
           models={models ?? []}
           currentUserId={user!.id}
           currentLocationId={profile?.location_id ?? ''}
