@@ -6,9 +6,13 @@ import { Toaster } from 'sonner'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'EA CRM | Otomotiv Satış Yönetimi',
-  description: 'Fiat, Alfa Romeo, Jeep ve İkinci El - Yetkili Bayi CRM Sistemi',
-  icons: { icon: '/favicon.ico' },
+  title: 'EA CRM',
+  description: 'Fiat, Alfa Romeo, Jeep - Yetkili Bayi CRM Sistemi',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
