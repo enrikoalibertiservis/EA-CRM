@@ -90,6 +90,7 @@ export interface Customer {
   district: string | null
   brand_id: string
   source_channel_id: string | null
+  initial_contact_type: string | null
   interested_model: string | null
   notes: string | null
   consultant_id: string | null

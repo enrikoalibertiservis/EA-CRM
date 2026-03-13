@@ -26,6 +26,8 @@ interface CustomerListProps {
   stages: { id: string; name: string; color: string; slug: string; sort_order: number }[]
   consultants: { id: string; full_name: string }[]
   locations: { id: string; name: string }[]
+  channels: { id: string; name: string; color: string }[]
+  contactTypes: { id: string; name: string; slug: string; color: string }[]
   userRole: string
 }
 
@@ -44,13 +46,15 @@ const DATE_TABS: { key: DateMode; label: string }[] = [
 
 const CAN_DELETE = ['super_admin', 'manager']
 
-export function CustomerList({ customers, brands, stages, consultants, locations, userRole }: CustomerListProps) {
+export function CustomerList({ customers, brands, stages, consultants, locations, channels, contactTypes, userRole }: CustomerListProps) {
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [filterLocation, setFilterLocation] = useState('')
   const [filterBrand, setFilterBrand] = useState('')
   const [filterStage, setFilterStage] = useState('')
   const [filterConsultant, setFilterConsultant] = useState('')
+  const [filterChannel, setFilterChannel] = useState('')
+  const [filterContactType, setFilterContactType] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterDate, setFilterDate] = useState<DateMode>('')
   const [dateFrom, setDateFrom] = useState('')
@@ -82,6 +86,8 @@ export function CustomerList({ customers, brands, stages, consultants, locations
     if (filterBrand) list = list.filter(c => c.brand_id === filterBrand)
     if (filterStage) list = list.filter(c => c.current_stage_id === filterStage)
     if (filterConsultant) list = list.filter(c => c.consultant_id === filterConsultant)
+    if (filterChannel) list = list.filter(c => c.source_channel_id === filterChannel)
+    if (filterContactType) list = list.filter(c => c.initial_contact_type === filterContactType)
     if (filterStatus === 'active') list = list.filter(c => !c.is_won && !c.is_lost)
     if (filterStatus === 'won') list = list.filter(c => c.is_won)
     if (filterStatus === 'lost') list = list.filter(c => c.is_lost)
@@ -121,13 +127,13 @@ export function CustomerList({ customers, brands, stages, consultants, locations
       return aVal > bVal ? -1 : aVal < bVal ? 1 : 0
     })
     return list
-  }, [customers, filterLocation, search, filterBrand, filterStage, filterConsultant, filterStatus, filterDate, dateFrom, dateTo, sortField, sortDir])
+  }, [customers, filterLocation, search, filterBrand, filterStage, filterConsultant, filterChannel, filterContactType, filterStatus, filterDate, dateFrom, dateTo, sortField, sortDir])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
   const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
-  const activeFilters = [filterBrand, filterStage, filterConsultant, filterStatus].filter(Boolean).length
+  const activeFilters = [filterBrand, filterStage, filterConsultant, filterChannel, filterContactType, filterStatus].filter(Boolean).length
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -295,7 +301,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
 
       {/* Expanded filters */}
       {showFilters && (
-        <div className="rounded-xl border border-gray-200 bg-white p-4 mb-3 grid grid-cols-2 lg:grid-cols-4 gap-3 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 mb-3 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 shadow-sm">
           <div>
             <label className="text-xs font-medium text-gray-500 block mb-1">Marka</label>
             <select value={filterBrand} onChange={(e) => { setFilterBrand(e.target.value); resetPage() }}
@@ -320,9 +326,25 @@ export function CustomerList({ customers, brands, stages, consultants, locations
               {consultants.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
             </select>
           </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500 block mb-1">Nereden Ulaştı?</label>
+            <select value={filterChannel} onChange={(e) => { setFilterChannel(e.target.value); resetPage() }}
+              className="w-full h-9 rounded-md border border-gray-200 bg-white text-xs px-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Tümü</option>
+              {channels.map((ch) => <option key={ch.id} value={ch.id}>{ch.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500 block mb-1">Temas Türü</label>
+            <select value={filterContactType} onChange={(e) => { setFilterContactType(e.target.value); resetPage() }}
+              className="w-full h-9 rounded-md border border-gray-200 bg-white text-xs px-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Tümü</option>
+              {contactTypes.map((ct) => <option key={ct.id} value={ct.slug}>{ct.name}</option>)}
+            </select>
+          </div>
           <div className="flex items-end">
             {activeFilters > 0 && (
-              <button onClick={() => { setFilterBrand(''); setFilterStage(''); setFilterConsultant(''); setFilterStatus(''); resetPage() }}
+              <button onClick={() => { setFilterBrand(''); setFilterStage(''); setFilterConsultant(''); setFilterChannel(''); setFilterContactType(''); setFilterStatus(''); resetPage() }}
                 className="h-9 w-full rounded-md border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-colors">
                 Temizle
               </button>
