@@ -63,7 +63,7 @@ export function QuickRegister({ brands, models, currentUserId, currentLocationId
       }).select().single()
       if (error) throw error
       toast.success('Müşteri kaydedildi!')
-      router.push(`/customers/${data.id}`)
+      router.push('/dashboard')
     } catch {
       toast.error('Kayıt sırasında hata oluştu')
     } finally {
@@ -138,8 +138,8 @@ export function QuickRegister({ brands, models, currentUserId, currentLocationId
                 onClick={() => { handleBrand(b.id); setErrors(p => { const n={...p}; delete n.brand; return n }) }}
                 className="h-8 px-4 rounded-lg border text-xs font-semibold transition-all"
                 style={brandId === b.id
-                  ? { backgroundColor: b.color, borderColor: b.color, color: '#fff', boxShadow: `0 2px 8px ${b.color}55` }
-                  : { backgroundColor: b.color + '18', borderColor: b.color + '55', color: b.color }
+                  ? { backgroundColor: b.color + 'cc', borderColor: b.color, color: '#fff' }
+                  : { backgroundColor: b.color + '12', borderColor: b.color + '35', color: b.color + 'cc' }
                 }
               >
                 {b.name}

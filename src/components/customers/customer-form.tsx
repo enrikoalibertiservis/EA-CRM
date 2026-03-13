@@ -144,7 +144,7 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
       if (error) throw error
 
       toast.success('Müşteri başarıyla eklendi!')
-      router.push(`/customers/${data.id}`)
+      router.push('/dashboard')
     } catch (err) {
       console.error(err)
       toast.error('Müşteri eklenirken hata oluştu')
