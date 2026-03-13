@@ -234,7 +234,7 @@ export default function UsersPage() {
 
   const loadMfaStatus = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/mfa-status')
+      const res = await fetch('/api/admin/mfa-status', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setMfaStatus(data)
