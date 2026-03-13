@@ -376,10 +376,10 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
                         key={loc.id}
                         type="button"
                         onClick={() => update('location_id', loc.id)}
-                        className={`flex-1 h-9 rounded-lg border text-xs font-semibold transition-all ${
+                        className={`flex-1 h-9 rounded-lg border text-xs font-semibold transition-all duration-200 ${
                           form.location_id === loc.id
                             ? 'bg-[#1E3A5F] text-white border-[#1E3A5F]'
-                            : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-700 hover:border-slate-700 hover:text-white'
                         }`}
                       >
                         {loc.name}

@@ -186,11 +186,11 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
                     key={loc.id}
                     type="button"
                     onClick={() => setLocationId(loc.id)}
-                    className="flex-1 h-8 rounded-lg border text-[10px] font-semibold transition-all truncate px-1"
-                    style={locationId === loc.id
-                      ? { backgroundColor: '#1E3A5F', borderColor: '#1E3A5F', color: '#fff' }
-                      : { backgroundColor: '#fff', borderColor: '#E2E8F0', color: '#64748b' }
-                    }
+                    className={`flex-1 h-8 rounded-lg border text-[10px] font-semibold transition-all duration-200 truncate px-1
+                      ${locationId === loc.id
+                        ? 'bg-[#1E3A5F] border-[#1E3A5F] text-white'
+                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-700 hover:border-slate-700 hover:text-white'
+                      }`}
                   >
                     {loc.name}
                   </button>
