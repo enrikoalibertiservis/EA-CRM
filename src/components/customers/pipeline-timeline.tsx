@@ -47,7 +47,7 @@ const STAGE_OPTIONS: Record<string, StageOption[]> = {
     { field: 'catalog_given',      label: 'Katalog / Broşür Verildi', type: 'checkbox' },
   ],
   'teklif': [
-    { field: 'offer_written',  label: 'Yazılı Teklif Verildi', type: 'checkbox' },
+    { field: 'offer_written',  label: 'Teklif Verildi', type: 'checkbox' },
     { field: 'offer_amount',   label: 'Teklif Tutarı', type: 'currency', placeholder: '0,00' },
     { field: 'offer_campaign', label: 'Kampanya', type: 'text', placeholder: 'Kampanya adı (varsa)' },
   ],
