@@ -32,7 +32,7 @@ export function BrandFunnel({ data }: { data: BrandFunnelData }) {
   const logo = brandLogos[data.brand.name]
 
   return (
-    <div className={`rounded-2xl border bg-gradient-to-br ${gradient} p-5 shadow-sm`}>
+    <div className={`rounded-2xl border bg-gradient-to-br ${gradient} p-5 shadow-sm h-full`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           {logo ? (

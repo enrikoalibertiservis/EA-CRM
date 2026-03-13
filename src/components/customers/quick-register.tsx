@@ -72,21 +72,22 @@ export function QuickRegister({ brands, models, currentUserId, currentLocationId
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-2xl border-2 border-green-400 shadow-md overflow-hidden h-full flex flex-col"
+      style={{ boxShadow: '0 4px 24px 0 #22c55e22' }}>
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100"
-        style={{ background: 'linear-gradient(135deg, #1E3A5F10 0%, transparent 100%)' }}>
-        <div className="h-9 w-9 rounded-xl flex items-center justify-center"
-          style={{ background: '#1E3A5F18', border: '1.5px solid #1E3A5F30' }}>
-          <Zap className="h-4 w-4" style={{ color: '#1E3A5F' }} />
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-green-100"
+        style={{ background: 'linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%)' }}>
+        <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-sm"
+          style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)', boxShadow: '0 2px 8px #22c55e55' }}>
+          <Zap className="h-5 w-5 text-white" />
         </div>
         <div>
           <h3 className="text-sm font-bold text-gray-900">Hızlı Müşteri Kaydı</h3>
-          <p className="text-[11px] text-gray-400">Müşteriyi bekletmeden sisteme girin</p>
+          <p className="text-[11px] text-green-600 font-medium">Müşteriyi bekletmeden sisteme girin</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-5 space-y-4">
+      <form onSubmit={handleSubmit} className="p-5 space-y-4 flex-1 flex flex-col justify-between">
         {/* Ad + Telefon */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
@@ -170,8 +171,8 @@ export function QuickRegister({ brands, models, currentUserId, currentLocationId
         <button
           type="submit"
           disabled={loading}
-          className="w-full h-10 rounded-xl text-white text-sm font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
-          style={{ background: 'linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%)' }}
+          className="w-full h-10 rounded-xl text-white text-sm font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm hover:opacity-90 active:scale-[0.98]"
+          style={{ background: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)', boxShadow: '0 2px 8px #22c55e44' }}
         >
           {loading
             ? <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>

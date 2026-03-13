@@ -137,19 +137,17 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* Quick Register + Brand Funnels */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div>
-          <QuickRegister
-            brands={brands ?? []}
-            models={models ?? []}
-            currentUserId={user!.id}
-            currentLocationId={profile?.location_id ?? ''}
-          />
-        </div>
-        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {brandFunnelData.map((d) => <BrandFunnel key={d.brand.id} data={d} />)}
-        </div>
+      {/* Brand Funnels + Quick Register — equal boxes */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-stretch">
+        {brandFunnelData
+          .filter((d) => d.brand.name !== 'İkinci El')
+          .map((d) => <BrandFunnel key={d.brand.id} data={d} />)}
+        <QuickRegister
+          brands={(brands ?? []).filter((b) => b.name !== 'İkinci El')}
+          models={models ?? []}
+          currentUserId={user!.id}
+          currentLocationId={profile?.location_id ?? ''}
+        />
       </div>
 
       {/* Heatmap + Channel */}
