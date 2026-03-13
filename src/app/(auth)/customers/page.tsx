@@ -30,8 +30,8 @@ export default async function CustomersPage() {
     supabase.from('user_profiles').select('id, full_name').eq('is_active', true),
     supabase.from('user_profiles').select('role').eq('id', user!.id).single(),
     supabase.from('locations').select('id, name').eq('is_active', true).order('name'),
-    supabase.from('contact_channels').select('id, name, color').eq('is_active', true).order('sort_order'),
-    supabase.from('contact_types').select('id, name, slug, color').eq('is_active', true).order('sort_order'),
+    supabase.from('contact_channels').select('id, name, color').order('sort_order'),
+    supabase.from('contact_types').select('id, name, slug, color').order('sort_order'),
   ])
 
   return (
