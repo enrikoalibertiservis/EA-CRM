@@ -4,9 +4,9 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 interface ActivityDataPoint { label: string; count: number }
 
-export function ActivityChart({ data, title = 'Günlük Aktivite', color = '#3B82F6' }: { data: ActivityDataPoint[]; title?: string; color?: string }) {
+export function ActivityChart({ data, title = 'Günlük Aktivite', color = '#3B82F6', className = '' }: { data: ActivityDataPoint[]; title?: string; color?: string; className?: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5">
+    <div className={`rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5 ${className}`}>
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{title}</h3>
       {data.length === 0 ? (
         <div className="flex items-center justify-center h-32 text-gray-400 text-sm">Henüz veri yok</div>

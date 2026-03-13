@@ -32,7 +32,7 @@ export default async function DashboardPage() {
     .select('id, full_name, phone, created_at, brand:brands(name, color), current_stage:sales_stages(name, color, slug)')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
-    .limit(7)
+    .limit(5)
 
   const brandFunnelData: BrandFunnelData[] = (brands ?? []).map((brand: Brand) => {
     const bc = (customers ?? []).filter((c) => c.brand_id === brand.id)
@@ -157,13 +157,13 @@ export default async function DashboardPage() {
       </div>
 
       {/* Activity + Recent Customers */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
-          <ActivityChart data={activityData} title="Son 14 Gün — Günlük Temas Aktivitesi" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+        <div className="lg:col-span-2 flex">
+          <ActivityChart data={activityData} title="Son 14 Gün — Günlük Temas Aktivitesi" className="flex-1" />
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5 flex flex-col">
+          <div className="flex items-center justify-between mb-3 shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                 <FileText className="h-4 w-4 text-blue-600" />
@@ -175,43 +175,49 @@ export default async function DashboardPage() {
             </Link>
           </div>
 
-          <div className="space-y-1">
-            {(recentCustomers ?? []).length === 0 ? (
-              <p className="text-xs text-gray-400 text-center py-8">Henüz müşteri yok</p>
-            ) : (
-              (recentCustomers ?? []).map((c) => {
-                const brand = Array.isArray(c.brand) ? c.brand[0] : c.brand
-                const stage = Array.isArray(c.current_stage) ? c.current_stage[0] : c.current_stage
+          {/* Her zaman 5 satır — boş satırlar yer tutar */}
+          <div className="flex-1 flex flex-col justify-between">
+            {Array.from({ length: 5 }).map((_, i) => {
+              const c = (recentCustomers ?? [])[i]
+              if (!c) {
                 return (
-                  <Link key={c.id} href={`/customers/${c.id}`}
-                    className="flex items-center gap-2.5 py-2 px-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors">
-                    <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                      style={{ backgroundColor: brand?.color ?? '#6B7280' }}>
-                      {c.full_name.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{c.full_name}</p>
-                      <div className="flex items-center gap-1 text-[11px] text-gray-400">
-                        {brand?.name && (() => {
-                          const logos: Record<string, string> = { 'Fiat': '/brands/fiat.png', 'Alfa Romeo': '/brands/alfa-romeo.png', 'Jeep': '/brands/jeep.png' }
-                          const logo = logos[brand.name]
-                          return logo ? (
-                            <Image src={logo} alt={brand.name} width={14} height={14} className="object-contain opacity-70" style={{ mixBlendMode: 'multiply' }} />
-                          ) : null
-                        })()}
-                        {brand?.name} · {formatDate(c.created_at)}
-                      </div>
-                    </div>
-                    {stage && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0"
-                        style={{ backgroundColor: stage.color + '15', color: stage.color, borderColor: stage.color + '30' }}>
-                        {stage.name}
-                      </span>
-                    )}
-                  </Link>
+                  <div key={`empty-${i}`} className="flex items-center gap-2.5 py-2 px-2 -mx-2 rounded-xl opacity-0 pointer-events-none">
+                    <div className="h-8 w-8 rounded-full bg-gray-100 shrink-0" />
+                    <div className="flex-1"><p className="text-sm text-gray-100">—</p></div>
+                  </div>
                 )
-              })
-            )}
+              }
+              const brand = Array.isArray(c.brand) ? c.brand[0] : c.brand
+              const stage = Array.isArray(c.current_stage) ? c.current_stage[0] : c.current_stage
+              return (
+                <Link key={c.id} href={`/customers/${c.id}`}
+                  className="flex items-center gap-2.5 py-2 px-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors">
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                    style={{ backgroundColor: brand?.color ?? '#6B7280' }}>
+                    {c.full_name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{c.full_name}</p>
+                    <div className="flex items-center gap-1 text-[11px] text-gray-400">
+                      {brand?.name && (() => {
+                        const logos: Record<string, string> = { 'Fiat': '/brands/fiat.png', 'Alfa Romeo': '/brands/alfa-romeo.png', 'Jeep': '/brands/jeep.png' }
+                        const logo = logos[brand.name]
+                        return logo ? (
+                          <Image src={logo} alt={brand.name} width={14} height={14} className="object-contain opacity-70" style={{ mixBlendMode: 'multiply' }} />
+                        ) : null
+                      })()}
+                      {brand?.name} · {formatDate(c.created_at)}
+                    </div>
+                  </div>
+                  {stage && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0"
+                      style={{ backgroundColor: stage.color + '15', color: stage.color, borderColor: stage.color + '30' }}>
+                      {stage.name}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
           </div>
         </div>
       </div>
