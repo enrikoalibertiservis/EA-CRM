@@ -30,14 +30,16 @@ interface StageOption {
 // ─── Stage icons ──────────────────────────────────────────────────────────────
 
 const stageIcons: Record<string, React.ElementType> = {
-  'arac-tanitimi':  Gauge,
-  'teklif':         ReceiptText,
-  'dusunme':        Lightbulb,
-  'kabul':          BadgeCheck,
-  'sigorta':        ShieldCheck,
-  'oto-koruma':     Sparkles,
-  'baglanti-sureci': Handshake,
-  'satis':          ShoppingCart,
+  'arac-tanitimi':    Gauge,
+  'teklif':           ReceiptText,
+  'dusunme':          Lightbulb,
+  'kabul':            BadgeCheck,
+  'sigorta':          ShieldCheck,
+  'sigorta-islemleri': ShieldCheck,
+  'oto-koruma':       Sparkles,
+  'baglanti-sureci':  Handshake,
+  'baglanti':         Handshake,
+  'satis':            ShoppingCart,
 }
 
 // ─── Stage options config ─────────────────────────────────────────────────────
@@ -60,6 +62,9 @@ const STAGE_OPTIONS: Record<string, StageOption[]> = {
   'baglanti-sureci': [
     { field: 'verbal_agreement_done', label: 'Müşteri ile sözlü anlaşma sağlandı', type: 'checkbox', green: true },
   ],
+  'baglanti': [
+    { field: 'verbal_agreement_done', label: 'Müşteri ile sözlü anlaşma sağlandı', type: 'checkbox', green: true },
+  ],
   'satis': [
     { field: 'sale_completed', label: 'Satış gerçekleştirildi', type: 'checkbox', green: true },
   ],
@@ -69,6 +74,18 @@ const STAGE_OPTIONS: Record<string, StageOption[]> = {
     { field: 'contract_signed',  label: 'Sözleşme İmzalandı',         type: 'checkbox', green: true },
   ],
   'sigorta': [
+    {
+      field: 'insurance_kasko_offered', label: 'Kasko Yapıldı', type: 'checkbox', green: true,
+      negativeField: 'insurance_kasko_not_done', negativeLabel: 'Yapılamadı',
+      reasonField: 'insurance_kasko_fail_reason', reasonPlaceholder: 'Neden yapılamadı?',
+    },
+    {
+      field: 'insurance_trafik_offered', label: 'Trafik Sigortası Yapıldı', type: 'checkbox', green: true,
+      negativeField: 'insurance_trafik_not_done', negativeLabel: 'Yapılamadı',
+      reasonField: 'insurance_trafik_fail_reason', reasonPlaceholder: 'Neden yapılamadı?',
+    },
+  ],
+  'sigorta-islemleri': [
     {
       field: 'insurance_kasko_offered', label: 'Kasko Yapıldı', type: 'checkbox', green: true,
       negativeField: 'insurance_kasko_not_done', negativeLabel: 'Yapılamadı',
