@@ -4,7 +4,6 @@ import { BrandFunnel } from '@/components/charts/brand-funnel'
 export const dynamic = 'force-dynamic'
 import { ContactHeatmap } from '@/components/charts/contact-heatmap'
 import { ChannelChart } from '@/components/charts/channel-chart'
-import { ActivityChart } from '@/components/charts/activity-chart'
 import {
   Users, MessageSquare, CheckCircle, Clock, UserPlus, FileText,
 } from 'lucide-react'
@@ -28,12 +27,6 @@ export default async function DashboardPage() {
   const { data: customers } = await supabase.from('customers').select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id, brand:brands(id, name, color)').eq('is_active', true)
   const { data: contactLogs } = await supabase.from('contact_logs').select('id, channel_id, contact_date, created_by')
   const { data: channels } = await supabase.from('contact_channels').select('*').eq('is_active', true).order('sort_order')
-  const { data: recentCustomers } = await supabase
-    .from('customers')
-    .select('id, full_name, phone, created_at, brand:brands(name, color), current_stage:sales_stages(name, color, slug)')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .limit(5)
 
   const brandFunnelData: BrandFunnelData[] = (brands ?? []).map((brand: Brand) => {
     const bc = (customers ?? []).filter((c) => c.brand_id === brand.id)
@@ -68,13 +61,6 @@ export default async function DashboardPage() {
   channelStats.forEach((s: ChannelStats) => { s.percentage = totalContacts > 0 ? (s.count / totalContacts) * 100 : 0 })
   channelStats.sort((a: ChannelStats, b: ChannelStats) => b.count - a.count)
 
-  const activityData = Array.from({ length: 14 }, (_, i) => {
-    const d = new Date(); d.setDate(d.getDate() - (13 - i))
-    const label = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
-    const dateStr = d.toISOString().split('T')[0]
-    const count = (contactLogs ?? []).filter((l) => l.contact_date.startsWith(dateStr)).length
-    return { label, count }
-  })
 
   const totalCustomers = customers?.length ?? 0
   const activeCustomers = customers?.filter((c) => !c.is_won && !c.is_lost).length ?? 0
@@ -161,71 +147,6 @@ export default async function DashboardPage() {
         <ChannelChart data={channelStats} />
       </div>
 
-      {/* Activity + Recent Customers */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
-        <div className="lg:col-span-2 flex h-full">
-          <ActivityChart data={activityData} title="Son 14 Gün — Günlük Temas Aktivitesi" className="flex-1 h-full" />
-        </div>
-
-        <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5 flex flex-col">
-          <div className="flex items-center justify-between mb-3 shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                <FileText className="h-4 w-4 text-blue-600" />
-              </div>
-              <h3 className="text-sm font-semibold text-gray-900">Son Müşteriler</h3>
-            </div>
-            <Link href="/customers" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
-              Tümünü Gör →
-            </Link>
-          </div>
-
-          {/* Her zaman 5 satır — boş satırlar yer tutar */}
-          <div className="flex-1 flex flex-col justify-between">
-            {Array.from({ length: 5 }).map((_, i) => {
-              const c = (recentCustomers ?? [])[i]
-              if (!c) {
-                return (
-                  <div key={`empty-${i}`} className="flex items-center gap-2.5 py-2 px-2 -mx-2 rounded-xl opacity-0 pointer-events-none">
-                    <div className="h-8 w-8 rounded-full bg-gray-100 shrink-0" />
-                    <div className="flex-1"><p className="text-sm text-gray-100">—</p></div>
-                  </div>
-                )
-              }
-              const brand = Array.isArray(c.brand) ? c.brand[0] : c.brand
-              const stage = Array.isArray(c.current_stage) ? c.current_stage[0] : c.current_stage
-              return (
-                <Link key={c.id} href={`/customers/${c.id}`}
-                  className="flex items-center gap-2.5 py-2 px-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors">
-                  <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                    style={{ backgroundColor: brand?.color ?? '#6B7280' }}>
-                    {c.full_name.charAt(0)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{c.full_name}</p>
-                    <div className="flex items-center gap-1 text-[11px] text-gray-400">
-                      {brand?.name && (() => {
-                        const logos: Record<string, string> = { 'Fiat': '/brands/fiat.png', 'Alfa Romeo': '/brands/alfa-romeo.png', 'Jeep': '/brands/jeep.png' }
-                        const logo = logos[brand.name]
-                        return logo ? (
-                          <Image src={logo} alt={brand.name} width={14} height={14} className="object-contain opacity-70" style={{ mixBlendMode: 'multiply' }} />
-                        ) : null
-                      })()}
-                      {brand?.name} · {formatDate(c.created_at)}
-                    </div>
-                  </div>
-                  {stage && (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0"
-                      style={{ backgroundColor: stage.color + '15', color: stage.color, borderColor: stage.color + '30' }}>
-                      {stage.name}
-                    </span>
-                  )}
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
