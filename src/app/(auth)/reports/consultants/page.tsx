@@ -7,7 +7,7 @@ import {
   Cell, LabelList,
 } from 'recharts'
 import {
-  TrendingUp, TrendingDown, Users, Target,
+  TrendingUp, TrendingDown, Users, Target, XCircle,
   Filter, CalendarDays,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
