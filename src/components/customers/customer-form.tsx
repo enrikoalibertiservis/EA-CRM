@@ -9,6 +9,7 @@ import {
   PhoneCall, Globe, Share2, UserCheck,
   HelpCircle, Building2, Phone, Users, Wrench, Shield,
   Radio, Newspaper, BookOpen, Search, Heart,
+  Calendar, Lock, Pencil,
   type LucideIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -84,10 +85,18 @@ function getContactTypeIcon(iconName: string | null): LucideIcon {
   return CONTACT_TYPE_ICONS[iconName] ?? MessageSquare
 }
 
+function nowLocal() {
+  const d = new Date()
+  d.setSeconds(0, 0)
+  return d.toISOString().slice(0, 16)
+}
+
 export function CustomerForm({ brands, models, channels, consultants, contactTypes, locations, currentUserId, currentLocationId }: CustomerFormProps) {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
+  const [regDate, setRegDate]         = useState(nowLocal)
+  const [dateEditable, setDateEditable] = useState(false)
 
   const [form, setForm] = useState({
     full_name: '',
@@ -144,6 +153,7 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
           consultant_id: form.consultant_id || currentUserId,
           location_id: form.location_id || currentLocationId,
           created_by: currentUserId,
+          created_at: new Date(regDate).toISOString(),
         })
         .select()
         .single()
@@ -210,6 +220,40 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
                 />
               </div>
               {errors.phone && <p className="text-xs text-red-500 mt-0.5">{errors.phone}</p>}
+            </div>
+
+            {/* Kayıt Tarihi/Saati */}
+            <div className="col-span-2">
+              <label className="text-xs font-medium text-gray-700 block mb-1 flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                Kayıt Tarihi / Saati
+              </label>
+              <div className="relative">
+                <input
+                  type="datetime-local"
+                  value={regDate}
+                  onChange={e => setRegDate(e.target.value)}
+                  readOnly={!dateEditable}
+                  onClick={() => !dateEditable && setDateEditable(true)}
+                  className={`w-full h-9 rounded-lg border px-3 pr-9 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                    dateEditable ? 'border-blue-400' : 'border-gray-200 text-gray-500 cursor-pointer'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setDateEditable(v => !v)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors"
+                  title={dateEditable ? 'Kilitle' : 'Düzenle'}
+                >
+                  {dateEditable
+                    ? <Pencil className="h-3.5 w-3.5 text-blue-500" />
+                    : <Lock className="h-3.5 w-3.5" />
+                  }
+                </button>
+              </div>
+              {!dateEditable && (
+                <p className="text-[10px] text-gray-400 mt-0.5">Değiştirmek için tıkla</p>
+              )}
             </div>
           </div>
         </div>

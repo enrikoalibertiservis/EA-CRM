@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { UserPlus, Phone, User, Car, Zap } from 'lucide-react'
+import { UserPlus, Phone, User, Car, Zap, CheckCircle, Calendar, Lock, Pencil } from 'lucide-react'
 
 interface LocationOption {
   id: string
@@ -19,6 +18,12 @@ interface Props {
   currentLocationId: string
 }
 
+function nowLocal() {
+  const d = new Date()
+  d.setSeconds(0, 0)
+  return d.toISOString().slice(0, 16)
+}
+
 function formatGSM(v: string) {
   const d = v.replace(/\D/g, '').slice(0, 11)
   if (d.length <= 4) return d
@@ -28,9 +33,11 @@ function formatGSM(v: string) {
 }
 
 export function QuickRegister({ brands, models, locations, currentUserId, currentLocationId }: Props) {
-  const router = useRouter()
-  const [loading, setLoading]   = useState(false)
-  const [name, setName]         = useState('')
+  const [loading, setLoading]       = useState(false)
+  const [saved, setSaved]           = useState(false)
+  const [regDate, setRegDate]       = useState(nowLocal)
+  const [dateEditable, setDateEditable] = useState(false)
+  const [name, setName]             = useState('')
   const [phone, setPhone]       = useState('')
   const [brandId, setBrandId]   = useState('')
   const [model, setModel]       = useState('')
@@ -67,10 +74,20 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
         consultant_id:    currentUserId,
         location_id:      locationId || currentLocationId,
         created_by:       currentUserId,
+        created_at:       new Date(regDate).toISOString(),
       }).select().single()
       if (error) throw error
-      toast.success('Müşteri kaydedildi!')
-      router.push('/dashboard')
+      setSaved(true)
+      setTimeout(() => {
+        setSaved(false)
+        setName('')
+        setPhone('')
+        setBrandId('')
+        setModel('')
+        setRegDate(nowLocal())
+        setDateEditable(false)
+        setErrors({})
+      }, 2000)
     } catch {
       toast.error('Kayıt sırasında hata oluştu')
     } finally {
@@ -209,17 +226,69 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
           )}
         </div>
 
-        {/* Submit — kibar, hover ile dolgun */}
+        {/* Kayıt Tarihi */}
+        <div>
+          <label className="text-[11px] font-medium text-gray-500 flex items-center gap-1 mb-1">
+            <Calendar className="h-3 w-3 text-gray-400" />
+            Kayıt Tarihi / Saati
+          </label>
+          <div className="relative">
+            <input
+              type="datetime-local"
+              value={regDate}
+              onChange={e => setRegDate(e.target.value)}
+              readOnly={!dateEditable}
+              onClick={() => !dateEditable && setDateEditable(true)}
+              className={`w-full h-8 rounded-lg border px-2 pr-8 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${
+                dateEditable ? 'border-green-400' : 'border-gray-200 text-gray-500 cursor-pointer'
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setDateEditable(v => !v)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-600 transition-colors"
+              title={dateEditable ? 'Kilitle' : 'Düzenle'}
+            >
+              {dateEditable
+                ? <Pencil className="h-3 w-3 text-green-500" />
+                : <Lock className="h-3 w-3" />
+              }
+            </button>
+          </div>
+          {!dateEditable && (
+            <p className="text-[9px] text-gray-400 mt-0.5">Değiştirmek için tıkla</p>
+          )}
+        </div>
+
+        {/* Submit */}
         <button
           type="submit"
-          disabled={loading}
-          className="w-full h-9 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 border-2 border-green-500 text-green-700 bg-white hover:bg-green-500 hover:text-white active:scale-[0.98] mt-auto"
+          disabled={loading || saved}
+          className={`w-full h-9 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 border-2 active:scale-[0.98] mt-auto ${
+            saved
+              ? 'bg-green-500 border-green-500 text-white scale-[1.01]'
+              : 'border-green-500 text-green-700 bg-white hover:bg-green-500 hover:text-white disabled:opacity-50'
+          }`}
         >
-          {loading
-            ? <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-            : <UserPlus className="h-4 w-4" />
-          }
-          {loading ? 'Kaydediliyor...' : 'Kaydet ve Devam Et →'}
+          {saved ? (
+            <>
+              <CheckCircle className="h-4 w-4 animate-bounce" />
+              Kaydedildi ✓
+            </>
+          ) : loading ? (
+            <>
+              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Kaydediliyor...
+            </>
+          ) : (
+            <>
+              <UserPlus className="h-4 w-4" />
+              Kaydet ve Devam Et →
+            </>
+          )}
         </button>
       </form>
     </div>
