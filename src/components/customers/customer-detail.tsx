@@ -264,13 +264,13 @@ export function CustomerDetail({
             <div className="group">
               <div className="flex items-center gap-1 mb-0.5">
                 <p className="text-xs text-gray-400">Marka</p>
-                {isAdmin && editingField !== 'brand_id' && (
-                  <button onClick={() => setEditingField('brand_id')} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                {editingField !== 'brand_id' && (
+                  <button onClick={() => setEditingField('brand_id')} className={`transition-opacity ${!currentBrand?.name ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                     <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
                   </button>
                 )}
               </div>
-              {isAdmin && editingField === 'brand_id' ? (
+              {editingField === 'brand_id' ? (
                 <div className="flex items-center gap-1">
                   <select
                     autoFocus
@@ -294,7 +294,10 @@ export function CustomerDetail({
                   </button>
                 </div>
               ) : (
-                <p className="text-sm font-medium text-gray-900">{currentBrand?.name ?? '—'}</p>
+                <p
+                  className={`text-sm font-medium ${currentBrand?.name ? 'text-gray-900' : 'text-blue-400 cursor-pointer hover:text-blue-600'}`}
+                  onClick={() => !currentBrand?.name && setEditingField('brand_id')}
+                >{currentBrand?.name ?? '+ Ekle'}</p>
               )}
             </div>
 
@@ -302,13 +305,13 @@ export function CustomerDetail({
             <div className="group">
               <div className="flex items-center gap-1 mb-0.5">
                 <p className="text-xs text-gray-400">Danışman</p>
-                {isAdmin && editingField !== 'consultant_id' && (
-                  <button onClick={() => setEditingField('consultant_id')} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                {editingField !== 'consultant_id' && (
+                  <button onClick={() => setEditingField('consultant_id')} className={`transition-opacity ${!currentConsultant?.full_name ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                     <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
                   </button>
                 )}
               </div>
-              {isAdmin && editingField === 'consultant_id' ? (
+              {editingField === 'consultant_id' ? (
                 <div className="flex items-center gap-1">
                   <select
                     autoFocus
@@ -333,7 +336,10 @@ export function CustomerDetail({
                   </button>
                 </div>
               ) : (
-                <p className="text-sm font-medium text-gray-900">{currentConsultant?.full_name ?? '—'}</p>
+                <p
+                  className={`text-sm font-medium ${currentConsultant?.full_name ? 'text-gray-900' : 'text-blue-400 cursor-pointer hover:text-blue-600'}`}
+                  onClick={() => !currentConsultant?.full_name && setEditingField('consultant_id')}
+                >{currentConsultant?.full_name ?? '+ Ekle'}</p>
               )}
             </div>
 
@@ -341,13 +347,13 @@ export function CustomerDetail({
             <div className="group">
               <div className="flex items-center gap-1 mb-0.5">
                 <p className="text-xs text-gray-400">Kaynak Kanal</p>
-                {isAdmin && editingField !== 'source_channel_id' && (
-                  <button onClick={() => setEditingField('source_channel_id')} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                {editingField !== 'source_channel_id' && (
+                  <button onClick={() => setEditingField('source_channel_id')} className={`transition-opacity ${!currentChannel?.name ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                     <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
                   </button>
                 )}
               </div>
-              {isAdmin && editingField === 'source_channel_id' ? (
+              {editingField === 'source_channel_id' ? (
                 <div className="flex items-center gap-1">
                   <select
                     autoFocus
@@ -372,7 +378,10 @@ export function CustomerDetail({
                   </button>
                 </div>
               ) : (
-                <p className="text-sm font-medium text-gray-900">{currentChannel?.name ?? '—'}</p>
+                <p
+                  className={`text-sm font-medium ${currentChannel?.name ? 'text-gray-900' : 'text-blue-400 cursor-pointer hover:text-blue-600'}`}
+                  onClick={() => !currentChannel?.name && setEditingField('source_channel_id')}
+                >{currentChannel?.name ?? '+ Ekle'}</p>
               )}
             </div>
 
@@ -380,13 +389,13 @@ export function CustomerDetail({
             <div className="group">
               <div className="flex items-center gap-1 mb-0.5">
                 <p className="text-xs text-gray-400">İlgilendiği Model</p>
-                {isAdmin && editingField !== 'interested_model' && (
-                  <button onClick={() => setEditingField('interested_model')} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                {editingField !== 'interested_model' && (
+                  <button onClick={() => setEditingField('interested_model')} className={`transition-opacity ${!interestedModel ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                     <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
                   </button>
                 )}
               </div>
-              {isAdmin && editingField === 'interested_model' ? (
+              {editingField === 'interested_model' ? (
                 <div className="flex items-center gap-1">
                   <input
                     autoFocus
@@ -409,7 +418,10 @@ export function CustomerDetail({
                   </button>
                 </div>
               ) : (
-                <p className="text-sm font-medium text-gray-900">{interestedModel || '—'}</p>
+                <p
+                  className={`text-sm font-medium ${interestedModel ? 'text-gray-900' : 'text-blue-400 cursor-pointer hover:text-blue-600'}`}
+                  onClick={() => !interestedModel && setEditingField('interested_model')}
+                >{interestedModel || '+ Ekle'}</p>
               )}
             </div>
 
