@@ -125,6 +125,8 @@ export interface Customer {
   oto_koruma_fail_reason: string | null
   oto_koruma_product: string | null
   oto_koruma_amount: number | null
+  verbal_agreement_done: boolean
+  sale_completed: boolean
   created_at: string
   created_by: string
   updated_at: string

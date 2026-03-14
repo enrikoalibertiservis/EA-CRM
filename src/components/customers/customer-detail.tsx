@@ -88,6 +88,8 @@ export function CustomerDetail({
     oto_koruma_fail_reason:          customer.oto_koruma_fail_reason ?? null,
     oto_koruma_product:              customer.oto_koruma_product ?? null,
     oto_koruma_amount:               customer.oto_koruma_amount ?? null,
+    verbal_agreement_done:           customer.verbal_agreement_done ?? false,
+    sale_completed:                  customer.sale_completed ?? false,
   })
 
   const handleStageUpdate = (stageId: string) => {

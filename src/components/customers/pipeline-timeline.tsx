@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import {
   Gauge, ReceiptText, Lightbulb, BadgeCheck, ShieldCheck, Sparkles,
-  Check, Plus, X,
+  Check, Plus, X, Handshake, ShoppingCart,
 } from 'lucide-react'
 import { cn, formatDate } from '@/lib/utils'
 import type { SalesStage, CustomerStageHistory } from '@/lib/types/database'
@@ -30,12 +30,14 @@ interface StageOption {
 // ─── Stage icons ──────────────────────────────────────────────────────────────
 
 const stageIcons: Record<string, React.ElementType> = {
-  'arac-tanitimi': Gauge,
-  'teklif':        ReceiptText,
-  'dusunme':       Lightbulb,
-  'kabul':         BadgeCheck,
-  'sigorta':       ShieldCheck,
-  'oto-koruma':    Sparkles,
+  'arac-tanitimi':  Gauge,
+  'teklif':         ReceiptText,
+  'dusunme':        Lightbulb,
+  'kabul':          BadgeCheck,
+  'sigorta':        ShieldCheck,
+  'oto-koruma':     Sparkles,
+  'baglanti-sureci': Handshake,
+  'satis':          ShoppingCart,
 }
 
 // ─── Stage options config ─────────────────────────────────────────────────────
@@ -55,6 +57,12 @@ const STAGE_OPTIONS: Record<string, StageOption[]> = {
     { field: 'followup_done',     label: 'Takip Araması Yapıldı', type: 'checkbox' },
     { field: 'followup_datetime', label: 'Arama Tarihi / Saati', type: 'datetime' },
   ],
+  'baglanti-sureci': [
+    { field: 'verbal_agreement_done', label: 'Müşteri ile sözlü anlaşma sağlandı', type: 'checkbox', green: true },
+  ],
+  'satis': [
+    { field: 'sale_completed', label: 'Satış gerçekleştirildi', type: 'checkbox', green: true },
+  ],
   'kabul': [
     { field: 'offer_accepted',   label: 'Müşteri Teklifi Kabul Etti', type: 'checkbox', green: true },
     { field: 'deposit_received', label: 'Kaparo / Ön Ödeme Alındı',  type: 'checkbox', green: true },
@@ -62,12 +70,12 @@ const STAGE_OPTIONS: Record<string, StageOption[]> = {
   ],
   'sigorta': [
     {
-      field: 'insurance_kasko_offered', label: 'Kasko Sigortası', type: 'checkbox', green: true,
+      field: 'insurance_kasko_offered', label: 'Kasko Yapıldı', type: 'checkbox', green: true,
       negativeField: 'insurance_kasko_not_done', negativeLabel: 'Yapılamadı',
       reasonField: 'insurance_kasko_fail_reason', reasonPlaceholder: 'Neden yapılamadı?',
     },
     {
-      field: 'insurance_trafik_offered', label: 'Trafik Sigortası', type: 'checkbox', green: true,
+      field: 'insurance_trafik_offered', label: 'Trafik Sigortası Yapıldı', type: 'checkbox', green: true,
       negativeField: 'insurance_trafik_not_done', negativeLabel: 'Yapılamadı',
       reasonField: 'insurance_trafik_fail_reason', reasonPlaceholder: 'Neden yapılamadı?',
     },
