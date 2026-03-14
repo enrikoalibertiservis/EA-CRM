@@ -432,6 +432,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                     Marka <SortIcon field="brand" />
                   </button>
                 </th>
+                <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden xl:table-cell">Şube</th>
                 <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden lg:table-cell">Telefon</th>
                 {/* Sortable: Durum */}
                 <th className="text-left px-3 py-2.5">
@@ -445,7 +446,6 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                     Danışman <SortIcon field="consultant" />
                   </button>
                 </th>
-                <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden xl:table-cell">Ek Hizmet</th>
                 {/* Sortable: Tarih */}
                 <th className="text-left px-3 py-2.5 hidden md:table-cell">
                   <button onClick={() => handleSort('created_at')} className="group flex items-center gap-1 text-xs font-semibold text-gray-400 uppercase tracking-wide hover:text-gray-600 transition-colors">
@@ -499,6 +499,14 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                         {customer.brand?.name ?? '—'}
                       </span>
                     </td>
+                    <td className="px-3 py-2.5 hidden xl:table-cell">
+                      {customer.location?.name ? (
+                        <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-gray-50 text-gray-600 border-gray-200">
+                          <Building2 className="h-2.5 w-2.5 shrink-0" />
+                          {customer.location.name}
+                        </span>
+                      ) : <span className="text-xs text-gray-300">—</span>}
+                    </td>
                     <td className="px-3 py-2.5 hidden lg:table-cell">
                       <span className="text-xs text-gray-600">{customer.phone}</span>
                     </td>
@@ -521,28 +529,8 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                     <td className="px-3 py-2.5 hidden lg:table-cell">
                       <span className="text-xs text-gray-600">{customer.consultant?.full_name ?? '—'}</span>
                     </td>
-                    <td className="px-3 py-2.5 hidden xl:table-cell">
-                      <div className="flex items-center gap-1">
-                        {(customer.insurance_kasko_sold || customer.insurance_trafik_sold) && (
-                          <span title={[customer.insurance_kasko_sold && 'Kasko', customer.insurance_trafik_sold && 'Trafik'].filter(Boolean).join(' + ') + ' Satıldı'}
-                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
-                            <Shield className="h-2.5 w-2.5" />
-                            {customer.insurance_kasko_sold && customer.insurance_trafik_sold ? 'K+T' : customer.insurance_kasko_sold ? 'Kasko' : 'Trafik'}
-                          </span>
-                        )}
-                        {customer.oto_koruma_sold && (
-                          <span title="Oto Koruma Satıldı"
-                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-100">
-                            <Lock className="h-2.5 w-2.5" /> OK
-                          </span>
-                        )}
-                        {!customer.insurance_kasko_sold && !customer.insurance_trafik_sold && !customer.oto_koruma_sold && (
-                          <span className="text-xs text-gray-300">—</span>
-                        )}
-                      </div>
-                    </td>
                     <td className="px-3 py-2.5 hidden md:table-cell">
-                      <span className="text-xs text-gray-400">{formatDate(customer.created_at)}</span>
+                      <span className="text-xs text-gray-400">{formatDate(customer.created_at, { time: true })}</span>
                     </td>
                     <td className="px-3 py-2.5">
                       <Link href={`/customers/${customer.id}`} onClick={e => e.stopPropagation()}>
