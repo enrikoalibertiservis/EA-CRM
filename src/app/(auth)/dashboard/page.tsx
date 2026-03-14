@@ -54,12 +54,12 @@ export default async function DashboardPage() {
   }
 
   // channelStats: müşterilerin source_channel'ından hesapla
-  const channelCountMap: Record<string, { channel: ContactChannel; count: number }> = {}
+  const channelCountMap: Record<string, { channel: ContactChannel; count: number; percentage: number }> = {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(customers ?? []).forEach((c: any) => {
     const ch = c.source_channel as ContactChannel | undefined
     if (!ch?.id) return
-    if (!channelCountMap[ch.id]) channelCountMap[ch.id] = { channel: ch, count: 0 }
+    if (!channelCountMap[ch.id]) channelCountMap[ch.id] = { channel: ch, count: 0, percentage: 0 }
     channelCountMap[ch.id].count++
   })
   const channelStats: ChannelStats[] = Object.values(channelCountMap).filter(x => x.count > 0)
