@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -113,6 +113,13 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Kullanıcı düzenlemiyorsa her 30sn'de otomatik güncelle
+  useEffect(() => {
+    if (dateEditable) return
+    const id = setInterval(() => setRegDate(nowLocal()), 30_000)
+    return () => clearInterval(id)
+  }, [dateEditable])
 
   const update = (key: string, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }))

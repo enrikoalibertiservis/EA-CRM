@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { UserPlus, Phone, User, Car, Zap, CheckCircle, Calendar, Lock, Pencil } from 'lucide-react'
@@ -43,6 +43,13 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
   const [model, setModel]       = useState('')
   const [locationId, setLocationId] = useState(currentLocationId)
   const [errors, setErrors]     = useState<Record<string, string>>({})
+
+  // Kullanıcı düzenlemiyorsa her 30sn'de otomatik güncelle
+  useEffect(() => {
+    if (dateEditable) return
+    const id = setInterval(() => setRegDate(nowLocal()), 30_000)
+    return () => clearInterval(id)
+  }, [dateEditable])
 
   const filteredModels = brandId ? models.filter(m => m.brand_id === brandId) : models
 
