@@ -114,7 +114,7 @@ function ReasonsTooltip({ active, payload, label }: { active?: boolean; payload?
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 
 interface StatTheme {
-  bg: string; border: string; value: string; label: string; iconBg: string; iconColor: string
+  bg: string; border: string; value: string; label: string; iconColor: string
 }
 
 function StatCard({ label, value, sub, icon: Icon, theme }: {
@@ -122,15 +122,13 @@ function StatCard({ label, value, sub, icon: Icon, theme }: {
   icon: React.ElementType; theme: StatTheme
 }) {
   return (
-    <div className={`rounded-2xl border px-5 py-4 ${theme.bg} ${theme.border}`}>
-      <div className="flex items-start justify-between mb-3">
-        <p className={`text-[10px] font-bold uppercase tracking-widest leading-tight ${theme.label}`}>{label}</p>
-        <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${theme.iconBg}`}>
-          <Icon className={`h-4 w-4 ${theme.iconColor}`} />
-        </div>
+    <div className={`relative rounded-2xl border overflow-hidden px-5 py-4 ${theme.bg} ${theme.border}`}>
+      <Icon className={`absolute right-3 top-1/2 -translate-y-1/2 h-16 w-16 pointer-events-none ${theme.iconColor} opacity-10`} />
+      <div className="relative">
+        <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${theme.label}`}>{label}</p>
+        <p className={`text-4xl font-black leading-none ${theme.value}`}>{value}</p>
+        {sub && <p className={`text-xs mt-1.5 ${theme.label} opacity-70`}>{sub}</p>}
       </div>
-      <p className={`text-4xl font-black leading-none ${theme.value}`}>{value}</p>
-      {sub && <p className={`text-xs mt-1.5 ${theme.label} opacity-70`}>{sub}</p>}
     </div>
   )
 }
@@ -429,26 +427,26 @@ export default function ConsultantReportPage() {
           label="Toplam Temas"
           value={totalAll}
           icon={Users}
-          theme={{ bg: 'bg-gradient-to-br from-sky-50 to-blue-100/60', border: 'border-blue-200/70', value: 'text-blue-700', label: 'text-blue-500', iconBg: 'bg-blue-500/15', iconColor: 'text-blue-600' }}
+          theme={{ bg: 'bg-gradient-to-br from-sky-50 to-blue-100/60', border: 'border-blue-200/70', value: 'text-blue-700', label: 'text-blue-500', iconColor: 'text-blue-600' }}
         />
         <StatCard
           label="Satış Yapıldı"
           value={totalWon}
           icon={TrendingUp}
-          theme={{ bg: 'bg-gradient-to-br from-emerald-50 to-green-100/60', border: 'border-emerald-200/70', value: 'text-emerald-700', label: 'text-emerald-600', iconBg: 'bg-emerald-500/15', iconColor: 'text-emerald-600' }}
+          theme={{ bg: 'bg-gradient-to-br from-emerald-50 to-green-100/60', border: 'border-emerald-200/70', value: 'text-emerald-700', label: 'text-emerald-600', iconColor: 'text-emerald-600' }}
         />
         <StatCard
           label="Kaçan Satış"
           value={totalLost}
           icon={TrendingDown}
-          theme={{ bg: 'bg-gradient-to-br from-red-50 to-rose-100/60', border: 'border-red-200/70', value: 'text-red-600', label: 'text-red-500', iconBg: 'bg-red-500/15', iconColor: 'text-red-500' }}
+          theme={{ bg: 'bg-gradient-to-br from-red-50 to-rose-100/60', border: 'border-red-200/70', value: 'text-red-600', label: 'text-red-500', iconColor: 'text-red-500' }}
         />
         <StatCard
           label="Satış Kapatma Oranı"
           value={`%${avgRate.toFixed(1)}`}
           sub={`${totalAll} temasta ${totalWon} satış`}
           icon={Target}
-          theme={{ bg: 'bg-gradient-to-br from-violet-50 to-indigo-100/60', border: 'border-indigo-200/70', value: 'text-indigo-700', label: 'text-indigo-500', iconBg: 'bg-indigo-500/15', iconColor: 'text-indigo-600' }}
+          theme={{ bg: 'bg-gradient-to-br from-violet-50 to-indigo-100/60', border: 'border-indigo-200/70', value: 'text-indigo-700', label: 'text-indigo-500', iconColor: 'text-indigo-600' }}
         />
       </div>
 
