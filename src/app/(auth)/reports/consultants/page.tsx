@@ -136,10 +136,10 @@ function StatCard({ label, value, sub, icon: Icon, theme }: {
 // ─── Location Filter Row ──────────────────────────────────────────────────────
 
 const LOCATION_PALETTE = [
-  { active: 'bg-blue-500/20 text-blue-700 border-blue-400', inactive: 'border-gray-200 bg-white text-gray-400 hover:bg-blue-50 hover:text-blue-600' },
-  { active: 'bg-emerald-500/20 text-emerald-700 border-emerald-400', inactive: 'border-gray-200 bg-white text-gray-400 hover:bg-emerald-50 hover:text-emerald-600' },
-  { active: 'bg-violet-500/20 text-violet-700 border-violet-400', inactive: 'border-gray-200 bg-white text-gray-400 hover:bg-violet-50 hover:text-violet-600' },
-  { active: 'bg-amber-500/20 text-amber-700 border-amber-400', inactive: 'border-gray-200 bg-white text-gray-400 hover:bg-amber-50 hover:text-amber-600' },
+  { active: 'bg-blue-500/25 text-blue-700 border-blue-400 shadow-sm shadow-blue-100', inactive: 'border-blue-200 bg-blue-50/70 text-blue-500 hover:bg-blue-100/80' },
+  { active: 'bg-emerald-500/25 text-emerald-700 border-emerald-400 shadow-sm shadow-emerald-100', inactive: 'border-emerald-200 bg-emerald-50/70 text-emerald-600 hover:bg-emerald-100/80' },
+  { active: 'bg-violet-500/25 text-violet-700 border-violet-400 shadow-sm shadow-violet-100', inactive: 'border-violet-200 bg-violet-50/70 text-violet-500 hover:bg-violet-100/80' },
+  { active: 'bg-amber-500/25 text-amber-700 border-amber-400 shadow-sm shadow-amber-100', inactive: 'border-amber-200 bg-amber-50/70 text-amber-600 hover:bg-amber-100/80' },
 ]
 
 function LocationFilterRow({
@@ -156,10 +156,10 @@ function LocationFilterRow({
     <div className="flex items-center gap-1.5 flex-wrap">
       <button
         onClick={() => onChange('all')}
-        className={`h-6 px-2.5 rounded-full text-[10px] font-semibold transition-all border ${
+        className={`h-7 px-3 rounded-xl text-[10px] font-semibold transition-all border ${
           value === 'all'
-            ? 'bg-slate-100 text-slate-700 border-slate-400'
-            : 'border-gray-200 bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+            ? 'bg-slate-200/80 text-slate-700 border-slate-400 shadow-sm'
+            : 'border-slate-200 bg-slate-50/80 text-slate-500 hover:bg-slate-100'
         }`}
       >
         Tüm Şubeler
@@ -170,7 +170,7 @@ function LocationFilterRow({
           <button
             key={loc.id}
             onClick={() => onChange(loc.id)}
-            className={`h-6 px-2.5 rounded-full text-[10px] font-semibold transition-all border ${
+            className={`h-7 px-3 rounded-xl text-[10px] font-semibold transition-all border ${
               value === loc.id ? colors.active : colors.inactive
             }`}
           >
@@ -347,17 +347,17 @@ export default function ConsultantReportPage() {
     <div className="space-y-7">
 
       {/* ── Date filters + Location filter + Consultant filter ── */}
-      <div className="-mt-2 mb-4">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="bg-white border border-gray-100 rounded-2xl px-5 py-4 shadow-sm">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
             {DATE_TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setDateMode(tab.key)}
-                className={`h-8 px-4 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                className={`h-9 px-4 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border ${
                   dateMode === tab.key
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200'
+                    : 'bg-blue-50/60 border-blue-100 text-blue-500 hover:bg-blue-100/70'
                 }`}
               >
                 {tab.key === 'custom' && <CalendarDays className="h-3 w-3" />}
@@ -372,7 +372,7 @@ export default function ConsultantReportPage() {
               <select
                 value={selectedConsultantFilter}
                 onChange={e => setSelectedConsultantFilter(e.target.value)}
-                className="h-8 rounded-lg border border-gray-200 bg-white text-xs px-3 pr-7 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 cursor-pointer"
+                className="h-9 rounded-xl border border-gray-200 bg-gray-50 text-xs px-3 pr-7 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 cursor-pointer"
               >
                 <option value="toplam">Tüm Danışmanlar</option>
                 {stats.map(s => (
