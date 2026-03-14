@@ -334,7 +334,7 @@ export default function ConsultantReportPage() {
     return Object.entries(reasonCounts)
       .map(([reason, count], i) => ({
         reason,
-        shortReason: reason.length > 20 ? reason.slice(0, 20) + '…' : reason,
+        shortReason: reason.length > 30 ? reason.slice(0, 30) + '…' : reason,
         count,
         color: REASON_COLORS[i % REASON_COLORS.length],
       }))
@@ -612,7 +612,7 @@ export default function ConsultantReportPage() {
             <BarChart
               layout="vertical"
               data={reasonBarData}
-              margin={{ top: 4, right: 60, left: 8, bottom: 4 }}
+              margin={{ top: 4, right: 50, left: 0, bottom: 4 }}
               barCategoryGap="28%"
             >
               <defs>
@@ -634,7 +634,7 @@ export default function ConsultantReportPage() {
               <YAxis
                 type="category"
                 dataKey="shortReason"
-                width={140}
+                width={185}
                 tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }}
                 axisLine={false}
                 tickLine={false}
