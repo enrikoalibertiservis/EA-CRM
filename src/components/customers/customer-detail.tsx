@@ -3,9 +3,41 @@
 import { useState, useEffect } from 'react'
 import { PipelineTimeline } from './pipeline-timeline'
 import { ContactLogForm } from './contact-log-form'
-import { Phone, Mail, MapPin, MessageSquare, Calendar, Clock, ChevronRight, CheckCircle, XCircle, X, AlertCircle, Pencil, Check } from 'lucide-react'
+import { Phone, Mail, MapPin, MessageSquare, Calendar, Clock, ChevronRight, CheckCircle, XCircle, X, AlertCircle, Pencil, Check, Building2, PhoneCall, Share2, Users, Wrench, Shield, Radio, Newspaper, BookOpen, Search, Globe, UserCheck, Heart, HelpCircle, type LucideIcon } from 'lucide-react'
 import { formatDate, OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/utils'
 import type { Customer, SalesStage, CustomerStageHistory, ContactLog, ContactChannel, Brand } from '@/lib/types/database'
+
+interface ContactTypeOption { id: string; name: string; slug: string; icon_name: string | null; color: string }
+
+const CONTACT_TYPE_ICONS: Record<string, LucideIcon> = {
+  'building2': Building2, 'phone-call': PhoneCall, 'phone': Phone,
+  'message-square': MessageSquare, 'users': Users,
+}
+function getContactTypeIcon(n: string | null): LucideIcon { return CONTACT_TYPE_ICONS[n ?? ''] ?? MessageSquare }
+
+const CHANNEL_ICONS: Record<string, { icon: LucideIcon; color: string; bg: string }> = {
+  'Sosyal Medya': { icon: Share2, color: '#EC4899', bg: '#FDF2F8' },
+  'Telefon Araması': { icon: PhoneCall, color: '#10B981', bg: '#ECFDF5' },
+  '2. El Müşterisi': { icon: Users, color: '#F97316', bg: '#FFF7ED' },
+  'Servis Müşterisi': { icon: Wrench, color: '#3B82F6', bg: '#EFF6FF' },
+  'Sigorta Müşterisi': { icon: Shield, color: '#8B5CF6', bg: '#F5F3FF' },
+  'Radyo Reklamı': { icon: Radio, color: '#F59E0B', bg: '#FFFBEB' },
+  'Gazete Reklamı': { icon: Newspaper, color: '#6B7280', bg: '#F9FAFB' },
+  'Dergi Reklamı': { icon: BookOpen, color: '#14B8A6', bg: '#F0FDFA' },
+  'Google Araması': { icon: Search, color: '#4285F4', bg: '#EFF6FF' },
+  'Web Sayfası': { icon: Globe, color: '#06B6D4', bg: '#ECFEFF' },
+  'Satış Referans': { icon: UserCheck, color: '#EAB308', bg: '#FEFCE8' },
+  'Sadık Müşteri': { icon: Heart, color: '#EF4444', bg: '#FFF1F2' },
+  'Diğer': { icon: HelpCircle, color: '#9CA3AF', bg: '#F9FAFB' },
+}
+function getChannelMeta(n: string) { return CHANNEL_ICONS[n] ?? { icon: MessageSquare, color: '#6B7280', bg: '#F9FAFB' } }
+function formatGSM(v: string): string {
+  const d = v.replace(/\D/g, '').slice(0, 11)
+  if (d.length <= 4) return d
+  if (d.length <= 7) return `${d.slice(0,4)} ${d.slice(4)}`
+  if (d.length <= 9) return `${d.slice(0,4)} ${d.slice(4,7)} ${d.slice(7)}`
+  return `${d.slice(0,4)} ${d.slice(4,7)} ${d.slice(7,9)} ${d.slice(9)}`
+}
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -20,6 +52,9 @@ interface CustomerDetailProps {
   isAdmin?: boolean
   brandOptions?: Pick<Brand, 'id' | 'name' | 'color'>[]
   consultantOptions?: { id: string; full_name: string }[]
+  contactTypes?: ContactTypeOption[]
+  locations?: { id: string; name: string }[]
+  models?: { id: string; brand_id: string; name: string }[]
 }
 
 export function CustomerDetail({
@@ -32,6 +67,9 @@ export function CustomerDetail({
   isAdmin = false,
   brandOptions = [],
   consultantOptions = [],
+  contactTypes = [],
+  locations = [],
+  models = [],
 }: CustomerDetailProps) {
   const [currentStageId, setCurrentStageId] = useState(customer.current_stage_id)
   const [history, setHistory] = useState(initialHistory)
@@ -44,7 +82,15 @@ export function CustomerDetail({
   const [brandId, setBrandId] = useState(customer.brand_id)
   const [sourceChannelId, setSourceChannelId] = useState(customer.source_channel_id)
   const [interestedModel, setInterestedModel] = useState(customer.interested_model ?? '')
+  const [phone, setPhone] = useState(customer.phone ?? '')
+  const [city, setCity] = useState(customer.city ?? '')
+  const [district, setDistrict] = useState(customer.district ?? '')
+  const [initialContactType, setInitialContactType] = useState(customer.initial_contact_type ?? '')
+  const [locationId, setLocationId] = useState(customer.location_id ?? '')
+  const [notes, setNotes] = useState(customer.notes ?? '')
   const [savingField, setSavingField] = useState<string | null>(null)
+
+  const currentLocation = locations.find(l => l.id === locationId) ?? (customer as { location?: { id: string; name: string } }).location
 
   const currentBrand = brandOptions.find(b => b.id === brandId) ?? customer.brand
   const currentConsultant = consultantOptions.find(c => c.id === consultantId) ?? customer.consultant
@@ -397,15 +443,17 @@ export function CustomerDetail({
               </div>
               {editingField === 'interested_model' ? (
                 <div className="flex items-center gap-1">
-                  <input
+                  <select
                     autoFocus
-                    type="text"
                     value={interestedModel}
                     onChange={e => setInterestedModel(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') saveMetaField('interested_model', interestedModel || null); if (e.key === 'Escape') { setInterestedModel(customer.interested_model ?? ''); setEditingField(null) } }}
                     className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200"
-                    placeholder="Model adı..."
-                  />
+                  >
+                    <option value="">Model seçin</option>
+                    {(brandId ? models.filter(m => m.brand_id === brandId) : models).map(m => (
+                      <option key={m.id} value={m.name}>{m.name}</option>
+                    ))}
+                  </select>
                   <button
                     onClick={async () => { await saveMetaField('interested_model', interestedModel || null) }}
                     disabled={savingField === 'interested_model'}
@@ -433,11 +481,179 @@ export function CustomerDetail({
 
           </div>
 
-          {customer.notes && (
-            <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
-              <p className="text-xs text-amber-700">{customer.notes}</p>
+          {/* 2. satır: Telefon | İl | İlçe | Temas Türü | Şube */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3 pt-3 border-t border-gray-100">
+
+            {/* Telefon */}
+            <div className="group">
+              <div className="flex items-center gap-1 mb-0.5">
+                <p className="text-xs text-gray-400">Telefon</p>
+                {editingField !== 'phone' && (
+                  <button onClick={() => setEditingField('phone')} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
+                  </button>
+                )}
+              </div>
+              {editingField === 'phone' ? (
+                <div className="flex items-center gap-1">
+                  <input autoFocus type="tel" value={phone} onChange={e => setPhone(formatGSM(e.target.value))} maxLength={14}
+                    onKeyDown={e => { if (e.key === 'Enter') saveMetaField('phone', phone || null); if (e.key === 'Escape') { setPhone(customer.phone ?? ''); setEditingField(null) } }}
+                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="0532 456 78 90" />
+                  <button onClick={async () => { await saveMetaField('phone', phone || null) }} disabled={savingField === 'phone'} className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50">
+                    {savingField === 'phone' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  </button>
+                  <button onClick={() => { setPhone(customer.phone ?? ''); setEditingField(null) }} className="h-7 w-7 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center"><X className="h-3.5 w-3.5" /></button>
+                </div>
+              ) : (
+                <p className="text-sm font-medium text-gray-900">{phone || '—'}</p>
+              )}
             </div>
-          )}
+
+            {/* İl */}
+            <div className="group">
+              <div className="flex items-center gap-1 mb-0.5">
+                <p className="text-xs text-gray-400">İl</p>
+                {editingField !== 'city' && (
+                  <button onClick={() => setEditingField('city')} className={`transition-opacity ${!city ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                    <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
+                  </button>
+                )}
+              </div>
+              {editingField === 'city' ? (
+                <div className="flex items-center gap-1">
+                  <input autoFocus type="text" value={city} onChange={e => setCity(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') saveMetaField('city', city || null); if (e.key === 'Escape') { setCity(customer.city ?? ''); setEditingField(null) } }}
+                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="İzmir" />
+                  <button onClick={async () => { await saveMetaField('city', city || null) }} disabled={savingField === 'city'} className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50">
+                    {savingField === 'city' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  </button>
+                  <button onClick={() => { setCity(customer.city ?? ''); setEditingField(null) }} className="h-7 w-7 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center"><X className="h-3.5 w-3.5" /></button>
+                </div>
+              ) : (
+                <p className={`text-sm font-medium ${city ? 'text-gray-900' : 'text-blue-400 cursor-pointer hover:text-blue-600'}`} onClick={() => !city && setEditingField('city')}>{city || '+ Ekle'}</p>
+              )}
+            </div>
+
+            {/* İlçe */}
+            <div className="group">
+              <div className="flex items-center gap-1 mb-0.5">
+                <p className="text-xs text-gray-400">İlçe</p>
+                {editingField !== 'district' && (
+                  <button onClick={() => setEditingField('district')} className={`transition-opacity ${!district ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                    <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
+                  </button>
+                )}
+              </div>
+              {editingField === 'district' ? (
+                <div className="flex items-center gap-1">
+                  <input autoFocus type="text" value={district} onChange={e => setDistrict(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') saveMetaField('district', district || null); if (e.key === 'Escape') { setDistrict(customer.district ?? ''); setEditingField(null) } }}
+                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="Karşıyaka" />
+                  <button onClick={async () => { await saveMetaField('district', district || null) }} disabled={savingField === 'district'} className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50">
+                    {savingField === 'district' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  </button>
+                  <button onClick={() => { setDistrict(customer.district ?? ''); setEditingField(null) }} className="h-7 w-7 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center"><X className="h-3.5 w-3.5" /></button>
+                </div>
+              ) : (
+                <p className={`text-sm font-medium ${district ? 'text-gray-900' : 'text-blue-400 cursor-pointer hover:text-blue-600'}`} onClick={() => !district && setEditingField('district')}>{district || '+ Ekle'}</p>
+              )}
+            </div>
+
+            {/* Temas Türü */}
+            <div className="group">
+              <div className="flex items-center gap-1 mb-0.5">
+                <p className="text-xs text-gray-400">Temas Türü</p>
+                {editingField !== 'initial_contact_type' && (
+                  <button onClick={() => setEditingField('initial_contact_type')} className={`transition-opacity ${!initialContactType ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                    <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
+                  </button>
+                )}
+              </div>
+              {editingField === 'initial_contact_type' ? (
+                <div className="flex items-center gap-1">
+                  <select autoFocus value={initialContactType} onChange={e => setInitialContactType(e.target.value)}
+                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200">
+                    <option value="">— Seçiniz —</option>
+                    {contactTypes.map(ct => <option key={ct.id} value={ct.slug}>{ct.name}</option>)}
+                  </select>
+                  <button onClick={async () => { await saveMetaField('initial_contact_type', initialContactType || null) }} disabled={savingField === 'initial_contact_type'} className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50">
+                    {savingField === 'initial_contact_type' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  </button>
+                  <button onClick={() => { setInitialContactType(customer.initial_contact_type ?? ''); setEditingField(null) }} className="h-7 w-7 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center"><X className="h-3.5 w-3.5" /></button>
+                </div>
+              ) : (() => {
+                const ct = contactTypes.find(c => c.slug === initialContactType)
+                const CtIcon = ct ? getContactTypeIcon(ct.icon_name) : null
+                return (
+                  <div className={`flex items-center gap-1 ${!initialContactType ? 'cursor-pointer' : ''}`} onClick={() => !initialContactType && setEditingField('initial_contact_type')}>
+                    {ct && CtIcon && <div className="h-5 w-5 rounded flex items-center justify-center shrink-0" style={{ background: ct.color + '20' }}><CtIcon className="h-3 w-3" style={{ color: ct.color }} /></div>}
+                    <p className={`text-sm font-medium ${initialContactType ? 'text-gray-900' : 'text-blue-400 hover:text-blue-600'}`}>{ct?.name ?? '+ Ekle'}</p>
+                  </div>
+                )
+              })()}
+            </div>
+
+            {/* Şube */}
+            <div className="group">
+              <div className="flex items-center gap-1 mb-0.5">
+                <p className="text-xs text-gray-400">Şube</p>
+                {editingField !== 'location_id' && (
+                  <button onClick={() => setEditingField('location_id')} className={`transition-opacity ${!locationId ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                    <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
+                  </button>
+                )}
+              </div>
+              {editingField === 'location_id' ? (
+                <div className="flex items-center gap-1">
+                  <select autoFocus value={locationId} onChange={e => setLocationId(e.target.value)}
+                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200">
+                    <option value="">— Seçiniz —</option>
+                    {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                  </select>
+                  <button onClick={async () => { await saveMetaField('location_id', locationId || null) }} disabled={savingField === 'location_id'} className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50">
+                    {savingField === 'location_id' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  </button>
+                  <button onClick={() => { setLocationId(customer.location_id ?? ''); setEditingField(null) }} className="h-7 w-7 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center"><X className="h-3.5 w-3.5" /></button>
+                </div>
+              ) : (
+                <div className={`flex items-center gap-1 ${!locationId ? 'cursor-pointer' : ''}`} onClick={() => !locationId && setEditingField('location_id')}>
+                  {currentLocation && <Building2 className="h-3.5 w-3.5 text-gray-400 shrink-0" />}
+                  <p className={`text-sm font-medium ${locationId ? 'text-gray-900' : 'text-blue-400 hover:text-blue-600'}`}>{currentLocation?.name ?? '+ Ekle'}</p>
+                </div>
+              )}
+            </div>
+
+          </div>
+
+          {/* Notlar — editable */}
+          <div className="mt-3 pt-3 border-t border-gray-100 group">
+            <div className="flex items-center gap-1 mb-1">
+              <p className="text-xs text-gray-400">Notlar</p>
+              {editingField !== 'notes' && (
+                <button onClick={() => setEditingField('notes')} className={`transition-opacity ${!notes ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                  <Pencil className="h-3 w-3 text-gray-400 hover:text-blue-500" />
+                </button>
+              )}
+            </div>
+            {editingField === 'notes' ? (
+              <div className="space-y-1.5">
+                <textarea autoFocus value={notes} onChange={e => setNotes(e.target.value)} rows={3}
+                  className="w-full rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none" placeholder="Müşteri notu..." />
+                <div className="flex gap-1.5">
+                  <button onClick={async () => { await saveMetaField('notes', notes || null) }} disabled={savingField === 'notes'} className="h-7 px-3 rounded-lg bg-blue-500 text-white text-xs flex items-center gap-1 hover:bg-blue-600 disabled:opacity-50">
+                    {savingField === 'notes' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />} Kaydet
+                  </button>
+                  <button onClick={() => { setNotes(customer.notes ?? ''); setEditingField(null) }} className="h-7 px-3 rounded-lg border border-gray-200 text-gray-500 text-xs hover:bg-gray-50">İptal</button>
+                </div>
+              </div>
+            ) : notes ? (
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-100 cursor-pointer" onClick={() => setEditingField('notes')}>
+                <p className="text-xs text-amber-700">{notes}</p>
+              </div>
+            ) : (
+              <p className="text-sm text-blue-400 cursor-pointer hover:text-blue-600" onClick={() => setEditingField('notes')}>+ Not ekle</p>
+            )}
+          </div>
         </div>
       </div>
 

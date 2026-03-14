@@ -21,6 +21,9 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
     { data: channels },
     { data: brands },
     { data: consultants },
+    { data: contactTypes },
+    { data: locations },
+    { data: models },
   ] = await Promise.all([
     supabase.from('customers').select(`*, brand:brands(*), source_channel:contact_channels(*), consultant:user_profiles(id, full_name), location:locations(*), current_stage:sales_stages(*)`).eq('id', id).single(),
     supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order'),
@@ -29,6 +32,9 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
     supabase.from('contact_channels').select('*').eq('is_active', true).order('sort_order'),
     supabase.from('brands').select('id, name, color').eq('is_active', true),
     supabase.from('user_profiles').select('id, full_name').eq('is_active', true),
+    supabase.from('contact_types').select('id, name, slug, icon_name, color').eq('is_active', true).order('sort_order'),
+    supabase.from('locations').select('id, name').order('name'),
+    supabase.from('vehicle_models').select('id, brand_id, name').eq('is_active', true).order('sort_order'),
   ])
 
   if (!customer) notFound()
@@ -47,6 +53,9 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         isAdmin={isAdmin}
         brandOptions={brands ?? []}
         consultantOptions={consultants ?? []}
+        contactTypes={contactTypes ?? []}
+        locations={locations ?? []}
+        models={models ?? []}
       />
     </div>
   )
