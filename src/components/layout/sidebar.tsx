@@ -45,7 +45,7 @@ function getNavGroups(isAdmin: boolean, isManager: boolean): NavGroup[] {
     if (isAdmin) {
       reportItems.push({ label: 'İncesu Otomotiv', href: '/reports/bergama', icon: MapPin, color: 'text-cyan-400' })
     }
-    reportItems.push({ label: 'Danışman Performansı', href: '/reports/consultants', icon: TrendingUp, color: 'text-emerald-400' })
+    reportItems.push({ label: 'Raporlar', href: '/reports/consultants', icon: TrendingUp, color: 'text-emerald-400' })
     groups.push({ title: 'RAPORLAR', items: reportItems })
   }
 

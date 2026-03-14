@@ -304,23 +304,26 @@ export default function ConsultantReportPage() {
   return (
     <div className="space-y-7">
 
-      {/* ── Date filters ── */}
+      {/* ── Date filters + Location filter ── */}
       <div className="-mt-2 mb-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          {DATE_TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setDateMode(tab.key)}
-              className={`h-8 px-4 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
-                dateMode === tab.key
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {tab.key === 'custom' && <CalendarDays className="h-3 w-3" />}
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            {DATE_TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setDateMode(tab.key)}
+                className={`h-8 px-4 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                  dateMode === tab.key
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {tab.key === 'custom' && <CalendarDays className="h-3 w-3" />}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <LocationFilterRow locations={locations} value={locationFilter} onChange={setLocationFilter} />
         </div>
 
         {/* Custom date range picker */}
@@ -381,7 +384,6 @@ export default function ConsultantReportPage() {
               <p className="text-xs text-gray-400">Danışman bazında satış / toplam temas oranı</p>
             </div>
           </div>
-          <LocationFilterRow locations={locations} value={locationFilter} onChange={setLocationFilter} />
         </div>
 
         {stats.length === 0 ? (
@@ -454,7 +456,6 @@ export default function ConsultantReportPage() {
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <LocationFilterRow locations={locations} value={locationFilter} onChange={setLocationFilter} />
             <div className="flex items-center gap-2">
               <Filter className="h-3.5 w-3.5 text-gray-400 shrink-0" />
               <select
@@ -546,7 +547,6 @@ export default function ConsultantReportPage() {
             </div>
             <h2 className="text-sm font-bold text-gray-900">Danışman Detay Tablosu</h2>
           </div>
-          <LocationFilterRow locations={locations} value={locationFilter} onChange={setLocationFilter} />
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

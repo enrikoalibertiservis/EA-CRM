@@ -36,7 +36,7 @@ const EXACT: Record<string, PageMeta> = {
     icon: BarChart3,
   },
   '/reports/consultants': {
-    title: 'Danışman Performansı',
+    title: 'Raporlar',
     subtitle: 'Kapama oranları ve kök sebep analizi',
     color: '#10B981',
     icon: TrendingUp,
