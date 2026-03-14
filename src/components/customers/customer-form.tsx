@@ -87,8 +87,8 @@ function getContactTypeIcon(iconName: string | null): LucideIcon {
 
 function nowLocal() {
   const d = new Date()
-  d.setSeconds(0, 0)
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 export function CustomerForm({ brands, models, channels, consultants, contactTypes, locations, currentUserId, currentLocationId }: CustomerFormProps) {
