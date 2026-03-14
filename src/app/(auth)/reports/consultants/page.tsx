@@ -243,9 +243,9 @@ export default function ConsultantReportPage() {
         const total = mine.length
         const active = total - won - lost
 
-        // Parse lost reasons
+        // Parse lost reasons — is_lost bayrağı beklenmez, lost_reason alanı yeterli
         const lostReasons: Record<string, number> = {}
-        mine.filter(cu => cu.is_lost && cu.lost_reason).forEach(cu => {
+        mine.filter(cu => cu.lost_reason).forEach(cu => {
           const lines = (cu.lost_reason as string).split('\n')
           lines.forEach(line => {
             const trimmed = line.replace(/^Not: /, '').trim()
@@ -402,9 +402,9 @@ export default function ConsultantReportPage() {
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Toplam Temas" value={totalAll} icon={Users} color="bg-blue-50 text-blue-600" />
-        <StatCard label="Satış Yapıldı" value={totalWon} sub={`%${avgRate.toFixed(1)} kapama`} icon={CheckCircle} color="bg-green-50 text-green-600" />
+        <StatCard label="Satış Yapıldı" value={totalWon} icon={CheckCircle} color="bg-green-50 text-green-600" />
         <StatCard label="Kaçan Satış" value={totalLost} icon={XCircle} color="bg-red-50 text-red-600" />
-        <StatCard label="Aktif Süreçler" value={totalAll - totalWon - totalLost} icon={Activity} color="bg-indigo-50 text-indigo-600" />
+        <StatCard label="Satış Kapatma Oranı" value={`%${avgRate.toFixed(1)}`} sub={`${totalAll} temasta ${totalWon} satış`} icon={Activity} color="bg-indigo-50 text-indigo-600" />
       </div>
 
       {/* ── Closing Rate Chart ── */}
