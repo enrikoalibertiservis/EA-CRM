@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { BarChart2 } from 'lucide-react'
 import type { HeatmapCell } from '@/lib/types/database'
 
 const DAYS     = ['PZT', 'SAL', 'ÇAR', 'PER', 'CUM', 'CMT', 'PAZ']
@@ -142,9 +143,14 @@ export function ContactHeatmap({
     <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 shrink-0">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-          <p className="text-[10px] text-gray-400 mt-0.5">Müşteri kayıt zamanı dağılımı</p>
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+            <BarChart2 className="h-4 w-4 text-indigo-500" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-900">{title}</h3>
+            <p className="text-[10px] text-gray-400 mt-0.5">Müşteri kayıt zamanı dağılımı</p>
+          </div>
         </div>
         {peakHour.count > 0 && (
           <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 border"
