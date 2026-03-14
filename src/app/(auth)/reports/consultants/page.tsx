@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ContactHeatmap } from '@/components/charts/contact-heatmap'
+import { ChannelChart } from '@/components/charts/channel-chart'
 
 type DateMode = '' | 'today' | 'week' | 'month' | 'last_month' | 'custom'
 
@@ -190,7 +191,21 @@ export default function ConsultantReportPage() {
   const [authorized, setAuthorized] = useState(true)
   const [stats, setStats] = useState<ConsultantStats[]>([])
   const [allReasons, setAllReasons] = useState<string[]>([])
-  const [allCustomerList, setAllCustomerList] = useState<{ lost_reason: string | null }[]>([])
+  type RawCustomer = {
+    lost_reason: string | null
+    consultant_id: string | null
+    location_id: string | null
+    source_channel_id?: string | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    source_channel?: { id: string; name: string; slug: string; icon_name: string; color: string } | any
+    brand_id?: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    brand?: any
+    created_at: string
+    is_won?: boolean
+    is_lost?: boolean
+  }
+  const [allCustomerList, setAllCustomerList] = useState<RawCustomer[]>([])
   const [heatmapCustomers, setHeatmapCustomers] = useState<{ brand_id: string; location_id?: string | null; brand?: { name: string; color: string }; created_at: string }[]>([])
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([])
   const [locationFilter, setLocationFilter] = useState<string>('all')
@@ -228,7 +243,7 @@ export default function ConsultantReportPage() {
       // Fetch customers with date range
       let query = supabase
         .from('customers')
-        .select('id, consultant_id, is_won, is_lost, lost_reason, created_at, location_id, brand_id, brand:brands(name, color)')
+        .select('id, consultant_id, is_won, is_lost, lost_reason, created_at, location_id, brand_id, brand:brands(name, color), source_channel_id, source_channel:contact_channels(id, name, slug, icon_name, color)')
         .eq('is_active', true)
       if (dateFrom) query = query.gte('created_at', dateFrom)
       if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59')
@@ -326,6 +341,27 @@ export default function ConsultantReportPage() {
       .filter(d => d.count > 0)
       .sort((a, b) => b.count - a.count)
   }, [filteredStats, allCustomerList, selectedConsultantFilter])
+
+  // Temas kanalları dağılımı
+  const channelStats = useMemo(() => {
+    const source = selectedConsultantFilter === 'toplam'
+      ? allCustomerList
+      : allCustomerList.filter(cu => cu.consultant_id === selectedConsultantFilter)
+
+    const counts: Record<string, { channel: { id: string; name: string; slug: string; icon_name: string; color: string }; count: number }> = {}
+    source.forEach(cu => {
+      const ch = cu.source_channel
+      if (!ch || !ch.id) return
+      if (!counts[ch.id]) counts[ch.id] = { channel: ch, count: 0 }
+      counts[ch.id].count++
+    })
+
+    const arr = Object.values(counts).filter(x => x.count > 0)
+    const total = arr.reduce((s, x) => s + x.count, 0)
+    return arr
+      .map(x => ({ ...x, percentage: total > 0 ? (x.count / total) * 100 : 0 }))
+      .sort((a, b) => b.count - a.count)
+  }, [allCustomerList, selectedConsultantFilter])
 
   const totalWon = filteredStats.reduce((s, c) => s + c.won, 0)
   const totalLost = filteredStats.reduce((s, c) => s + c.lost, 0)
@@ -550,7 +586,10 @@ export default function ConsultantReportPage() {
       </div>{/* end 50/50 grid */}
 
 
-      {/* ── Lost Reasons Chart ── */}
+      {/* ── Lost Reasons Chart + Channel Chart (50/50) ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">
+
+      {/* Lost Reasons */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
           <div className="flex items-center gap-2">
@@ -639,6 +678,14 @@ export default function ConsultantReportPage() {
           </>
         )}
       </div>
+
+      {/* Channel Chart */}
+      <ChannelChart
+        data={channelStats as import('@/lib/types/database').ChannelStats[]}
+        title="Temas Kanalları Dağılımı"
+      />
+
+      </div>{/* end 50/50 grid */}
 
       {/* ── Consultant Table ── */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
