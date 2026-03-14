@@ -39,6 +39,7 @@ interface ColumnProps {
   onAdd: (name: string) => Promise<void>
   onSave: (id: string, patch: Record<string, unknown>) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  onToggleActive?: (id: string, current: boolean) => Promise<void>
   addPlaceholder: string
   hasChildren?: boolean
   disabled?: boolean
@@ -48,7 +49,7 @@ interface ColumnProps {
 }
 
 function Column({
-  title, items, selectedId, onSelect, onAdd, onSave, onDelete,
+  title, items, selectedId, onSelect, onAdd, onSave, onDelete, onToggleActive,
   addPlaceholder, hasChildren, disabled, disabledMsg,
   renderItem, editFields = [],
 }: ColumnProps) {
@@ -168,7 +169,7 @@ function Column({
               ) : (
                 <div
                   onClick={() => onSelect?.(isSelected ? null : item.id)}
-                  className={`flex items-center gap-1 px-3 py-2 transition-colors ${onSelect ? 'cursor-pointer' : ''} ${isSelected ? 'bg-indigo-50' : 'hover:bg-gray-50'}`}
+                  className={`flex items-center gap-1 px-3 py-2 transition-colors ${onSelect ? 'cursor-pointer' : ''} ${isSelected ? 'bg-indigo-50' : (item.is_active === false ? 'bg-gray-50/60 opacity-60' : 'hover:bg-gray-50')}`}
                 >
                   <div className="flex-1 min-w-0 truncate">
                     {renderItem ? renderItem(item, isSelected) : (
@@ -178,6 +179,15 @@ function Column({
                   <div className="flex items-center gap-0.5 shrink-0">
                     {hasChildren && (
                       <ChevronRight className={`h-3.5 w-3.5 mr-0.5 ${isSelected ? 'text-indigo-400' : 'text-gray-300'}`} />
+                    )}
+                    {onToggleActive && (
+                      <button
+                        onClick={e => { e.stopPropagation(); onToggleActive(item.id, item.is_active as boolean) }}
+                        title={item.is_active ? 'Pasif yap' : 'Aktif yap'}
+                        className={`h-6 w-6 rounded flex items-center justify-center transition-colors ${item.is_active ? 'text-emerald-500 hover:bg-emerald-50' : 'text-gray-300 hover:text-emerald-400 hover:bg-emerald-50'}`}
+                      >
+                        <Check className="h-3 w-3" />
+                      </button>
                     )}
                     <button
                       onClick={e => { e.stopPropagation(); startEdit(item) }}
@@ -215,6 +225,12 @@ export default function SettingsPage() {
   const [channels, setChannels] = useState<ColumnItem[]>([])
   const [stages, setStages] = useState<ColumnItem[]>([])
   const [lostReasons, setLostReasons] = useState<ColumnItem[]>([])
+
+  // Aktif kanallar önce, pasifler sonra
+  const sortedChannels = [...channels].sort((a, b) => {
+    if (a.is_active === b.is_active) return (a.sort_order as number) - (b.sort_order as number)
+    return a.is_active ? -1 : 1
+  })
 
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null)
 
@@ -365,6 +381,13 @@ export default function SettingsPage() {
     toast.success('Silindi')
   }
 
+  const toggleChannelActive = async (id: string, current: boolean) => {
+    const { error } = await supabase.from('contact_channels').update({ is_active: !current }).eq('id', id)
+    if (error) { toast.error(error.message); return }
+    setChannels(p => p.map(c => c.id === id ? { ...c, is_active: !current } : c))
+    toast.success(!current ? 'Kanal aktif edildi' : 'Kanal pasif yapıldı')
+  }
+
   // ── Stage CRUD ───────────────────────────────────────────────────────────────
 
   const addStage = async (name: string) => {
@@ -496,15 +519,19 @@ export default function SettingsPage() {
           {/* Temas Kanalları */}
           <Column
             title="Temas Kanalları"
-            items={channels}
+            items={sortedChannels}
             onAdd={addChannel}
             onSave={saveChannel}
             onDelete={deleteChannel}
+            onToggleActive={toggleChannelActive}
             addPlaceholder="Yeni kanal adı"
             renderItem={(item, isSelected) => (
               <div className="flex items-center gap-2">
                 <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color as string }} />
                 <span className={`text-sm ${isSelected ? 'text-indigo-700 font-semibold' : 'text-gray-800'}`}>{item.name}</span>
+                {!item.is_active && (
+                  <span className="ml-auto text-[9px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">pasif</span>
+                )}
               </div>
             )}
             editFields={[{ key: 'color', label: 'Renk', type: 'color' }]}
