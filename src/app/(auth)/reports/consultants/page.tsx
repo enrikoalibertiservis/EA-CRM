@@ -187,6 +187,7 @@ export default function ConsultantReportPage() {
   const [authorized, setAuthorized] = useState(true)
   const [stats, setStats] = useState<ConsultantStats[]>([])
   const [allReasons, setAllReasons] = useState<string[]>([])
+  const [allCustomerList, setAllCustomerList] = useState<{ lost_reason: string | null }[]>([])
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([])
   const [locationFilter, setLocationFilter] = useState<string>('all')
   const [dateMode, setDateMode] = useState<DateMode>('')
@@ -268,6 +269,7 @@ export default function ConsultantReportPage() {
       }).filter(s => s.total > 0).sort((a, b) => b.closingRate - a.closingRate)
 
       setStats(statsArr)
+      setAllCustomerList(customerList)
       setLoading(false)
     }
     load()
@@ -280,14 +282,32 @@ export default function ConsultantReportPage() {
     return stats.filter(s => s.id === selectedConsultantFilter)
   }, [stats, selectedConsultantFilter])
 
-  // Seçili danışmana göre sebep dağılımı — lost_reasons tablosuna değil, gerçek veriye dayalı
+  // Kök sebepler — "Tüm Danışmanlar" seçiliyken tüm müşterilerden topla (danışmansız dahil)
   const reasonBarData = useMemo(() => {
     const reasonCounts: Record<string, number> = {}
-    filteredStats.forEach(s => {
-      Object.entries(s.lostReasons).forEach(([reason, count]) => {
-        reasonCounts[reason] = (reasonCounts[reason] ?? 0) + count
+
+    const parseLostReason = (lostReason: string) => {
+      lostReason.split('\n').forEach(line => {
+        const trimmed = line.replace(/^Not: /, '').trim()
+        if (trimmed && !trimmed.startsWith('Not:')) {
+          reasonCounts[trimmed] = (reasonCounts[trimmed] ?? 0) + 1
+        }
       })
-    })
+    }
+
+    if (selectedConsultantFilter === 'toplam') {
+      // Tüm müşterileri tara — danışmana atanmamış olanlar da dahil
+      allCustomerList.filter(cu => cu.lost_reason).forEach(cu => {
+        parseLostReason(cu.lost_reason as string)
+      })
+    } else {
+      // Seçili danışmanın kayıpları
+      filteredStats.forEach(s => {
+        Object.entries(s.lostReasons).forEach(([reason, count]) => {
+          reasonCounts[reason] = (reasonCounts[reason] ?? 0) + count
+        })
+      })
+    }
 
     return Object.entries(reasonCounts)
       .map(([reason, count], i) => ({
@@ -298,7 +318,7 @@ export default function ConsultantReportPage() {
       }))
       .filter(d => d.count > 0)
       .sort((a, b) => b.count - a.count)
-  }, [filteredStats])
+  }, [filteredStats, allCustomerList, selectedConsultantFilter])
 
   const totalWon = filteredStats.reduce((s, c) => s + c.won, 0)
   const totalLost = filteredStats.reduce((s, c) => s + c.lost, 0)
