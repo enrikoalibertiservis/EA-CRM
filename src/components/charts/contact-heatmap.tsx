@@ -213,18 +213,16 @@ export function ContactHeatmap({
             <button
               key={day}
               onClick={() => setSelectedDay(idx)}
-              className="flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+              className="flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-all border bg-transparent"
               style={isSelected
-                ? { backgroundColor: activeBrand.color, color: '#fff' }
-                : { color: '#6B7280' }
+                ? { borderColor: '#9CA3AF', color: '#374151' }
+                : { borderColor: 'transparent', color: '#9CA3AF' }
               }
             >
               {day}
-              {dayTotal > 0 && (
-                <span className="text-[9px] font-bold" style={{ color: isSelected ? 'rgba(255,255,255,0.7)' : '#9CA3AF' }}>
-                  {dayTotal}
-                </span>
-              )}
+              <span className="text-[9px] font-bold" style={{ color: isSelected ? '#6B7280' : '#C4CAD4' }}>
+                {dayTotal > 0 ? dayTotal : '\u00A0'}
+              </span>
             </button>
           )
         })}

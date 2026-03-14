@@ -392,7 +392,7 @@ export default function SettingsPage() {
 
   const addStage = async (name: string) => {
     const { data, error } = await supabase.from('sales_stages').insert({
-      name, slug: slugify(name), color: nextColor(stages), sort_order: stages.length, is_active: true, is_final: false,
+      name, slug: slugify(name), color: nextColor(stages), sort_order: stages.length, is_active: true, is_final: false, icon_name: 'circle',
     }).select().single()
     if (error) { toast.error(error.message); return }
     setStages(p => [...p, data as ColumnItem])
