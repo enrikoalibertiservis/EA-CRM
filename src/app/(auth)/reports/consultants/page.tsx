@@ -7,7 +7,7 @@ import {
   Cell, LabelList,
 } from 'recharts'
 import {
-  TrendingUp, Users, CheckCircle, XCircle, Activity,
+  TrendingUp, TrendingDown, Users, Target,
   Filter, CalendarDays,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -113,19 +113,21 @@ function ReasonsTooltip({ active, payload, label }: { active?: boolean; payload?
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 
-function StatCard({ label, value, sub, icon: Icon, color }: {
+interface StatTheme {
+  bg: string; border: string; value: string; label: string; iconFade: string
+}
+
+function StatCard({ label, value, sub, icon: Icon, theme }: {
   label: string; value: string | number; sub?: string
-  icon: React.ElementType; color: string
+  icon: React.ElementType; theme: StatTheme
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-      <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
-        <Icon className="h-5 w-5 opacity-80" />
-      </div>
-      <div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-xs text-gray-500">{label}</p>
-        {sub && <p className="text-[10px] text-gray-400">{sub}</p>}
+    <div className={`relative rounded-2xl border overflow-hidden px-5 py-4 ${theme.bg} ${theme.border}`}>
+      <Icon className={`absolute -top-3 -right-3 h-24 w-24 rotate-12 pointer-events-none ${theme.iconFade}`} />
+      <div className="relative">
+        <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${theme.label}`}>{label}</p>
+        <p className={`text-4xl font-black leading-none ${theme.value}`}>{value}</p>
+        {sub && <p className={`text-xs mt-1.5 ${theme.label} opacity-70`}>{sub}</p>}
       </div>
     </div>
   )
@@ -421,10 +423,31 @@ export default function ConsultantReportPage() {
 
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Toplam Temas" value={totalAll} icon={Users} color="bg-blue-50 text-blue-600" />
-        <StatCard label="Satış Yapıldı" value={totalWon} icon={CheckCircle} color="bg-green-50 text-green-600" />
-        <StatCard label="Kaçan Satış" value={totalLost} icon={XCircle} color="bg-red-50 text-red-600" />
-        <StatCard label="Satış Kapatma Oranı" value={`%${avgRate.toFixed(1)}`} sub={`${totalAll} temasta ${totalWon} satış`} icon={Activity} color="bg-indigo-50 text-indigo-600" />
+        <StatCard
+          label="Toplam Temas"
+          value={totalAll}
+          icon={Users}
+          theme={{ bg: 'bg-gradient-to-br from-sky-50 to-blue-100/60', border: 'border-blue-200/70', value: 'text-blue-700', label: 'text-blue-500', iconFade: 'text-blue-400/15' }}
+        />
+        <StatCard
+          label="Satış Yapıldı"
+          value={totalWon}
+          icon={TrendingUp}
+          theme={{ bg: 'bg-gradient-to-br from-emerald-50 to-green-100/60', border: 'border-emerald-200/70', value: 'text-emerald-700', label: 'text-emerald-500', iconFade: 'text-emerald-400/15' }}
+        />
+        <StatCard
+          label="Kaçan Satış"
+          value={totalLost}
+          icon={TrendingDown}
+          theme={{ bg: 'bg-gradient-to-br from-red-50 to-rose-100/60', border: 'border-red-200/70', value: 'text-red-600', label: 'text-red-400', iconFade: 'text-red-400/15' }}
+        />
+        <StatCard
+          label="Satış Kapatma Oranı"
+          value={`%${avgRate.toFixed(1)}`}
+          sub={`${totalAll} temasta ${totalWon} satış`}
+          icon={Target}
+          theme={{ bg: 'bg-gradient-to-br from-violet-50 to-indigo-100/60', border: 'border-indigo-200/70', value: 'text-indigo-700', label: 'text-indigo-400', iconFade: 'text-indigo-400/15' }}
+        />
       </div>
 
       {/* ── Closing Rate Chart ── */}
