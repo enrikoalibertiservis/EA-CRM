@@ -55,7 +55,8 @@ export default async function DashboardPage() {
 
   // channelStats: müşterilerin source_channel'ından hesapla
   const channelCountMap: Record<string, { channel: ContactChannel; count: number }> = {}
-  ;(customers ?? []).forEach((c: { source_channel_id?: string; source_channel?: ContactChannel }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(customers ?? []).forEach((c: any) => {
     const ch = c.source_channel as ContactChannel | undefined
     if (!ch?.id) return
     if (!channelCountMap[ch.id]) channelCountMap[ch.id] = { channel: ch, count: 0 }
