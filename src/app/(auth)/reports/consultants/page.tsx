@@ -11,6 +11,7 @@ import {
   Filter, CalendarDays,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ContactHeatmap } from '@/components/charts/contact-heatmap'
 
 type DateMode = '' | 'today' | 'week' | 'month' | 'last_month' | 'custom'
 
@@ -190,6 +191,7 @@ export default function ConsultantReportPage() {
   const [stats, setStats] = useState<ConsultantStats[]>([])
   const [allReasons, setAllReasons] = useState<string[]>([])
   const [allCustomerList, setAllCustomerList] = useState<{ lost_reason: string | null }[]>([])
+  const [heatmapCustomers, setHeatmapCustomers] = useState<{ brand_id: string; location_id?: string | null; brand?: { name: string; color: string }; created_at: string }[]>([])
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([])
   const [locationFilter, setLocationFilter] = useState<string>('all')
   const [dateMode, setDateMode] = useState<DateMode>('')
@@ -226,7 +228,7 @@ export default function ConsultantReportPage() {
       // Fetch customers with date range
       let query = supabase
         .from('customers')
-        .select('id, consultant_id, is_won, is_lost, lost_reason, created_at, location_id')
+        .select('id, consultant_id, is_won, is_lost, lost_reason, created_at, location_id, brand_id, brand:brands(name, color)')
         .eq('is_active', true)
       if (dateFrom) query = query.gte('created_at', dateFrom)
       if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59')
@@ -272,6 +274,9 @@ export default function ConsultantReportPage() {
 
       setStats(statsArr)
       setAllCustomerList(customerList)
+      // Heatmap için tüm müşteriler (konum filtresi yok — heatmap kendi içinde filtreler)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setHeatmapCustomers((customers ?? []) as any)
       setLoading(false)
     }
     load()
@@ -450,7 +455,10 @@ export default function ConsultantReportPage() {
         />
       </div>
 
-      {/* ── Closing Rate Chart ── */}
+      {/* ── Closing Rate Chart + Heatmap (50/50) ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+
+      {/* Closing Rate */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
           <div className="flex items-center gap-2">
@@ -531,6 +539,15 @@ export default function ConsultantReportPage() {
           <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-amber-400" />{'<'} %20 Düşük</span>
         </div>
       </div>
+
+      {/* Heatmap */}
+      <ContactHeatmap
+        customers={heatmapCustomers}
+        locations={locations}
+        title="Müşteri Kayıt Yoğunluğu"
+      />
+
+      </div>{/* end 50/50 grid */}
 
 
       {/* ── Lost Reasons Chart ── */}
