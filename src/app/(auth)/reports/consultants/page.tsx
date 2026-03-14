@@ -466,7 +466,36 @@ export default function ConsultantReportPage() {
         )}
       </div>
 
-      {/* ── Consultant Table ── (sayfanın başı) */}
+      {/* ── Summary Cards ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          label="Toplam Temas"
+          value={totalAll}
+          icon={Users}
+          theme={{ bg: 'bg-gradient-to-br from-sky-50 to-blue-100/60', border: 'border-blue-200/70', value: 'text-blue-700', label: 'text-blue-500', iconColor: 'text-blue-600' }}
+        />
+        <StatCard
+          label="Satış Yapıldı"
+          value={totalWon}
+          icon={TrendingUp}
+          theme={{ bg: 'bg-gradient-to-br from-emerald-50 to-green-100/60', border: 'border-emerald-200/70', value: 'text-emerald-700', label: 'text-emerald-600', iconColor: 'text-emerald-600' }}
+        />
+        <StatCard
+          label="Kaçan Satış"
+          value={totalLost}
+          icon={TrendingDown}
+          theme={{ bg: 'bg-gradient-to-br from-red-50 to-rose-100/60', border: 'border-red-200/70', value: 'text-red-600', label: 'text-red-500', iconColor: 'text-red-500' }}
+        />
+        <StatCard
+          label="Satış Kapatma Oranı"
+          value={`%${avgRate.toFixed(1)}`}
+          sub={`${totalAll} temasta ${totalWon} satış`}
+          icon={Target}
+          theme={{ bg: 'bg-gradient-to-br from-violet-50 to-indigo-100/60', border: 'border-indigo-200/70', value: 'text-indigo-700', label: 'text-indigo-500', iconColor: 'text-indigo-600' }}
+        />
+      </div>
+
+      {/* ── Consultant Table ── */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
@@ -529,35 +558,6 @@ export default function ConsultantReportPage() {
             </tbody>
           </table>
         </div>
-      </div>
-
-      {/* ── Summary Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Toplam Temas"
-          value={totalAll}
-          icon={Users}
-          theme={{ bg: 'bg-gradient-to-br from-sky-50 to-blue-100/60', border: 'border-blue-200/70', value: 'text-blue-700', label: 'text-blue-500', iconColor: 'text-blue-600' }}
-        />
-        <StatCard
-          label="Satış Yapıldı"
-          value={totalWon}
-          icon={TrendingUp}
-          theme={{ bg: 'bg-gradient-to-br from-emerald-50 to-green-100/60', border: 'border-emerald-200/70', value: 'text-emerald-700', label: 'text-emerald-600', iconColor: 'text-emerald-600' }}
-        />
-        <StatCard
-          label="Kaçan Satış"
-          value={totalLost}
-          icon={TrendingDown}
-          theme={{ bg: 'bg-gradient-to-br from-red-50 to-rose-100/60', border: 'border-red-200/70', value: 'text-red-600', label: 'text-red-500', iconColor: 'text-red-500' }}
-        />
-        <StatCard
-          label="Satış Kapatma Oranı"
-          value={`%${avgRate.toFixed(1)}`}
-          sub={`${totalAll} temasta ${totalWon} satış`}
-          icon={Target}
-          theme={{ bg: 'bg-gradient-to-br from-violet-50 to-indigo-100/60', border: 'border-indigo-200/70', value: 'text-indigo-700', label: 'text-indigo-500', iconColor: 'text-indigo-600' }}
-        />
       </div>
 
       {/* ── Closing Rate Chart + Heatmap (50/50) ── */}
