@@ -20,6 +20,14 @@ const stageIcons: Record<string, React.ElementType> = {
 
 const PAGE_SIZE = 20
 
+const LOCATION_PALETTE = [
+  { bg: 'rgba(99,102,241,0.10)',  border: 'rgba(99,102,241,0.30)',  color: '#4338CA' },  // indigo
+  { bg: 'rgba(16,185,129,0.10)',  border: 'rgba(16,185,129,0.30)',  color: '#047857' },  // emerald
+  { bg: 'rgba(245,158,11,0.10)',  border: 'rgba(245,158,11,0.30)',  color: '#B45309' },  // amber
+  { bg: 'rgba(239,68,68,0.10)',   border: 'rgba(239,68,68,0.30)',   color: '#B91C1C' },  // red
+  { bg: 'rgba(6,182,212,0.10)',   border: 'rgba(6,182,212,0.30)',   color: '#0E7490' },  // cyan
+]
+
 interface CustomerListProps {
   customers: Customer[]
   brands: { id: string; name: string; color: string; slug: string }[]
@@ -500,12 +508,17 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                       </span>
                     </td>
                     <td className="px-3 py-2.5 hidden xl:table-cell">
-                      {customer.location?.name ? (
-                        <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-gray-50 text-gray-600 border-gray-200">
-                          <Building2 className="h-2.5 w-2.5 shrink-0" />
-                          {customer.location.name}
-                        </span>
-                      ) : <span className="text-xs text-gray-300">—</span>}
+                      {customer.location?.name ? (() => {
+                        const locIdx = locations.findIndex(l => l.id === customer.location_id)
+                        const c = LOCATION_PALETTE[(locIdx >= 0 ? locIdx : 0) % LOCATION_PALETTE.length]
+                        return (
+                          <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
+                            style={{ backgroundColor: c.bg, borderColor: c.border, color: c.color }}>
+                            <Building2 className="h-2.5 w-2.5 shrink-0" />
+                            {customer.location.name}
+                          </span>
+                        )
+                      })() : <span className="text-xs text-gray-300">—</span>}
                     </td>
                     <td className="px-3 py-2.5 hidden lg:table-cell">
                       <span className="text-xs text-gray-600">{customer.phone}</span>
