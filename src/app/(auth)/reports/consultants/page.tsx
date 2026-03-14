@@ -648,7 +648,6 @@ export default function ConsultantReportPage() {
       {/* Heatmap */}
       <ContactHeatmap
         customers={heatmapCustomers}
-        locations={locations}
         title="Müşteri Kayıt Yoğunluğu"
       />
 
