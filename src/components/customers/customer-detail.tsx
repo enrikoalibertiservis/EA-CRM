@@ -153,6 +153,26 @@ export function CustomerDetail({
     const prev = stageFields[field]
     setStageFields(p => ({ ...p, [field]: value }))
     const supabase = createClient()
+
+    // "Satış gerçekleştirildi" → is_won ile senkronize et
+    if (field === 'sale_completed') {
+      const won = value === true
+      setIsWon(won)
+      if (won) setIsLost(false)
+      const { error } = await supabase
+        .from('customers')
+        .update({ sale_completed: value, is_won: won, ...(won ? { is_lost: false } : {}) })
+        .eq('id', customer.id)
+      if (error) {
+        toast.error('Güncellenemedi')
+        setStageFields(p => ({ ...p, [field]: prev }))
+        setIsWon(customer.is_won)
+      } else {
+        toast.success(won ? 'Satış yapıldı olarak işaretlendi' : 'Satış durumu kaldırıldı')
+      }
+      return
+    }
+
     const { error } = await supabase.from('customers').update({ [field]: value }).eq('id', customer.id)
     if (error) { toast.error('Güncellenemedi'); setStageFields(p => ({ ...p, [field]: prev })) }
   }
