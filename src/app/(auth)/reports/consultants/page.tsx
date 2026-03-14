@@ -587,7 +587,7 @@ export default function ConsultantReportPage() {
 
 
       {/* ── Lost Reasons Chart + Channel Chart (50/50) ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-stretch">
 
       {/* Lost Reasons */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -608,74 +608,62 @@ export default function ConsultantReportPage() {
         {reasonBarData.length === 0 ? (
           <div className="flex items-center justify-center h-40 text-gray-400 text-sm">Kayıp verisi bulunamadı</div>
         ) : (
-          <>
-            <ResponsiveContainer width="100%" height={Math.max(260, reasonBarData.length * 44 + 80)}>
-              <BarChart
-                data={reasonBarData}
-                margin={{ top: 8, right: 40, left: 0, bottom: 70 }}
-                barCategoryGap="25%"
-              >
-                <defs>
-                  {REASON_COLORS.map((color, i) => (
-                    <linearGradient key={i} id={`gradReason${i}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={color} stopOpacity={1} />
-                      <stop offset="100%" stopColor={color} stopOpacity={0.45} />
-                    </linearGradient>
-                  ))}
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis
-                  dataKey="shortReason"
-                  tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }}
-                  axisLine={false}
-                  tickLine={false}
-                  interval={0}
-                  angle={-35}
-                  textAnchor="end"
-                  height={70}
+          <ResponsiveContainer width="100%" height={Math.max(240, reasonBarData.length * 48)}>
+            <BarChart
+              layout="vertical"
+              data={reasonBarData}
+              margin={{ top: 4, right: 60, left: 8, bottom: 4 }}
+              barCategoryGap="28%"
+            >
+              <defs>
+                {REASON_COLORS.map((color, i) => (
+                  <linearGradient key={i} id={`gradReason${i}`} x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor={color} stopOpacity={0.5} />
+                    <stop offset="100%" stopColor={color} stopOpacity={1} />
+                  </linearGradient>
+                ))}
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
+              <XAxis
+                type="number"
+                allowDecimals={false}
+                tick={{ fontSize: 11, fill: '#9ca3af' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                type="category"
+                dataKey="shortReason"
+                width={140}
+                tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                cursor={{ fill: '#f8fafc' }}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.[0]) return null
+                  const d = payload[0].payload as { reason: string; count: number }
+                  return (
+                    <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-4 py-2.5 text-xs">
+                      <p className="font-bold text-gray-900 mb-1">{d.reason}</p>
+                      <p className="text-gray-600">Adet: <span className="font-semibold text-gray-900">{d.count}</span></p>
+                    </div>
+                  )
+                }}
+              />
+              <Bar dataKey="count" radius={[0, 7, 7, 0]} maxBarSize={30}>
+                {reasonBarData.map((d, i) => (
+                  <Cell key={d.reason} fill={`url(#gradReason${i % REASON_COLORS.length})`} />
+                ))}
+                <LabelList
+                  dataKey="count"
+                  position="right"
+                  style={{ fontSize: 11, fontWeight: 700, fill: '#374151' }}
                 />
-                <YAxis
-                  allowDecimals={false}
-                  tick={{ fontSize: 11, fill: '#9ca3af' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  cursor={{ fill: '#f8fafc' }}
-                  content={({ active, payload }) => {
-                    if (!active || !payload?.[0]) return null
-                    const d = payload[0].payload as { reason: string; count: number }
-                    return (
-                      <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-4 py-2.5 text-xs">
-                        <p className="font-bold text-gray-900 mb-1">{d.reason}</p>
-                        <p className="text-gray-600">Adet: <span className="font-semibold text-gray-900">{d.count}</span></p>
-                      </div>
-                    )
-                  }}
-                />
-                <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={52}>
-                  {reasonBarData.map((d, i) => (
-                    <Cell key={d.reason} fill={`url(#gradReason${i % REASON_COLORS.length})`} />
-                  ))}
-                  <LabelList
-                    dataKey="count"
-                    position="top"
-                    style={{ fontSize: 11, fontWeight: 700, fill: '#374151' }}
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-
-            {/* Renk legend */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 justify-center">
-              {reasonBarData.map((d, i) => (
-                <span key={d.reason} className="flex items-center gap-1.5 text-[11px] text-gray-600">
-                  <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: REASON_COLORS[i % REASON_COLORS.length] }} />
-                  {d.reason}
-                </span>
-              ))}
-            </div>
-          </>
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         )}
       </div>
 

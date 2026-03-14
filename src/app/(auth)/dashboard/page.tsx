@@ -124,11 +124,8 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* Brand Funnels + Quick Register — equal boxes */}
+      {/* Quick Register + Brand Funnels — QuickRegister sol üstte */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
-        {brandFunnelData
-          .filter((d) => d.brand.slug !== 'ikinci-el' && !d.brand.name.toLowerCase().includes('ikinci'))
-          .map((d) => <BrandFunnel key={d.brand.id} data={d} />)}
         <QuickRegister
           brands={(brands ?? []).filter((b) => b.slug !== 'ikinci-el' && !b.name.toLowerCase().includes('ikinci'))}
           models={models ?? []}
@@ -136,6 +133,9 @@ export default async function DashboardPage() {
           currentUserId={user!.id}
           currentLocationId={profile?.location_id ?? ''}
         />
+        {brandFunnelData
+          .filter((d) => d.brand.slug !== 'ikinci-el' && !d.brand.name.toLowerCase().includes('ikinci'))
+          .map((d) => <BrandFunnel key={d.brand.id} data={d} />)}
       </div>
 
       {/* Heatmap + Channel */}
