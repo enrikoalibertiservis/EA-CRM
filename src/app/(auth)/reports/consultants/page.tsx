@@ -474,6 +474,20 @@ export default function ConsultantReportPage() {
               margin={{ top: 4, right: 80, left: 8, bottom: 4 }}
               barCategoryGap="28%"
             >
+              <defs>
+                <linearGradient id="gradGreen" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#34d399" />
+                  <stop offset="100%" stopColor="#059669" />
+                </linearGradient>
+                <linearGradient id="gradIndigo" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#a5b4fc" />
+                  <stop offset="100%" stopColor="#4f46e5" />
+                </linearGradient>
+                <linearGradient id="gradAmber" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#fde68a" />
+                  <stop offset="100%" stopColor="#d97706" />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
               <XAxis
                 type="number"
@@ -492,11 +506,11 @@ export default function ConsultantReportPage() {
                 tickLine={false}
               />
               <Tooltip content={<ClosingRateTooltip />} cursor={{ fill: '#f8fafc' }} />
-              <Bar dataKey="closingRate" radius={[0, 6, 6, 0]} maxBarSize={28}>
+              <Bar dataKey="closingRate" radius={[0, 7, 7, 0]} maxBarSize={30}>
                 {filteredStats.map((s) => (
                   <Cell
                     key={s.id}
-                    fill={s.closingRate >= 35 ? '#10B981' : s.closingRate >= 20 ? '#6366F1' : '#F59E0B'}
+                    fill={s.closingRate >= 35 ? 'url(#gradGreen)' : s.closingRate >= 20 ? 'url(#gradIndigo)' : 'url(#gradAmber)'}
                   />
                 ))}
                 <LabelList
@@ -545,6 +559,14 @@ export default function ConsultantReportPage() {
                 margin={{ top: 8, right: 40, left: 0, bottom: 70 }}
                 barCategoryGap="25%"
               >
+                <defs>
+                  {REASON_COLORS.map((color, i) => (
+                    <linearGradient key={i} id={`gradReason${i}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={color} stopOpacity={1} />
+                      <stop offset="100%" stopColor={color} stopOpacity={0.45} />
+                    </linearGradient>
+                  ))}
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis
                   dataKey="shortReason"
@@ -575,9 +597,9 @@ export default function ConsultantReportPage() {
                     )
                   }}
                 />
-                <Bar dataKey="count" radius={[5, 5, 0, 0]} maxBarSize={52}>
+                <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={52}>
                   {reasonBarData.map((d, i) => (
-                    <Cell key={d.reason} fill={REASON_COLORS[i % REASON_COLORS.length]} />
+                    <Cell key={d.reason} fill={`url(#gradReason${i % REASON_COLORS.length})`} />
                   ))}
                   <LabelList
                     dataKey="count"
