@@ -256,19 +256,29 @@ export default function ConsultantReportPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateFrom, dateTo, locationFilter])
 
-  // Seçili danışmana göre sebep dağılımı (Toplam = tümü topla)
+  // Seçili danışmana göre sebep dağılımı — lost_reasons tablosuna değil, gerçek veriye dayalı
   const reasonBarData = useMemo(() => {
     const filteredStats = selectedConsultantFilter === 'toplam'
       ? stats
       : stats.filter(s => s.id === selectedConsultantFilter)
 
-    return allReasons.map((reason, i) => ({
-      reason,
-      shortReason: reason.length > 18 ? reason.slice(0, 18) + '…' : reason,
-      count: filteredStats.reduce((sum, s) => sum + (s.lostReasons[reason] ?? 0), 0),
-      color: REASON_COLORS[i % REASON_COLORS.length],
-    })).filter(d => d.count > 0)
-  }, [stats, allReasons, selectedConsultantFilter])
+    const reasonCounts: Record<string, number> = {}
+    filteredStats.forEach(s => {
+      Object.entries(s.lostReasons).forEach(([reason, count]) => {
+        reasonCounts[reason] = (reasonCounts[reason] ?? 0) + count
+      })
+    })
+
+    return Object.entries(reasonCounts)
+      .map(([reason, count], i) => ({
+        reason,
+        shortReason: reason.length > 20 ? reason.slice(0, 20) + '…' : reason,
+        count,
+        color: REASON_COLORS[i % REASON_COLORS.length],
+      }))
+      .filter(d => d.count > 0)
+      .sort((a, b) => b.count - a.count)
+  }, [stats, selectedConsultantFilter])
 
   const totalWon = stats.reduce((s, c) => s + c.won, 0)
   const totalLost = stats.reduce((s, c) => s + c.lost, 0)
