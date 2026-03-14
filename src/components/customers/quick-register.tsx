@@ -181,20 +181,29 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
             <div>
               <label className="text-[11px] font-medium text-gray-500 block mb-1">Lokasyon</label>
               <div className="flex gap-1">
-                {locations.map(loc => (
-                  <button
-                    key={loc.id}
-                    type="button"
-                    onClick={() => setLocationId(loc.id)}
-                    className={`flex-1 h-8 rounded-lg border text-[10px] font-semibold transition-all duration-200 truncate px-1
-                      ${locationId === loc.id
-                        ? 'bg-slate-100 border-slate-400 text-slate-700'
-                        : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-600'
-                      }`}
-                  >
-                    {loc.name}
-                  </button>
-                ))}
+                {locations.map((loc, idx) => {
+                  const COLORS = [
+                    { bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.35)', text: '#4F46E5', hoverBg: 'rgba(99,102,241,0.08)' },
+                    { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.35)', text: '#059669', hoverBg: 'rgba(16,185,129,0.08)' },
+                    { bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.35)', text: '#D97706', hoverBg: 'rgba(245,158,11,0.08)' },
+                  ]
+                  const c = COLORS[idx % COLORS.length]
+                  const isActive = locationId === loc.id
+                  return (
+                    <button
+                      key={loc.id}
+                      type="button"
+                      onClick={() => setLocationId(loc.id)}
+                      className="flex-1 h-8 rounded-lg border text-[10px] font-semibold transition-all duration-200 truncate px-2"
+                      style={isActive
+                        ? { backgroundColor: c.bg, borderColor: c.border, color: c.text }
+                        : { backgroundColor: 'white', borderColor: '#E5E7EB', color: '#9CA3AF' }
+                      }
+                    >
+                      {loc.name}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}
