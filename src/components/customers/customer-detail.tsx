@@ -216,38 +216,17 @@ export function CustomerDetail({
                   {currentStage.name}
                 </span>
               )}
-              {/* Actions */}
-              <div className="flex items-center gap-2">
-                {/* Satış Yapıldı toggle — pasif → yeşil */}
-                <button
-                  onClick={handleToggleWon}
-                  disabled={isLost}
-                  className={`h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 border-2 transition-all ${
-                    isWon
-                      ? 'bg-green-600 border-green-600 text-white shadow-sm'
-                      : 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100 hover:border-green-400 disabled:opacity-40 disabled:cursor-not-allowed'
-                  }`}
-                >
-                  <CheckCircle className="h-3.5 w-3.5" />
-                  {isWon ? 'Satış Yapıldı ✓' : 'Satış Yapıldı'}
-                </button>
-
-                {/* Kaçan Satış — her zaman tıklanabilir, aktifken geri alınabilir */}
-                {!isWon && (
-                  <button
-                    onClick={handleMarkLost}
-                    title={isLost ? 'Kayıp durumunu kaldırmak için tıklayın' : ''}
-                    className={`h-8 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 border-2 transition-all ${
-                      isLost
-                        ? 'bg-red-600 border-red-600 text-white shadow-sm hover:bg-red-700'
-                        : 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100 hover:border-red-400'
-                    }`}
-                  >
-                    <XCircle className="h-3.5 w-3.5" />
-                    {isLost ? 'Kaçan Satış ✕' : 'Kaçan Satış'}
-                  </button>
-                )}
-              </div>
+              {/* Durum rozeti */}
+              {isWon && (
+                <span className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold bg-green-50 border-2 border-green-200 text-green-700">
+                  <CheckCircle className="h-3.5 w-3.5" /> Satış Yapıldı
+                </span>
+              )}
+              {isLost && (
+                <span className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold bg-red-50 border-2 border-red-200 text-red-600">
+                  <XCircle className="h-3.5 w-3.5" /> Kaçan Satış
+                </span>
+              )}
             </div>
           </div>
 
