@@ -133,6 +133,13 @@ function StatCard({ label, value, sub, icon: Icon, color }: {
 
 // ─── Location Filter Row ──────────────────────────────────────────────────────
 
+const LOCATION_PALETTE = [
+  { active: 'bg-blue-500/20 text-blue-700 border-blue-400', inactive: 'border-gray-200 bg-white text-gray-400 hover:bg-blue-50 hover:text-blue-600' },
+  { active: 'bg-emerald-500/20 text-emerald-700 border-emerald-400', inactive: 'border-gray-200 bg-white text-gray-400 hover:bg-emerald-50 hover:text-emerald-600' },
+  { active: 'bg-violet-500/20 text-violet-700 border-violet-400', inactive: 'border-gray-200 bg-white text-gray-400 hover:bg-violet-50 hover:text-violet-600' },
+  { active: 'bg-amber-500/20 text-amber-700 border-amber-400', inactive: 'border-gray-200 bg-white text-gray-400 hover:bg-amber-50 hover:text-amber-600' },
+]
+
 function LocationFilterRow({
   locations,
   value,
@@ -145,19 +152,30 @@ function LocationFilterRow({
   if (!locations.length) return null
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
-      {[{ id: 'all', name: 'Tüm Şubeler' }, ...locations].map(loc => (
-        <button
-          key={loc.id}
-          onClick={() => onChange(loc.id)}
-          className={`h-6 px-2.5 rounded-full text-[10px] font-semibold transition-all border ${
-            value === loc.id
-              ? 'border-slate-400 bg-slate-100 text-slate-700'
-              : 'border-gray-200 bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600'
-          }`}
-        >
-          {loc.name}
-        </button>
-      ))}
+      <button
+        onClick={() => onChange('all')}
+        className={`h-6 px-2.5 rounded-full text-[10px] font-semibold transition-all border ${
+          value === 'all'
+            ? 'bg-slate-100 text-slate-700 border-slate-400'
+            : 'border-gray-200 bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+        }`}
+      >
+        Tüm Şubeler
+      </button>
+      {locations.map((loc, idx) => {
+        const colors = LOCATION_PALETTE[idx % LOCATION_PALETTE.length]
+        return (
+          <button
+            key={loc.id}
+            onClick={() => onChange(loc.id)}
+            className={`h-6 px-2.5 rounded-full text-[10px] font-semibold transition-all border ${
+              value === loc.id ? colors.active : colors.inactive
+            }`}
+          >
+            {loc.name}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -256,12 +274,14 @@ export default function ConsultantReportPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateFrom, dateTo, locationFilter])
 
+  // Danışman filtresi — tüm sayfaya uygulanır
+  const filteredStats = useMemo(() => {
+    if (selectedConsultantFilter === 'toplam') return stats
+    return stats.filter(s => s.id === selectedConsultantFilter)
+  }, [stats, selectedConsultantFilter])
+
   // Seçili danışmana göre sebep dağılımı — lost_reasons tablosuna değil, gerçek veriye dayalı
   const reasonBarData = useMemo(() => {
-    const filteredStats = selectedConsultantFilter === 'toplam'
-      ? stats
-      : stats.filter(s => s.id === selectedConsultantFilter)
-
     const reasonCounts: Record<string, number> = {}
     filteredStats.forEach(s => {
       Object.entries(s.lostReasons).forEach(([reason, count]) => {
@@ -278,11 +298,11 @@ export default function ConsultantReportPage() {
       }))
       .filter(d => d.count > 0)
       .sort((a, b) => b.count - a.count)
-  }, [stats, selectedConsultantFilter])
+  }, [filteredStats])
 
-  const totalWon = stats.reduce((s, c) => s + c.won, 0)
-  const totalLost = stats.reduce((s, c) => s + c.lost, 0)
-  const totalAll = stats.reduce((s, c) => s + c.total, 0)
+  const totalWon = filteredStats.reduce((s, c) => s + c.won, 0)
+  const totalLost = filteredStats.reduce((s, c) => s + c.lost, 0)
+  const totalAll = filteredStats.reduce((s, c) => s + c.total, 0)
   const avgRate = totalAll > 0 ? (totalWon / totalAll * 100) : 0
 
   if (!authorized) {
@@ -304,7 +324,7 @@ export default function ConsultantReportPage() {
   return (
     <div className="space-y-7">
 
-      {/* ── Date filters + Location filter ── */}
+      {/* ── Date filters + Location filter + Consultant filter ── */}
       <div className="-mt-2 mb-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
@@ -323,7 +343,22 @@ export default function ConsultantReportPage() {
               </button>
             ))}
           </div>
-          <LocationFilterRow locations={locations} value={locationFilter} onChange={setLocationFilter} />
+          <div className="flex items-center gap-3 flex-wrap">
+            <LocationFilterRow locations={locations} value={locationFilter} onChange={setLocationFilter} />
+            <div className="flex items-center gap-2">
+              <Filter className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+              <select
+                value={selectedConsultantFilter}
+                onChange={e => setSelectedConsultantFilter(e.target.value)}
+                className="h-8 rounded-lg border border-gray-200 bg-white text-xs px-3 pr-7 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 cursor-pointer"
+              >
+                <option value="toplam">Tüm Danışmanlar</option>
+                {stats.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Custom date range picker */}
@@ -386,13 +421,13 @@ export default function ConsultantReportPage() {
           </div>
         </div>
 
-        {stats.length === 0 ? (
+        {filteredStats.length === 0 ? (
           <div className="flex items-center justify-center h-40 text-gray-400 text-sm">Veri bulunamadı</div>
         ) : (
-          <ResponsiveContainer width="100%" height={Math.max(240, stats.length * 52)}>
+          <ResponsiveContainer width="100%" height={Math.max(240, filteredStats.length * 52)}>
             <BarChart
               layout="vertical"
-              data={stats}
+              data={filteredStats}
               margin={{ top: 4, right: 80, left: 8, bottom: 4 }}
               barCategoryGap="28%"
             >
@@ -415,7 +450,7 @@ export default function ConsultantReportPage() {
               />
               <Tooltip content={<ClosingRateTooltip />} cursor={{ fill: '#f8fafc' }} />
               <Bar dataKey="closingRate" radius={[0, 6, 6, 0]} maxBarSize={28}>
-                {stats.map((s) => (
+                {filteredStats.map((s) => (
                   <Cell
                     key={s.id}
                     fill={s.closingRate >= 35 ? '#10B981' : s.closingRate >= 20 ? '#6366F1' : '#F59E0B'}
@@ -453,21 +488,6 @@ export default function ConsultantReportPage() {
               <p className="text-xs text-gray-400">
                 {selectedConsultantFilter === 'toplam' ? 'Tüm danışmanlar — toplam dağılım' : (stats.find(s => s.id === selectedConsultantFilter)?.name ?? '') + ' — sebep dağılımı'}
               </p>
-            </div>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2">
-              <Filter className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-              <select
-                value={selectedConsultantFilter}
-                onChange={e => setSelectedConsultantFilter(e.target.value)}
-                className="h-8 rounded-lg border border-gray-200 bg-white text-xs px-3 pr-7 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 cursor-pointer"
-              >
-                <option value="toplam">Toplam (Tüm Danışmanlar)</option>
-                {stats.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
             </div>
           </div>
         </div>
@@ -561,7 +581,7 @@ export default function ConsultantReportPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {stats.map((s, i) => (
+              {filteredStats.map((s, i) => (
                 <tr key={s.id} className={`transition-colors hover:bg-blue-50/30 ${i % 2 === 1 ? 'bg-gray-50/40' : ''}`}>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
@@ -602,7 +622,7 @@ export default function ConsultantReportPage() {
                   </td>
                 </tr>
               ))}
-              {stats.length === 0 && (
+              {filteredStats.length === 0 && (
                 <tr><td colSpan={6} className="px-5 py-10 text-center text-gray-400 text-sm">Veri bulunamadı</td></tr>
               )}
             </tbody>
