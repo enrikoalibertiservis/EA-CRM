@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   const { data: models } = await supabase.from('vehicle_models').select('id, brand_id, name').eq('is_active', true).order('sort_order')
   const { data: locations } = await supabase.from('locations').select('id, name').order('name')
   const { data: stages } = await supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order')
-  const { data: customers } = await supabase.from('customers').select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id, brand:brands(id, name, color)').eq('is_active', true)
+  const { data: customers } = await supabase.from('customers').select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id, source_channel_id, brand:brands(id, name, color), source_channel:contact_channels(id, name, slug, icon_name, color)').eq('is_active', true)
   const { data: contactLogs } = await supabase.from('contact_logs').select('id, channel_id, contact_date, created_by')
   const { data: channels } = await supabase.from('contact_channels').select('*').eq('is_active', true).order('sort_order')
 
@@ -53,10 +53,15 @@ export default async function DashboardPage() {
     })
   }
 
-  const channelStats: ChannelStats[] = (channels ?? []).map((ch: ContactChannel) => {
-    const count = (contactLogs ?? []).filter((l) => l.channel_id === ch.id).length
-    return { channel: ch, count, percentage: 0 }
-  }).filter((s: ChannelStats) => s.count > 0)
+  // channelStats: müşterilerin source_channel'ından hesapla
+  const channelCountMap: Record<string, { channel: ContactChannel; count: number }> = {}
+  ;(customers ?? []).forEach((c: { source_channel_id?: string; source_channel?: ContactChannel }) => {
+    const ch = c.source_channel as ContactChannel | undefined
+    if (!ch?.id) return
+    if (!channelCountMap[ch.id]) channelCountMap[ch.id] = { channel: ch, count: 0 }
+    channelCountMap[ch.id].count++
+  })
+  const channelStats: ChannelStats[] = Object.values(channelCountMap).filter(x => x.count > 0)
   const totalContacts = channelStats.reduce((sum: number, s: ChannelStats) => sum + s.count, 0)
   channelStats.forEach((s: ChannelStats) => { s.percentage = totalContacts > 0 ? (s.count / totalContacts) * 100 : 0 })
   channelStats.sort((a: ChannelStats, b: ChannelStats) => b.count - a.count)
