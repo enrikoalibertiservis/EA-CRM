@@ -61,7 +61,8 @@ interface ConsultantStats {
   total: number
   won: number
   lost: number
-  active: number
+  baglanti: number  // sözlü anlaşma sağlananlar (henüz satış yok)
+  active: number    // genel takip (baglanti dahil değil)
   closingRate: number
   lostReasons: Record<string, number>
 }
@@ -243,7 +244,7 @@ export default function ConsultantReportPage() {
       // Fetch customers with date range
       let query = supabase
         .from('customers')
-        .select('id, consultant_id, is_won, is_lost, lost_reason, created_at, location_id, brand_id, brand:brands(name, color), source_channel_id, source_channel:contact_channels(id, name, slug, icon_name, color)')
+        .select('id, consultant_id, is_won, is_lost, lost_reason, created_at, location_id, brand_id, verbal_agreement_done, brand:brands(name, color), source_channel_id, source_channel:contact_channels(id, name, slug, icon_name, color)')
         .eq('is_active', true)
       if (dateFrom) query = query.gte('created_at', dateFrom)
       if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59')
@@ -261,7 +262,9 @@ export default function ConsultantReportPage() {
         const won = mine.filter(cu => cu.is_won).length
         const lost = mine.filter(cu => cu.is_lost).length
         const total = mine.length
-        const active = total - won - lost
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const baglanti = mine.filter(cu => (cu as any).verbal_agreement_done && !cu.is_won && !cu.is_lost).length
+        const active = total - won - lost - baglanti
 
         // Parse lost reasons — is_lost bayrağı beklenmez, lost_reason alanı yeterli
         const lostReasons: Record<string, number> = {}
@@ -281,6 +284,7 @@ export default function ConsultantReportPage() {
           total,
           won,
           lost,
+          baglanti,
           active,
           closingRate: total > 0 ? (won / total) * 100 : 0,
           lostReasons,
@@ -460,6 +464,71 @@ export default function ConsultantReportPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* ── Consultant Table ── (sayfanın başı) */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+            <Users className="h-4 w-4 text-blue-500" />
+          </div>
+          <h2 className="text-sm font-bold text-gray-900">Danışman Performans Tablosu</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b-2 border-gray-100">
+                <th className="text-left px-5 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Danışman</th>
+                <th className="text-center px-3 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Toplam Temas</th>
+                <th className="text-center px-3 py-4 text-xs font-semibold text-green-500 uppercase tracking-wide">Satış</th>
+                <th className="text-center px-3 py-4 text-xs font-semibold text-violet-400 uppercase tracking-wide">Bağlantı</th>
+                <th className="text-center px-3 py-4 text-xs font-semibold text-blue-400 uppercase tracking-wide">Takip</th>
+                <th className="text-center px-3 py-4 text-xs font-semibold text-red-400 uppercase tracking-wide">Kayıp</th>
+                <th className="text-center px-3 py-4 text-xs font-semibold text-indigo-400 uppercase tracking-wide">Satış Kapatma %</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredStats.map((s, i) => (
+                <tr key={s.id} className={`transition-colors hover:bg-blue-50/30 ${i % 2 === 1 ? 'bg-gray-50/40' : ''}`}>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold shrink-0">
+                        {s.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                      </div>
+                      <span className="font-medium text-gray-900">{s.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-4 text-center font-semibold text-gray-700">{s.total}</td>
+                  <td className="px-3 py-4 text-center">
+                    <span className="inline-flex items-center justify-center h-7 min-w-[32px] px-2.5 rounded-full bg-green-100 text-green-700 text-xs font-bold">{s.won}</span>
+                  </td>
+                  <td className="px-3 py-4 text-center">
+                    <span className="inline-flex items-center justify-center h-7 min-w-[32px] px-2.5 rounded-full bg-violet-100 text-violet-700 text-xs font-bold">{s.baglanti}</span>
+                  </td>
+                  <td className="px-3 py-4 text-center">
+                    <span className="inline-flex items-center justify-center h-7 min-w-[32px] px-2.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">{s.active}</span>
+                  </td>
+                  <td className="px-3 py-4 text-center">
+                    <span className="inline-flex items-center justify-center h-7 min-w-[32px] px-2.5 rounded-full bg-red-100 text-red-700 text-xs font-bold">{s.lost}</span>
+                  </td>
+                  <td className="px-3 py-4">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden min-w-[60px]">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(s.closingRate, 100)}%`, backgroundColor: s.closingRate >= 35 ? '#10B981' : s.closingRate >= 20 ? '#6366F1' : '#F59E0B' }} />
+                      </div>
+                      <span className={cn('text-xs font-bold w-10 text-right', s.closingRate >= 35 ? 'text-green-600' : s.closingRate >= 20 ? 'text-indigo-600' : 'text-amber-600')}>
+                        %{s.closingRate.toFixed(1)}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filteredStats.length === 0 && (
+                <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-400 text-sm">Veri bulunamadı</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* ── Summary Cards ── */}
@@ -675,77 +744,6 @@ export default function ConsultantReportPage() {
 
       </div>{/* end 50/50 grid */}
 
-      {/* ── Consultant Table ── */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-              <Users className="h-4 w-4 text-blue-500" />
-            </div>
-            <h2 className="text-sm font-bold text-gray-900">Danışman Detay Tablosu</h2>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b-2 border-gray-100">
-                <th className="text-left px-5 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Danışman</th>
-                <th className="text-center px-4 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Toplam</th>
-                <th className="text-center px-4 py-4 text-xs font-semibold text-green-400 uppercase tracking-wide">Satış</th>
-                <th className="text-center px-4 py-4 text-xs font-semibold text-red-400 uppercase tracking-wide">Kayıp</th>
-                <th className="text-center px-4 py-4 text-xs font-semibold text-blue-400 uppercase tracking-wide">Takip</th>
-                <th className="text-center px-4 py-4 text-xs font-semibold text-indigo-400 uppercase tracking-wide">Kapama %</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filteredStats.map((s, i) => (
-                <tr key={s.id} className={`transition-colors hover:bg-blue-50/30 ${i % 2 === 1 ? 'bg-gray-50/40' : ''}`}>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold shrink-0">
-                        {s.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                      </div>
-                      <span className="font-medium text-gray-900">{s.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-center font-medium text-gray-700">{s.total}</td>
-                  <td className="px-4 py-4 text-center">
-                    <span className="inline-flex items-center justify-center h-7 min-w-[32px] px-2.5 rounded-full bg-green-100 text-green-700 text-xs font-bold">{s.won}</span>
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    <span className="inline-flex items-center justify-center h-7 min-w-[32px] px-2.5 rounded-full bg-red-100 text-red-700 text-xs font-bold">{s.lost}</span>
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    <span className="inline-flex items-center justify-center h-7 min-w-[32px] px-2.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">{s.active}</span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden min-w-[60px]">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${Math.min(s.closingRate, 100)}%`,
-                            backgroundColor: s.closingRate >= 35 ? '#10B981' : s.closingRate >= 20 ? '#6366F1' : '#F59E0B',
-                          }}
-                        />
-                      </div>
-                      <span className={cn(
-                        'text-xs font-bold w-10 text-right',
-                        s.closingRate >= 35 ? 'text-green-600' : s.closingRate >= 20 ? 'text-indigo-600' : 'text-amber-600',
-                      )}>
-                        %{s.closingRate.toFixed(1)}
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredStats.length === 0 && (
-                <tr><td colSpan={6} className="px-5 py-10 text-center text-gray-400 text-sm">Veri bulunamadı</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
     </div>
   )
