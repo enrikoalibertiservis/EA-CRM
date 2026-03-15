@@ -137,62 +137,20 @@ function StatCard({ label, value, sub, icon: Icon, theme }: {
   )
 }
 
-// ─── Location Filter Row ──────────────────────────────────────────────────────
-
-const LOCATION_PALETTE = [
-  { active: 'bg-blue-500/25 text-blue-700 border-blue-400 shadow-sm shadow-blue-100', inactive: 'border-blue-200 bg-blue-50/70 text-blue-500 hover:bg-blue-100/80' },
-  { active: 'bg-emerald-500/25 text-emerald-700 border-emerald-400 shadow-sm shadow-emerald-100', inactive: 'border-emerald-200 bg-emerald-50/70 text-emerald-600 hover:bg-emerald-100/80' },
-  { active: 'bg-violet-500/25 text-violet-700 border-violet-400 shadow-sm shadow-violet-100', inactive: 'border-violet-200 bg-violet-50/70 text-violet-500 hover:bg-violet-100/80' },
-  { active: 'bg-amber-500/25 text-amber-700 border-amber-400 shadow-sm shadow-amber-100', inactive: 'border-amber-200 bg-amber-50/70 text-amber-600 hover:bg-amber-100/80' },
+const BRAND_OPTIONS = [
+  { id: 'all',  label: 'Tüm Markalar' },
+  { id: 'fiat', label: 'Fiat' },
+  { id: 'arj',  label: 'ARJ (Alfa + Jeep)' },
 ]
-
-function LocationFilterRow({
-  locations,
-  value,
-  onChange,
-}: {
-  locations: { id: string; name: string }[]
-  value: string
-  onChange: (v: string) => void
-}) {
-  if (!locations.length) return null
-  return (
-    <div className="flex items-center gap-1.5 flex-wrap">
-      <button
-        onClick={() => onChange('all')}
-        className={`h-7 px-3 rounded-xl text-[10px] font-semibold transition-all border ${
-          value === 'all'
-            ? 'bg-slate-200/80 text-slate-700 border-slate-400 shadow-sm'
-            : 'border-slate-200 bg-slate-50/80 text-slate-500 hover:bg-slate-100'
-        }`}
-      >
-        Tüm Şubeler
-      </button>
-      {locations.map((loc, idx) => {
-        const colors = LOCATION_PALETTE[idx % LOCATION_PALETTE.length]
-        return (
-          <button
-            key={loc.id}
-            onClick={() => onChange(loc.id)}
-            className={`h-7 px-3 rounded-xl text-[10px] font-semibold transition-all border ${
-              value === loc.id ? colors.active : colors.inactive
-            }`}
-          >
-            {loc.name}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ConsultantReportPage() {
   const [loading, setLoading] = useState(true)
   const [authorized, setAuthorized] = useState(true)
-  const [stats, setStats] = useState<ConsultantStats[]>([])
+  const [rawConsultants, setRawConsultants] = useState<{ id: string; full_name: string }[]>([])
   const [allReasons, setAllReasons] = useState<string[]>([])
+  const [brandFilter, setBrandFilter] = useState<'all' | 'fiat' | 'arj'>('all')
   type RawCustomer = {
     lost_reason: string | null
     consultant_id: string | null
@@ -252,49 +210,13 @@ export default function ConsultantReportPage() {
 
       const { data: customers } = await query
 
-      // Build stats per consultant
       const consultantList = consultants ?? []
       const customerList = (customers ?? []).filter(cu =>
         locationFilter === 'all' || cu.location_id === locationFilter
       )
 
-      const statsArr: ConsultantStats[] = consultantList.map(c => {
-        const mine = customerList.filter(cu => cu.consultant_id === c.id)
-        const won = mine.filter(cu => cu.is_won).length
-        const lost = mine.filter(cu => cu.is_lost).length
-        const total = mine.length
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const baglanti = mine.filter(cu => (cu as any).verbal_agreement_done && !cu.is_won && !cu.is_lost).length
-        const active = total - won - lost - baglanti
-
-        // Parse lost reasons — is_lost bayrağı beklenmez, lost_reason alanı yeterli
-        const lostReasons: Record<string, number> = {}
-        mine.filter(cu => cu.lost_reason).forEach(cu => {
-          const lines = (cu.lost_reason as string).split('\n')
-          lines.forEach(line => {
-            const trimmed = line.replace(/^Not: /, '').trim()
-            if (trimmed && !trimmed.startsWith('Not:')) {
-              lostReasons[trimmed] = (lostReasons[trimmed] ?? 0) + 1
-            }
-          })
-        })
-
-        return {
-          id: c.id,
-          name: c.full_name,
-          total,
-          won,
-          lost,
-          baglanti,
-          active,
-          closingRate: total > 0 ? (won / total) * 100 : 0,
-          lostReasons,
-        }
-      }).filter(s => s.total > 0).sort((a, b) => b.closingRate - a.closingRate)
-
-      setStats(statsArr)
+      setRawConsultants(consultantList)
       setAllCustomerList(customerList)
-      // Heatmap için tüm müşteriler (konum filtresi yok — heatmap kendi içinde filtreler)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setHeatmapCustomers((customers ?? []) as any)
       setLoading(false)
@@ -302,6 +224,41 @@ export default function ConsultantReportPage() {
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateFrom, dateTo, locationFilter])
+
+  // Marka filtresi
+  const brandFilteredCustomers = useMemo(() => {
+    if (brandFilter === 'all') return allCustomerList
+    return allCustomerList.filter(cu => {
+      const name: string = (Array.isArray(cu.brand) ? cu.brand[0]?.name : cu.brand?.name) ?? ''
+      if (brandFilter === 'fiat') return name.toLowerCase().includes('fiat')
+      if (brandFilter === 'arj') return name.toLowerCase().includes('alfa') || name.toLowerCase().includes('jeep')
+      return true
+    })
+  }, [allCustomerList, brandFilter])
+
+  // Stats — marka + konum filtresi uygulanmış müşterilerden yeniden hesaplanır
+  const stats = useMemo<ConsultantStats[]>(() => {
+    return rawConsultants.map(c => {
+      const mine = brandFilteredCustomers.filter(cu => cu.consultant_id === c.id)
+      const won = mine.filter(cu => cu.is_won).length
+      const lost = mine.filter(cu => cu.is_lost).length
+      const total = mine.length
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const baglanti = mine.filter(cu => (cu as any).verbal_agreement_done && !cu.is_won && !cu.is_lost).length
+      const active = total - won - lost - baglanti
+      const lostReasons: Record<string, number> = {}
+      mine.filter(cu => cu.lost_reason).forEach(cu => {
+        const lines = (cu.lost_reason as string).split('\n')
+        lines.forEach(line => {
+          const trimmed = line.replace(/^Not: /, '').trim()
+          if (trimmed && !trimmed.startsWith('Not:')) {
+            lostReasons[trimmed] = (lostReasons[trimmed] ?? 0) + 1
+          }
+        })
+      })
+      return { id: c.id, name: c.full_name, total, won, lost, baglanti, active, closingRate: total > 0 ? (won / total) * 100 : 0, lostReasons }
+    }).filter(s => s.total > 0).sort((a, b) => b.closingRate - a.closingRate)
+  }, [rawConsultants, brandFilteredCustomers])
 
   // Danışman filtresi — tüm sayfaya uygulanır
   const filteredStats = useMemo(() => {
@@ -324,7 +281,7 @@ export default function ConsultantReportPage() {
 
     if (selectedConsultantFilter === 'toplam') {
       // Tüm müşterileri tara — danışmana atanmamış olanlar da dahil
-      allCustomerList.filter(cu => cu.lost_reason).forEach(cu => {
+      brandFilteredCustomers.filter(cu => cu.lost_reason).forEach(cu => {
         parseLostReason(cu.lost_reason as string)
       })
     } else {
@@ -345,13 +302,13 @@ export default function ConsultantReportPage() {
       }))
       .filter(d => d.count > 0)
       .sort((a, b) => b.count - a.count)
-  }, [filteredStats, allCustomerList, selectedConsultantFilter])
+  }, [filteredStats, brandFilteredCustomers, selectedConsultantFilter])
 
   // Temas kanalları dağılımı
   const channelStats = useMemo(() => {
     const source = selectedConsultantFilter === 'toplam'
-      ? allCustomerList
-      : allCustomerList.filter(cu => cu.consultant_id === selectedConsultantFilter)
+      ? brandFilteredCustomers
+      : brandFilteredCustomers.filter(cu => cu.consultant_id === selectedConsultantFilter)
 
     const counts: Record<string, { channel: { id: string; name: string; slug: string; icon_name: string; color: string }; count: number }> = {}
     source.forEach(cu => {
@@ -366,7 +323,7 @@ export default function ConsultantReportPage() {
     return arr
       .map(x => ({ ...x, percentage: total > 0 ? (x.count / total) * 100 : 0 }))
       .sort((a, b) => b.count - a.count)
-  }, [allCustomerList, selectedConsultantFilter])
+  }, [brandFilteredCustomers, selectedConsultantFilter])
 
   const totalWon = filteredStats.reduce((s, c) => s + c.won, 0)
   const totalLost = filteredStats.reduce((s, c) => s + c.lost, 0)
@@ -411,8 +368,23 @@ export default function ConsultantReportPage() {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <LocationFilterRow locations={locations} value={locationFilter} onChange={setLocationFilter} />
+          <div className="flex items-center gap-2 flex-wrap">
+            {locations.length > 0 && (
+              <StyledSelect
+                value={locationFilter === 'all' ? '' : locationFilter}
+                onChange={v => setLocationFilter(v || 'all')}
+                placeholder="Tüm Şubeler"
+                className="w-40"
+                options={locations.map(l => ({ id: l.id, label: l.name }))}
+              />
+            )}
+            <StyledSelect
+              value={brandFilter === 'all' ? '' : brandFilter}
+              onChange={v => setBrandFilter((v || 'all') as 'all' | 'fiat' | 'arj')}
+              placeholder="Tüm Markalar"
+              className="w-40"
+              options={BRAND_OPTIONS.filter(o => o.id !== 'all')}
+            />
             <div className="flex items-center gap-2">
               <Filter className="h-3.5 w-3.5 text-gray-400 shrink-0" />
               <StyledSelect
@@ -645,7 +617,15 @@ export default function ConsultantReportPage() {
 
       {/* Heatmap */}
       <ContactHeatmap
-        customers={heatmapCustomers}
+        customers={brandFilter === 'all'
+          ? heatmapCustomers
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          : (heatmapCustomers as any[]).filter((cu: any) => {
+              const name: string = (Array.isArray(cu.brand) ? cu.brand[0]?.name : cu.brand?.name) ?? ''
+              if (brandFilter === 'fiat') return name.toLowerCase().includes('fiat')
+              return name.toLowerCase().includes('alfa') || name.toLowerCase().includes('jeep')
+            }) as never[]
+        }
         title="Müşteri Kayıt Yoğunluğu"
         hideFilters
       />
