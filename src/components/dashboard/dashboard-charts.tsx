@@ -137,19 +137,14 @@ export function DashboardCharts({ customers, locations }: DashboardChartsProps) 
           </>
         )}
 
-        {/* Brand buttons */}
-        {brandGroups.map(g => (
-          <button
-            key={g.key}
-            onClick={() => setSelectedBrand(g.key)}
-            className="h-7 px-3 rounded-full text-[11px] font-semibold transition-all border bg-transparent"
-            style={selectedBrand === g.key
-              ? { borderColor: g.color, color: g.color, backgroundColor: g.color + '18' }
-              : { borderColor: '#E2E8F0', color: '#94A3B8' }}
-          >
-            {g.label}
-          </button>
-        ))}
+        {/* Brand dropdown */}
+        <StyledSelect
+          compact
+          value={selectedBrand}
+          onChange={v => setSelectedBrand(v)}
+          className="w-28"
+          options={brandGroups.map(g => ({ id: g.key, label: g.label }))}
+        />
 
         {/* Date period dropdown */}
         <span className="h-4 w-px bg-gray-200 mx-0.5 shrink-0" />
