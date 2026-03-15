@@ -66,7 +66,7 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
   const filteredModels = brandId ? models.filter(m => m.brand_id === brandId) : models
 
   const handleBrand = (id: string) => {
-    setBrandId(prev => prev === id ? '' : id)
+    setBrandId(id)
     setModel('')
   }
 
@@ -236,26 +236,16 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
 
         {/* Marka + Model + Lokasyon — tek satırda */}
         <div className="flex items-end gap-3 flex-wrap">
-          <div>
+          <div className="w-36">
             <label className="text-[11px] font-medium text-gray-500 block mb-1">
               Marka <span className="text-red-400">*</span>
             </label>
-            <div className="flex flex-wrap gap-1.5">
-              {brands.map(b => (
-                <button
-                  key={b.id}
-                  type="button"
-                  onClick={() => { handleBrand(b.id); setErrors(p => { const n={...p}; delete n.brand; return n }) }}
-                  className="h-7 px-3 rounded-lg border text-xs font-semibold transition-all"
-                  style={brandId === b.id
-                    ? { backgroundColor: b.color + 'cc', borderColor: b.color, color: '#fff' }
-                    : { backgroundColor: b.color + '10', borderColor: b.color + '40', color: b.color }
-                  }
-                >
-                  {b.name}
-                </button>
-              ))}
-            </div>
+            <StyledSelect
+              value={brandId}
+              onChange={v => { handleBrand(v); setErrors(p => { const n={...p}; delete n.brand; return n }) }}
+              placeholder="Seçin"
+              options={brands.map(b => ({ id: b.id, label: b.name, color: b.color }))}
+            />
             {errors.brand && <p className="text-[10px] text-red-500 mt-0.5">{errors.brand}</p>}
           </div>
 
