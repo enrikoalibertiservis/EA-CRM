@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { type BrandFunnelData } from '@/lib/types/database'
 import { Car, FileText, Clock, CheckCircle, Shield, Lock } from 'lucide-react'
 
@@ -20,42 +19,22 @@ const brandGradients: Record<string, string> = {
   'İkinci El': 'from-gray-50/60 to-slate-50/40 border-gray-200',
 }
 
-const brandLogos: Record<string, string> = {
-  'Fiat': '/brands/fiat.png',
-  'Alfa Romeo': '/brands/alfa-romeo.png',
-  'Jeep': '/brands/jeep.png',
-}
-
-
-
 export function BrandFunnel({ data }: { data: BrandFunnelData }) {
   const maxCount = Math.max(...data.stages.map((s) => s.count), 1)
   const gradient = brandGradients[data.brand.name] ?? 'from-blue-50/60 to-indigo-50/40 border-blue-100'
-  const logo = brandLogos[data.brand.name]
 
   return (
     <div className={`rounded-2xl border bg-gradient-to-br ${gradient} p-5 shadow-sm h-full`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          {logo ? (
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
-              <Image
-                src={logo}
-                alt={data.brand.name}
-                width={48}
-                height={48}
-                className="object-contain w-[48px] h-[48px]"
-                style={{ mixBlendMode: 'multiply' }}
-              />
-            </div>
-          ) : (
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ backgroundColor: data.brand.color + '20' }}>
-              <div className="h-3.5 w-3.5 rounded-full" style={{ backgroundColor: data.brand.color }} />
-            </div>
-          )}
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ backgroundColor: data.brand.color + '25' }}
+          >
+            <div className="h-4 w-4 rounded-full" style={{ backgroundColor: data.brand.color }} />
+          </div>
           <div>
-            <h3 className="text-sm font-bold text-gray-900">{data.brand.name}</h3>
+            <h3 className="text-lg font-bold text-gray-900 leading-tight">{data.brand.name}</h3>
             <p className="text-[10px] text-gray-500">Satış Hunisi</p>
           </div>
         </div>
