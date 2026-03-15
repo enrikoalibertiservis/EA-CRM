@@ -136,7 +136,7 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
       <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3 flex-1">
 
         {/* Ad Soyad + Telefon + Kayıt Tarihi — yan yana */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
           <div>
             <label className="text-[11px] font-medium text-gray-500 block mb-1">
               Ad Soyad <span className="text-red-400">*</span>
@@ -197,7 +197,7 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
                 onClick={() => !dateEditable && setDateEditable(true)}
                 placeholder="GG/AA/YYYY"
                 maxLength={10}
-                className={`flex-1 h-8 rounded-lg border px-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${
+                className={`w-24 h-8 rounded-lg border px-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${
                   dateEditable ? 'border-green-400' : 'border-gray-200 text-gray-500 cursor-pointer'
                 }`}
               />
