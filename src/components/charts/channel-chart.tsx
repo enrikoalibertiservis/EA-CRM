@@ -26,7 +26,7 @@ function buildChannelStats(entries: CustomerEntry[]): ChannelStats[] {
     const ch = Array.isArray(c.source_channel) ? c.source_channel[0] : c.source_channel
     if (!ch?.id) return
     if (!map.has(ch.id)) {
-      map.set(ch.id, { channel: { id: ch.id, name: ch.name, color: ch.color ?? '#6B7280', is_active: true, sort_order: 0, icon_name: null, company_id: '' }, count: 0 })
+      map.set(ch.id, { channel: { id: ch.id, name: ch.name, color: ch.color ?? '#6B7280', is_active: true, sort_order: 0, icon_name: '', slug: '', created_at: '' }, count: 0 })
     }
     map.get(ch.id)!.count++
   })
