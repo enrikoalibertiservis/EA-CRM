@@ -16,6 +16,7 @@ interface StyledSelectProps {
   onChange: (val: string) => void
   placeholder?: string
   className?: string
+  compact?: boolean
 }
 
 export function StyledSelect({
@@ -25,6 +26,7 @@ export function StyledSelect({
   onChange,
   placeholder = 'Tümü',
   className = '',
+  compact = false,
 }: StyledSelectProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -49,7 +51,9 @@ export function StyledSelect({
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className={`w-full flex items-center justify-between gap-2 h-9 px-3 rounded-xl border text-xs font-medium transition-all bg-white shadow-sm hover:shadow ${
+        className={`w-full flex items-center justify-between gap-2 px-3 rounded-xl border text-xs font-medium transition-all bg-white shadow-sm hover:shadow ${
+          compact ? 'h-7 rounded-lg' : 'h-9 rounded-xl'
+        } ${
           value
             ? 'border-blue-300 bg-blue-50/60 text-blue-700'
             : 'border-gray-200 text-gray-500 hover:border-gray-300'

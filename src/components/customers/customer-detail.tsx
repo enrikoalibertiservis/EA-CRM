@@ -5,6 +5,7 @@ import { PipelineTimeline } from './pipeline-timeline'
 import { ContactLogForm } from './contact-log-form'
 import { Phone, Mail, MapPin, MessageSquare, Calendar, Clock, ChevronRight, CheckCircle, XCircle, X, AlertCircle, Pencil, Check, Building2, PhoneCall, Share2, Users, Wrench, Shield, Radio, Newspaper, BookOpen, Search, Globe, UserCheck, Heart, HelpCircle, type LucideIcon } from 'lucide-react'
 import { formatDate, OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/utils'
+import { StyledSelect } from '@/components/ui/styled-select'
 import type { Customer, SalesStage, CustomerStageHistory, ContactLog, ContactChannel, Brand } from '@/lib/types/database'
 
 interface ContactTypeOption { id: string; name: string; slug: string; icon_name: string | null; color: string }
@@ -318,16 +319,14 @@ export function CustomerDetail({
               </div>
               {editingField === 'brand_id' ? (
                 <div className="flex items-center gap-1">
-                  <select
-                    autoFocus
+                  <StyledSelect
+                    compact
+                    className="flex-1"
                     value={brandId ?? ''}
-                    onChange={e => setBrandId(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                    {brandOptions.map(b => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
-                    ))}
-                  </select>
+                    onChange={v => setBrandId(v)}
+                    placeholder="— Seçiniz —"
+                    options={brandOptions.map(b => ({ id: b.id, label: b.name }))}
+                  />
                   <button
                     onClick={async () => { if (await saveMetaField('brand_id', brandId)) setBrandId(brandId) }}
                     disabled={savingField === 'brand_id'}
@@ -359,17 +358,14 @@ export function CustomerDetail({
               </div>
               {editingField === 'consultant_id' ? (
                 <div className="flex items-center gap-1">
-                  <select
-                    autoFocus
+                  <StyledSelect
+                    compact
+                    className="flex-1"
                     value={consultantId ?? ''}
-                    onChange={e => setConsultantId(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                    <option value="">— Seçiniz —</option>
-                    {consultantOptions.map(c => (
-                      <option key={c.id} value={c.id}>{c.full_name}</option>
-                    ))}
-                  </select>
+                    onChange={v => setConsultantId(v)}
+                    placeholder="— Seçiniz —"
+                    options={consultantOptions.map(c => ({ id: c.id, label: c.full_name }))}
+                  />
                   <button
                     onClick={async () => { await saveMetaField('consultant_id', consultantId || null) }}
                     disabled={savingField === 'consultant_id'}
@@ -401,17 +397,14 @@ export function CustomerDetail({
               </div>
               {editingField === 'source_channel_id' ? (
                 <div className="flex items-center gap-1">
-                  <select
-                    autoFocus
+                  <StyledSelect
+                    compact
+                    className="flex-1"
                     value={sourceChannelId ?? ''}
-                    onChange={e => setSourceChannelId(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                    <option value="">— Seçiniz —</option>
-                    {channels.map(ch => (
-                      <option key={ch.id} value={ch.id}>{ch.name}</option>
-                    ))}
-                  </select>
+                    onChange={v => setSourceChannelId(v)}
+                    placeholder="— Seçiniz —"
+                    options={channels.map(ch => ({ id: ch.id, label: ch.name, color: ch.color }))}
+                  />
                   <button
                     onClick={async () => { await saveMetaField('source_channel_id', sourceChannelId || null) }}
                     disabled={savingField === 'source_channel_id'}
@@ -443,17 +436,14 @@ export function CustomerDetail({
               </div>
               {editingField === 'interested_model' ? (
                 <div className="flex items-center gap-1">
-                  <select
-                    autoFocus
+                  <StyledSelect
+                    compact
+                    className="flex-1"
                     value={interestedModel}
-                    onChange={e => setInterestedModel(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                    <option value="">Model seçin</option>
-                    {(brandId ? models.filter(m => m.brand_id === brandId) : models).map(m => (
-                      <option key={m.id} value={m.name}>{m.name}</option>
-                    ))}
-                  </select>
+                    onChange={v => setInterestedModel(v)}
+                    placeholder="Model seçin"
+                    options={(brandId ? models.filter(m => m.brand_id === brandId) : models).map(m => ({ id: m.name, label: m.name }))}
+                  />
                   <button
                     onClick={async () => { await saveMetaField('interested_model', interestedModel || null) }}
                     disabled={savingField === 'interested_model'}
@@ -571,11 +561,14 @@ export function CustomerDetail({
               </div>
               {editingField === 'initial_contact_type' ? (
                 <div className="flex items-center gap-1">
-                  <select autoFocus value={initialContactType} onChange={e => setInitialContactType(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-                    <option value="">— Seçiniz —</option>
-                    {contactTypes.map(ct => <option key={ct.id} value={ct.slug}>{ct.name}</option>)}
-                  </select>
+                  <StyledSelect
+                    compact
+                    className="flex-1"
+                    value={initialContactType}
+                    onChange={v => setInitialContactType(v)}
+                    placeholder="— Seçiniz —"
+                    options={contactTypes.map(ct => ({ id: ct.slug, label: ct.name, color: ct.color }))}
+                  />
                   <button onClick={async () => { await saveMetaField('initial_contact_type', initialContactType || null) }} disabled={savingField === 'initial_contact_type'} className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50">
                     {savingField === 'initial_contact_type' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                   </button>
@@ -605,11 +598,14 @@ export function CustomerDetail({
               </div>
               {editingField === 'location_id' ? (
                 <div className="flex items-center gap-1">
-                  <select autoFocus value={locationId} onChange={e => setLocationId(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-                    <option value="">— Seçiniz —</option>
-                    {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                  </select>
+                  <StyledSelect
+                    compact
+                    className="flex-1"
+                    value={locationId}
+                    onChange={v => setLocationId(v)}
+                    placeholder="— Seçiniz —"
+                    options={locations.map(l => ({ id: l.id, label: l.name }))}
+                  />
                   <button onClick={async () => { await saveMetaField('location_id', locationId || null) }} disabled={savingField === 'location_id'} className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50">
                     {savingField === 'location_id' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                   </button>
