@@ -127,6 +127,8 @@ export function PipelineTimeline({
 }: PipelineTimelineProps) {
   const [loading, setLoading] = useState<string | null>(null)
   const [expandedStageId, setExpandedStageId] = useState<string | null>(currentStageId)
+  // Kaydedilen notları client-side sakla (history prop yeniden fetch edilmeden görünsün)
+  const [noteOverrides, setNoteOverrides] = useState<Record<string, string | null>>({})
 
   const sortedStages = [...stages].sort((a, b) => a.sort_order - b.sort_order)
   const currentStageOrder = sortedStages.find((s) => s.id === currentStageId)?.sort_order ?? 0
@@ -493,9 +495,14 @@ export function PipelineTimeline({
               key={expandedStage.id}
               stageId={expandedStage.id}
               customerId={customerId}
-              existingNote={expandedHistory[0]?.note ?? null}
+              existingNote={
+                expandedStage.id in noteOverrides
+                  ? noteOverrides[expandedStage.id]
+                  : (expandedHistory[0]?.note ?? null)
+              }
               enteredBy={expandedHistory[0]?.entered_by_profile?.full_name ?? null}
               color={c}
+              onNoteSaved={(note) => setNoteOverrides(prev => ({ ...prev, [expandedStage.id]: note }))}
             />
           </div>
         )
@@ -543,13 +550,14 @@ export function PipelineTimeline({
 // ─── Stage Note Field ─────────────────────────────────────────────────────────
 
 function StageNoteField({
-  stageId, customerId, existingNote, enteredBy, color,
+  stageId, customerId, existingNote, enteredBy, color, onNoteSaved,
 }: {
   stageId: string
   customerId: string
   existingNote: string | null
   enteredBy: string | null
   color: string
+  onNoteSaved?: (note: string | null) => void
 }) {
   const [note, setNote] = useState(existingNote ?? '')
   const [saving, setSaving] = useState(false)
@@ -560,8 +568,7 @@ function StageNoteField({
     setSaving(true)
     const supabase = createClient()
     // En son history kaydının id'sini bul, sadece onu güncelle
-    const supabase2 = createClient()
-    const { data: latest } = await supabase2
+    const { data: latest } = await supabase
       .from('customer_stage_history')
       .select('id')
       .eq('customer_id', customerId)
@@ -574,6 +581,7 @@ function StageNoteField({
         .from('customer_stage_history')
         .update({ note: trimmed || null })
         .eq('id', latest.id)
+      onNoteSaved?.(trimmed || null)
     }
     setSaving(false)
     toast.success('Not kaydedildi')
