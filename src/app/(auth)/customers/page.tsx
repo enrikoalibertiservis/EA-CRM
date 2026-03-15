@@ -36,13 +36,6 @@ export default async function CustomersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end -mt-4 mb-2">
-        <Link href="/customers/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white text-sm shadow-sm hover:bg-blue-700 transition-colors">
-          <UserPlus className="h-4 w-4" />
-          Yeni Müşteri
-        </Link>
-      </div>
       <CustomerList
         customers={(customers ?? []) as Customer[]}
         brands={brands ?? []}

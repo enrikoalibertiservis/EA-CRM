@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import {
   Search, Filter, ChevronRight, Car, FileText, Clock,
   CheckCircle, Shield, Lock, X, Trash2, CalendarDays, AlertTriangle,
-  ChevronUp, ChevronDown, ChevronsUpDown, Building2, Check, ChevronDown as ChevDown,
+  ChevronUp, ChevronDown, ChevronsUpDown, Building2, Check, ChevronDown as ChevDown, UserPlus,
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import type { Customer } from '@/lib/types/database'
@@ -322,7 +322,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
           { text: '#DC2626', bg: 'rgba(239,68,68,0.07)',   badge: 'rgba(239,68,68,0.12)',  badgeText: '#B91C1C' },
         ]
         return (
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <div className="flex items-center gap-2 mb-4 flex-wrap justify-between">
             <button
               onClick={() => { setFilterLocation(''); resetPage() }}
               className="flex items-center gap-1.5 h-8 px-4 rounded-xl text-sm font-medium transition-all border"
@@ -358,6 +358,14 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                 </button>
               )
             })}
+
+            <Link
+              href="/customers/new"
+              className="ml-auto inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 font-semibold text-white text-sm shadow-sm hover:bg-blue-700 transition-colors shrink-0"
+            >
+              <UserPlus className="h-4 w-4" />
+              Yeni Müşteri
+            </Link>
           </div>
         )
       })()}
