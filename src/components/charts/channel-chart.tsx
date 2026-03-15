@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
 import { type ChannelStats } from '@/lib/types/database'
 import { Radio } from 'lucide-react'
+import { StyledSelect } from '@/components/ui/styled-select'
 
 // ─── Customer shape for internal filtering ───────────────────────────────────
 
@@ -14,9 +15,41 @@ type CustomerEntry = {
   source_channel_id?: string | null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   source_channel?: any
+  created_at?: string
 }
 
 type LocationOption = { id: string; name: string }
+
+// ─── Date period filter ───────────────────────────────────────────────────────
+
+type DatePeriod = 'all' | 'today' | 'week' | 'month' | 'last_month'
+
+const DATE_PERIOD_OPTIONS = [
+  { id: 'all',        label: 'Tümü' },
+  { id: 'today',      label: 'Bugün' },
+  { id: 'week',       label: 'Bu Hafta' },
+  { id: 'month',      label: 'Bu Ay' },
+  { id: 'last_month', label: 'Geçen Ay' },
+]
+
+function isInPeriod(dateStr: string | undefined, period: DatePeriod): boolean {
+  if (period === 'all' || !dateStr) return true
+  const date = new Date(dateStr)
+  const now = new Date()
+  if (period === 'today') {
+    return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate()
+  }
+  if (period === 'week') {
+    const start = new Date(now); start.setDate(now.getDate() - ((now.getDay() + 6) % 7)); start.setHours(0,0,0,0)
+    return date >= start
+  }
+  if (period === 'month') return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth()
+  if (period === 'last_month') {
+    const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    return date.getFullYear() === lm.getFullYear() && date.getMonth() === lm.getMonth()
+  }
+  return true
+}
 
 // ─── Build ChannelStats from raw customers ───────────────────────────────────
 
@@ -51,6 +84,7 @@ interface ChannelChartProps {
 export function ChannelChart({ data, customers, locations, title = 'Temas Kanalları Dağılımı' }: ChannelChartProps) {
   const [selectedLocation, setSelectedLocation] = useState('all')
   const [selectedBrand, setSelectedBrand] = useState('all')
+  const [selectedPeriod, setSelectedPeriod] = useState<DatePeriod>('all')
 
   // ── Build brand groups from customers ──────────────────────────────────────
   const brandGroups = useMemo(() => {
@@ -91,10 +125,11 @@ export function ChannelChart({ data, customers, locations, title = 'Temas Kanall
     if (!customers) return data ?? []
     let filtered = customers
     if (selectedLocation !== 'all') filtered = filtered.filter(c => c.location_id === selectedLocation)
+    if (selectedPeriod !== 'all') filtered = filtered.filter(c => isInPeriod(c.created_at, selectedPeriod))
     const activeBrand = brandGroups.find(g => g.key === selectedBrand) ?? brandGroups[0]
     if (activeBrand) filtered = filtered.filter(activeBrand.filter)
     return buildChannelStats(filtered)
-  }, [customers, data, selectedLocation, selectedBrand, brandGroups])
+  }, [customers, data, selectedLocation, selectedBrand, selectedPeriod, brandGroups])
 
   const maxCount = Math.max(...chartData.map(d => d.count), 1)
   const yAxisWidth = Math.min(200, Math.max(...chartData.map(d => d.channel.name.length * 7), 60) + 12)
@@ -156,6 +191,16 @@ export function ChannelChart({ data, customers, locations, title = 'Temas Kanall
               {g.label}
             </button>
           ))}
+
+          {/* Date period dropdown */}
+          <span className="h-4 w-px bg-gray-200 mx-0.5 shrink-0" />
+          <StyledSelect
+            compact
+            value={selectedPeriod}
+            onChange={v => setSelectedPeriod(v as DatePeriod)}
+            className="w-32"
+            options={DATE_PERIOD_OPTIONS}
+          />
         </div>
       )}
 
