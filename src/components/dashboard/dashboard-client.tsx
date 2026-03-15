@@ -8,6 +8,7 @@ import { ContactHeatmap } from '@/components/charts/contact-heatmap'
 import { ChannelChart } from '@/components/charts/channel-chart'
 import { QuickRegister } from '@/components/customers/quick-register'
 import { StyledSelect } from '@/components/ui/styled-select'
+import { Filter } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,6 +62,7 @@ interface DashboardClientProps {
   customers:        RawCustomer[]
   contactLogs:      { id: string; contact_date: string }[]
   locations:        { id: string; name: string }[]
+  consultants:      { id: string; full_name: string }[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   brands:           any[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,21 +79,23 @@ interface DashboardClientProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function DashboardClient({
-  customers, contactLogs, locations, brands, stages, models,
+  customers, contactLogs, locations, consultants, brands, stages, models,
   firstName, today, roleLabel, currentUserId, currentLocationId,
 }: DashboardClientProps) {
-  const [selectedLocation, setSelectedLocation] = useState('all')
-  const [selectedBrand,    setSelectedBrand]    = useState<'all' | 'fiat' | 'arj'>('all')
-  const [selectedPeriod,   setSelectedPeriod]   = useState<DatePeriod>('all')
+  const [selectedLocation,   setSelectedLocation]   = useState('all')
+  const [selectedBrand,      setSelectedBrand]      = useState<'all' | 'fiat' | 'arj'>('all')
+  const [selectedPeriod,     setSelectedPeriod]     = useState<DatePeriod>('all')
+  const [selectedConsultant, setSelectedConsultant] = useState('all')
 
   // ── Filtered customers ───────────────────────────────────────────────────
   const filtered = useMemo(() => {
     let list = customers
-    if (selectedLocation !== 'all') list = list.filter(c => c.location_id === selectedLocation)
-    if (selectedPeriod   !== 'all') list = list.filter(c => isInPeriod(c.created_at, selectedPeriod))
-    if (selectedBrand    !== 'all') list = list.filter(c => brandMatch(c, selectedBrand))
+    if (selectedLocation   !== 'all') list = list.filter(c => c.location_id === selectedLocation)
+    if (selectedPeriod     !== 'all') list = list.filter(c => isInPeriod(c.created_at, selectedPeriod))
+    if (selectedBrand      !== 'all') list = list.filter(c => brandMatch(c, selectedBrand))
+    if (selectedConsultant !== 'all') list = list.filter(c => c.consultant_id === selectedConsultant)
     return list
-  }, [customers, selectedLocation, selectedPeriod, selectedBrand])
+  }, [customers, selectedLocation, selectedPeriod, selectedBrand, selectedConsultant])
 
   // ── Stat counts ──────────────────────────────────────────────────────────
   const totalCustomers  = filtered.length
@@ -173,7 +177,7 @@ export function DashboardClient({
             ))}
           </div>
 
-          {/* Right side: şube + marka dropdowns */}
+          {/* Right side: şube + marka + danışman dropdowns */}
           <div className="flex items-center gap-2 flex-wrap">
             {locations.length > 0 && (
               <StyledSelect
@@ -191,6 +195,18 @@ export function DashboardClient({
               className="w-40"
               options={BRAND_OPTIONS.filter(o => o.id !== 'all')}
             />
+            {consultants.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Filter className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                <StyledSelect
+                  value={selectedConsultant === 'all' ? '' : selectedConsultant}
+                  onChange={v => setSelectedConsultant(v || 'all')}
+                  placeholder="Tüm Danışmanlar"
+                  className="w-44"
+                  options={consultants.map(c => ({ id: c.id, label: c.full_name }))}
+                />
+              </div>
+            )}
           </div>
 
         </div>

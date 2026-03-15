@@ -17,6 +17,7 @@ export default async function DashboardPage() {
     { data: stages },
     { data: customers },
     { data: contactLogs },
+    { data: consultants },
   ] = await Promise.all([
     supabase.from('brands').select('*').eq('is_active', true).order('name'),
     supabase.from('vehicle_models').select('id, brand_id, name').eq('is_active', true).order('sort_order'),
@@ -24,6 +25,7 @@ export default async function DashboardPage() {
     supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order'),
     supabase.from('customers').select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id, source_channel_id, brand:brands(id, name, color), source_channel:contact_channels(id, name, slug, icon_name, color)').eq('is_active', true),
     supabase.from('contact_logs').select('id, contact_date'),
+    supabase.from('user_profiles').select('id, full_name').in('role', ['consultant', 'manager']).eq('is_active', true).order('full_name'),
   ])
 
   const firstName  = profile?.full_name?.split(' ')[0] ?? 'Kullanıcı'
@@ -38,6 +40,7 @@ export default async function DashboardPage() {
       brands={brands ?? []}
       stages={stages ?? []}
       models={models ?? []}
+      consultants={consultants ?? []}
       firstName={firstName}
       today={today}
       roleLabel={roleLabel}
