@@ -735,7 +735,8 @@ export default function ConsultantReportPage() {
 
       {/* Channel Chart */}
       <ChannelChart
-        data={channelStats as import('@/lib/types/database').ChannelStats[]}
+        customers={allCustomerList}
+        locations={locations}
         title="Temas Kanalları Dağılımı"
       />
 
