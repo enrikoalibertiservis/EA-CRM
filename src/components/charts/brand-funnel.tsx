@@ -43,7 +43,6 @@ export function BrandFunnel({ data }: { data: BrandFunnelData }) {
                 width={40}
                 height={40}
                 className="object-contain w-10 h-10"
-                style={{ mixBlendMode: 'multiply' }}
               />
             </div>
           ) : (
