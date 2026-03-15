@@ -19,10 +19,15 @@ interface Props {
   currentLocationId: string
 }
 
-function nowLocal() {
+const pad = (n: number) => String(n).padStart(2, '0')
+
+function nowDatePart() {
   const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+function nowTimePart() {
+  const d = new Date()
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 function formatGSM(v: string) {
@@ -34,9 +39,10 @@ function formatGSM(v: string) {
 }
 
 export function QuickRegister({ brands, models, locations, currentUserId, currentLocationId }: Props) {
-  const [loading, setLoading]       = useState(false)
-  const [saved, setSaved]           = useState(false)
-  const [regDate, setRegDate]       = useState(nowLocal)
+  const [loading, setLoading]         = useState(false)
+  const [saved, setSaved]             = useState(false)
+  const [regDatePart, setRegDatePart] = useState(nowDatePart)
+  const [regTimePart, setRegTimePart] = useState(nowTimePart)
   const [dateEditable, setDateEditable] = useState(false)
   const [name, setName]             = useState('')
   const [phone, setPhone]       = useState('')
@@ -48,7 +54,7 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
   // Kullanıcı düzenlemiyorsa her 30sn'de otomatik güncelle
   useEffect(() => {
     if (dateEditable) return
-    const id = setInterval(() => setRegDate(nowLocal()), 30_000)
+    const id = setInterval(() => { setRegDatePart(nowDatePart()); setRegTimePart(nowTimePart()) }, 30_000)
     return () => clearInterval(id)
   }, [dateEditable])
 
@@ -82,7 +88,7 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
         consultant_id:    currentUserId,
         location_id:      locationId || currentLocationId,
         created_by:       currentUserId,
-        created_at:       new Date(regDate).toISOString(),
+        created_at:       new Date(`${regDatePart}T${regTimePart}`).toISOString(),
       }).select().single()
       if (error) throw error
       setSaved(true)
@@ -92,7 +98,8 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
         setPhone('')
         setBrandId('')
         setModel('')
-        setRegDate(nowLocal())
+        setRegDatePart(nowDatePart())
+        setRegTimePart(nowTimePart())
         setDateEditable(false)
         setErrors({})
       }, 2000)
@@ -162,21 +169,32 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
               <Calendar className="h-3 w-3 text-gray-400" />
               Kayıt Tarihi
             </label>
-            <div className="relative">
+            <div className="flex gap-1 items-center">
               <input
-                type="datetime-local"
-                value={regDate}
-                onChange={e => setRegDate(e.target.value)}
+                type="date"
+                lang="tr"
+                value={regDatePart}
+                onChange={e => setRegDatePart(e.target.value)}
                 readOnly={!dateEditable}
                 onClick={() => !dateEditable && setDateEditable(true)}
-                className={`w-full h-8 rounded-lg border px-2 pr-7 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${
+                className={`flex-1 h-8 rounded-lg border px-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${
+                  dateEditable ? 'border-green-400' : 'border-gray-200 text-gray-500 cursor-pointer'
+                }`}
+              />
+              <input
+                type="time"
+                value={regTimePart}
+                onChange={e => setRegTimePart(e.target.value)}
+                readOnly={!dateEditable}
+                onClick={() => !dateEditable && setDateEditable(true)}
+                className={`w-20 h-8 rounded-lg border px-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${
                   dateEditable ? 'border-green-400' : 'border-gray-200 text-gray-500 cursor-pointer'
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setDateEditable(v => !v)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-600 transition-colors"
+                className="text-gray-400 hover:text-green-600 transition-colors shrink-0"
                 title={dateEditable ? 'Kilitle' : 'Düzenle'}
               >
                 {dateEditable
