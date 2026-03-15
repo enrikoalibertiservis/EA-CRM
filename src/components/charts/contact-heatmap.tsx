@@ -143,25 +143,14 @@ export function ContactHeatmap({
   return (
     <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-            <BarChart2 className="h-4 w-4 text-indigo-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900">{title}</h3>
-            <p className="text-[10px] text-gray-400 mt-0.5">Müşteri kayıt zamanı dağılımı</p>
-          </div>
+      <div className="flex items-center gap-2 mb-3 shrink-0">
+        <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+          <BarChart2 className="h-4 w-4 text-indigo-500" />
         </div>
-        {peakHour.count > 0 && (
-          <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 border"
-            style={{ backgroundColor: activeBrand.color + '12', borderColor: activeBrand.color + '30' }}>
-            <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: activeBrand.color }} />
-            <span className="text-[11px] font-semibold" style={{ color: activeBrand.color }}>
-              {String(peakHour.hour).padStart(2, '0')}:00 — en yoğun
-            </span>
-          </div>
-        )}
+        <div>
+          <h3 className="text-sm font-bold text-gray-900">{title}</h3>
+          <p className="text-[10px] text-gray-400 mt-0.5">Müşteri kayıt zamanı dağılımı</p>
+        </div>
       </div>
 
       {/* Filters row: location + brand + day dropdown — all in one line */}
@@ -227,9 +216,9 @@ export function ContactHeatmap({
 
       {/* Bar chart */}
       <div className="flex-1 flex flex-col justify-end">
-        <div className="flex items-end gap-1 px-1" style={{ height: '80px' }}>
+        <div className="flex items-end gap-1 px-1" style={{ height: '100px' }}>
           {dayData.map(({ hour, count }) => {
-            const MAX_BAR = 64
+            const MAX_BAR = 80
             const barHeight = count === 0 ? 3 : Math.max(Math.round((count / maxCount) * MAX_BAR), 12)
             const isPeak = count > 0 && count === peakHour.count
             return (
@@ -267,6 +256,12 @@ export function ContactHeatmap({
       {/* Footer */}
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 shrink-0">
         <span className="text-[10px] text-gray-400">Toplam: <strong className="text-gray-600">{filtered.length}</strong> müşteri</span>
+        {peakHour.count > 0 && (
+          <span className="text-[10px] font-medium flex items-center gap-1" style={{ color: activeBrand.color }}>
+            <span className="h-1.5 w-1.5 rounded-full inline-block" style={{ backgroundColor: activeBrand.color }} />
+            {String(peakHour.hour).padStart(2, '0')}:00 en yoğun saat
+          </span>
+        )}
         <span className="text-[10px] text-gray-400">08:00 – 18:00</span>
       </div>
     </div>
