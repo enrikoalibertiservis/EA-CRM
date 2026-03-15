@@ -5,9 +5,41 @@ import { BarChart2 } from 'lucide-react'
 import type { HeatmapCell } from '@/lib/types/database'
 import { StyledSelect } from '@/components/ui/styled-select'
 
-const DAYS     = ['PZT', 'SAL', 'ÇAR', 'PER', 'CUM', 'CMT', 'PAZ']
-const DAYS_FULL = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar']
-const HOURS    = Array.from({ length: 11 }, (_, i) => i + 8) // 08–18
+const HOURS = Array.from({ length: 11 }, (_, i) => i + 8) // 08–18
+
+type DatePeriod = 'all' | 'today' | 'week' | 'month' | 'last_month'
+
+const DATE_PERIOD_OPTIONS = [
+  { id: 'all',        label: 'Tümü' },
+  { id: 'today',      label: 'Bugün' },
+  { id: 'week',       label: 'Bu Hafta' },
+  { id: 'month',      label: 'Bu Ay' },
+  { id: 'last_month', label: 'Geçen Ay' },
+]
+
+function isInPeriod(date: Date, period: DatePeriod): boolean {
+  const now = new Date()
+  if (period === 'all') return true
+  if (period === 'today') {
+    return date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+  }
+  if (period === 'week') {
+    const startOfWeek = new Date(now)
+    startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7))
+    startOfWeek.setHours(0, 0, 0, 0)
+    return date >= startOfWeek
+  }
+  if (period === 'month') {
+    return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth()
+  }
+  if (period === 'last_month') {
+    const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    return date.getFullYear() === lm.getFullYear() && date.getMonth() === lm.getMonth()
+  }
+  return true
+}
 
 type CustomerEntry = {
   brand_id: string
@@ -29,12 +61,13 @@ type BrandGroup = {
   filter: (c: CustomerEntry) => boolean
 }
 
-function buildHeatmap(entries: CustomerEntry[]) {
-  const map = new Map<string, number>()
+function buildHourlyMap(entries: CustomerEntry[], period: DatePeriod): Map<number, number> {
+  const map = new Map<number, number>()
   entries.forEach(c => {
     const d = new Date(c.created_at)
-    const key = `${(d.getDay() + 6) % 7}-${d.getHours()}`
-    map.set(key, (map.get(key) ?? 0) + 1)
+    if (!isInPeriod(d, period)) return
+    const h = d.getHours()
+    map.set(h, (map.get(h) ?? 0) + 1)
   })
   return map
 }
@@ -54,10 +87,8 @@ export function ContactHeatmap({
   if (data && !customers) return <LegacyHeatmap data={data} title={title} />
 
   const safeCustomers = customers ?? []
-  const now = new Date()
-  const todayIdx = (now.getDay() + 6) % 7
-  const [selectedDay, setSelectedDay]       = useState(todayIdx)
-  const [selectedBrand, setSelectedBrand]   = useState('all')
+  const [selectedPeriod, setSelectedPeriod]     = useState<DatePeriod>('all')
+  const [selectedBrand, setSelectedBrand]       = useState('all')
   const [selectedLocation, setSelectedLocation] = useState('all')
 
   // Lokasyon filtrelenmiş müşteriler
@@ -122,11 +153,11 @@ export function ContactHeatmap({
   const activeBrand = brandGroups.find(g => g.key === selectedBrand) ?? brandGroups[0]
   const filtered    = useMemo(() => locationFiltered.filter(activeBrand.filter), [locationFiltered, activeBrand])
 
-  const heatmap = useMemo(() => buildHeatmap(filtered), [filtered])
+  const hourlyMap = useMemo(() => buildHourlyMap(filtered, selectedPeriod), [filtered, selectedPeriod])
 
   const dayData = useMemo(() =>
-    HOURS.map(hour => ({ hour, count: heatmap.get(`${selectedDay}-${hour}`) ?? 0 })),
-    [heatmap, selectedDay]
+    HOURS.map(hour => ({ hour, count: hourlyMap.get(hour) ?? 0 })),
+    [hourlyMap]
   )
 
   const maxCount = Math.max(...dayData.map(d => d.count), 1)
@@ -200,17 +231,14 @@ export function ContactHeatmap({
           </button>
         ))}
 
-        {/* Day dropdown */}
+        {/* Date period dropdown */}
         <span className="h-4 w-px bg-gray-200 mx-0.5 shrink-0" />
         <StyledSelect
           compact
-          value={String(selectedDay)}
-          onChange={v => setSelectedDay(Number(v))}
-          className="w-36"
-          options={DAYS.map((day, idx) => {
-            const total = Array.from({ length: 24 }, (_, h) => heatmap.get(`${idx}-${h}`) ?? 0).reduce((s, v) => s + v, 0)
-            return { id: String(idx), label: `${DAYS_FULL[idx]}${total > 0 ? ` (${total})` : ''}` }
-          })}
+          value={selectedPeriod}
+          onChange={v => setSelectedPeriod(v as DatePeriod)}
+          className="w-32"
+          options={DATE_PERIOD_OPTIONS}
         />
       </div>
 
