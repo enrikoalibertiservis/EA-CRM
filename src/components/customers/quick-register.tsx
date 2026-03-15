@@ -122,8 +122,8 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
 
       <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3 flex-1">
 
-        {/* Ad Soyad + Telefon — yan yana */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Ad Soyad + Telefon + Kayıt Tarihi — yan yana */}
+        <div className="grid grid-cols-3 gap-2">
           <div>
             <label className="text-[11px] font-medium text-gray-500 block mb-1">
               Ad Soyad <span className="text-red-400">*</span>
@@ -156,6 +156,35 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
               />
             </div>
             {errors.phone && <p className="text-[10px] text-red-500 mt-0.5">{errors.phone}</p>}
+          </div>
+          <div>
+            <label className="text-[11px] font-medium text-gray-500 flex items-center gap-1 mb-1">
+              <Calendar className="h-3 w-3 text-gray-400" />
+              Kayıt Tarihi
+            </label>
+            <div className="relative">
+              <input
+                type="datetime-local"
+                value={regDate}
+                onChange={e => setRegDate(e.target.value)}
+                readOnly={!dateEditable}
+                onClick={() => !dateEditable && setDateEditable(true)}
+                className={`w-full h-8 rounded-lg border px-2 pr-7 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${
+                  dateEditable ? 'border-green-400' : 'border-gray-200 text-gray-500 cursor-pointer'
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setDateEditable(v => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-600 transition-colors"
+                title={dateEditable ? 'Kilitle' : 'Düzenle'}
+              >
+                {dateEditable
+                  ? <Pencil className="h-3 w-3 text-green-500" />
+                  : <Lock className="h-3 w-3" />
+                }
+              </button>
+            </div>
           </div>
         </div>
 
@@ -227,39 +256,6 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
           )}
         </div>
 
-        {/* Kayıt Tarihi */}
-        <div>
-          <label className="text-[11px] font-medium text-gray-500 flex items-center gap-1 mb-1">
-            <Calendar className="h-3 w-3 text-gray-400" />
-            Kayıt Tarihi / Saati
-          </label>
-          <div className="relative">
-            <input
-              type="datetime-local"
-              value={regDate}
-              onChange={e => setRegDate(e.target.value)}
-              readOnly={!dateEditable}
-              onClick={() => !dateEditable && setDateEditable(true)}
-              className={`w-full h-8 rounded-lg border px-2 pr-8 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${
-                dateEditable ? 'border-green-400' : 'border-gray-200 text-gray-500 cursor-pointer'
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => setDateEditable(v => !v)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-600 transition-colors"
-              title={dateEditable ? 'Kilitle' : 'Düzenle'}
-            >
-              {dateEditable
-                ? <Pencil className="h-3 w-3 text-green-500" />
-                : <Lock className="h-3 w-3" />
-              }
-            </button>
-          </div>
-          {!dateEditable && (
-            <p className="text-[9px] text-gray-400 mt-0.5">Değiştirmek için tıkla</p>
-          )}
-        </div>
 
         {/* Submit */}
         <button
