@@ -490,6 +490,7 @@ export function PipelineTimeline({
 
             {/* ── Stage note ── */}
             <StageNoteField
+              key={expandedStage.id}
               stageId={expandedStage.id}
               customerId={customerId}
               existingNote={expandedHistory[0]?.note ?? null}
@@ -558,13 +559,22 @@ function StageNoteField({
     if (trimmed === (existingNote ?? '')) return
     setSaving(true)
     const supabase = createClient()
-    await supabase
+    // En son history kaydının id'sini bul, sadece onu güncelle
+    const supabase2 = createClient()
+    const { data: latest } = await supabase2
       .from('customer_stage_history')
-      .update({ note: trimmed || null })
+      .select('id')
       .eq('customer_id', customerId)
       .eq('stage_id', stageId)
       .order('entered_at', { ascending: false })
       .limit(1)
+      .single()
+    if (latest?.id) {
+      await supabase
+        .from('customer_stage_history')
+        .update({ note: trimmed || null })
+        .eq('id', latest.id)
+    }
     setSaving(false)
     toast.success('Not kaydedildi')
   }
