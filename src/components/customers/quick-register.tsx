@@ -182,12 +182,20 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
                 }`}
               />
               <input
-                type="time"
+                type="text"
                 value={regTimePart}
-                onChange={e => setRegTimePart(e.target.value)}
+                onChange={e => {
+                  // Sadece rakam ve ":" kabul et, HH:mm formatına yönlendir
+                  const raw = e.target.value.replace(/[^\d:]/g, '').slice(0, 5)
+                  const digits = raw.replace(/:/g, '')
+                  if (digits.length <= 2) setRegTimePart(digits)
+                  else setRegTimePart(`${digits.slice(0, 2)}:${digits.slice(2, 4)}`)
+                }}
                 readOnly={!dateEditable}
                 onClick={() => !dateEditable && setDateEditable(true)}
-                className={`w-20 h-8 rounded-lg border px-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${
+                placeholder="SS:dd"
+                maxLength={5}
+                className={`w-16 h-8 rounded-lg border px-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-green-400 transition-all text-center ${
                   dateEditable ? 'border-green-400' : 'border-gray-200 text-gray-500 cursor-pointer'
                 }`}
               />
