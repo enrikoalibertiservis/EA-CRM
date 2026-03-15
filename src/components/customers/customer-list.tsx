@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import type { Customer } from '@/lib/types/database'
+import { StyledSelect } from '@/components/ui/styled-select'
 
 // ─── Custom Multi-Select Dropdown ────────────────────────────────────────────
 
@@ -360,13 +361,17 @@ export function CustomerList({ customers, brands, stages, consultants, locations
             </button>
           )}
         </div>
-        <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); resetPage() }}
-          className="h-10 w-32 sm:w-36 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 px-3 pr-8 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
-          <option value="">Tüm Durumlar</option>
-          <option value="active">Aktif Takip</option>
-          <option value="won">Kazanılan</option>
-          <option value="lost">Kaybedilen</option>
-        </select>
+        <StyledSelect
+          value={filterStatus}
+          onChange={(v) => { setFilterStatus(v); resetPage() }}
+          placeholder="Tüm Durumlar"
+          className="w-32 sm:w-36"
+          options={[
+            { id: 'active', label: 'Aktif Takip', color: '#3B82F6' },
+            { id: 'won',    label: 'Kazanılan',   color: '#10B981' },
+            { id: 'lost',   label: 'Kaybedilen',  color: '#EF4444' },
+          ]}
+        />
         <button onClick={() => setShowFilters(!showFilters)}
           className={`flex items-center gap-1.5 h-10 px-4 rounded-lg border text-sm font-medium shadow-sm transition-colors ${
             activeFilters > 0 ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'

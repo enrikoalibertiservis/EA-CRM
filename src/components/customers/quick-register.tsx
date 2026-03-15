@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { UserPlus, Phone, User, Car, Zap, CheckCircle, Calendar, Lock, Pencil } from 'lucide-react'
+import { StyledSelect } from '@/components/ui/styled-select'
 
 interface LocationOption {
   id: string
@@ -185,20 +186,13 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
         {/* Model + Lokasyon — yan yana */}
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-[11px] font-medium text-gray-500 block mb-1">
-              <Car className="inline h-3 w-3 mr-0.5 text-gray-400" />
-              Model
-            </label>
-            <select
+            <StyledSelect
+              label="Model"
               value={model}
-              onChange={e => setModel(e.target.value)}
-              className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300"
-            >
-              <option value="">Seçin</option>
-              {filteredModels.map(m => (
-                <option key={m.id} value={m.name}>{m.name}</option>
-              ))}
-            </select>
+              onChange={v => setModel(v)}
+              placeholder="Seçin"
+              options={filteredModels.map(m => ({ id: m.name, label: m.name }))}
+            />
           </div>
 
           {locations && locations.length > 0 && (

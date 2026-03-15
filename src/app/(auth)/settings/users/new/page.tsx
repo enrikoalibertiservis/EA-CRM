@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { UserPlus, Mail, Lock, User, Phone, Building2, Shield, Briefcase } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Location } from '@/lib/types/database'
+import { StyledSelect } from '@/components/ui/styled-select'
 
 export default function NewUserPage() {
   const router = useRouter()
@@ -137,35 +138,43 @@ export default function NewUserPage() {
             <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1.5">
               <Shield className="h-3.5 w-3.5 text-gray-400" /> Rol <span className="text-red-500">*</span>
             </label>
-            <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-              className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
-              <option value="consultant">Satış Danışmanı</option>
-              <option value="manager">Satış Müdürü</option>
-              <option value="super_admin">Yönetici</option>
-            </select>
+            <StyledSelect
+              value={form.role}
+              onChange={v => setForm(f => ({ ...f, role: v }))}
+              options={[
+                { id: 'consultant',  label: 'Satış Danışmanı' },
+                { id: 'manager',     label: 'Satış Müdürü' },
+                { id: 'super_admin', label: 'Yönetici' },
+              ]}
+            />
           </div>
           <div>
             <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1.5">
               <Building2 className="h-3.5 w-3.5 text-gray-400" /> Lokasyon <span className="text-red-500">*</span>
             </label>
-            <select value={form.location_id} onChange={e => setForm(f => ({ ...f, location_id: e.target.value }))}
-              className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
-              {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-            </select>
+            <StyledSelect
+              value={form.location_id}
+              onChange={v => setForm(f => ({ ...f, location_id: v }))}
+              placeholder="Seçiniz"
+              options={locations.map(l => ({ id: l.id, label: l.name }))}
+            />
           </div>
           <div>
             <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-1.5">
               <Briefcase className="h-3.5 w-3.5 text-gray-400" /> Departman
             </label>
-            <select value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))}
-              className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
-              <option value="">Seçiniz</option>
-              <option value="satis">Satış</option>
-              <option value="servis">Servis</option>
-              <option value="yonetim">Yönetim</option>
-              <option value="muhasebe">Muhasebe</option>
-              <option value="diger">Diğer</option>
-            </select>
+            <StyledSelect
+              value={form.department}
+              onChange={v => setForm(f => ({ ...f, department: v }))}
+              placeholder="Seçiniz"
+              options={[
+                { id: 'satis',    label: 'Satış' },
+                { id: 'servis',   label: 'Servis' },
+                { id: 'yonetim',  label: 'Yönetim' },
+                { id: 'muhasebe', label: 'Muhasebe' },
+                { id: 'diger',    label: 'Diğer' },
+              ]}
+            />
           </div>
         </div>
 

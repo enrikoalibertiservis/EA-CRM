@@ -13,6 +13,7 @@ import {
 import { cn } from '@/lib/utils'
 import { ContactHeatmap } from '@/components/charts/contact-heatmap'
 import { ChannelChart } from '@/components/charts/channel-chart'
+import { StyledSelect } from '@/components/ui/styled-select'
 
 type DateMode = '' | 'today' | 'week' | 'month' | 'last_month' | 'custom'
 
@@ -414,16 +415,13 @@ export default function ConsultantReportPage() {
             <LocationFilterRow locations={locations} value={locationFilter} onChange={setLocationFilter} />
             <div className="flex items-center gap-2">
               <Filter className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-              <select
-                value={selectedConsultantFilter}
-                onChange={e => setSelectedConsultantFilter(e.target.value)}
-                className="h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300"
-              >
-                <option value="toplam">Tüm Danışmanlar</option>
-                {stats.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
+              <StyledSelect
+                value={selectedConsultantFilter === 'toplam' ? '' : selectedConsultantFilter}
+                onChange={v => setSelectedConsultantFilter(v || 'toplam')}
+                placeholder="Tüm Danışmanlar"
+                className="w-44"
+                options={stats.map(s => ({ id: s.id, label: s.name }))}
+              />
             </div>
           </div>
         </div>

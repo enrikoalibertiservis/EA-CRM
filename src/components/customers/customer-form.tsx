@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import Link from 'next/link'
+import { StyledSelect } from '@/components/ui/styled-select'
 
 // ─── GSM Formatter ────────────────────────────────────────────────────────────
 
@@ -327,18 +328,15 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-700 block mb-1">İlgilendiği Model</label>
-                <select value={form.interested_model} onChange={(e) => update('interested_model', e.target.value)}
-                  className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
-                  <option value="">Model seçin</option>
-                  {form.brand_id
-                    ? models.filter(m => m.brand_id === form.brand_id).map(m => (
-                      <option key={m.id} value={m.name}>{m.name}</option>
-                    ))
-                    : models.map(m => (
-                      <option key={m.id} value={m.name}>{m.name}</option>
-                    ))
-                  }
-                </select>
+                <StyledSelect
+                  value={form.interested_model}
+                  onChange={(v) => update('interested_model', v)}
+                  placeholder="Model seçin"
+                  options={(form.brand_id
+                    ? models.filter(m => m.brand_id === form.brand_id)
+                    : models
+                  ).map(m => ({ id: m.name, label: m.name }))}
+                />
               </div>
             </div>
 
@@ -410,10 +408,12 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-gray-700 block mb-1">Sorumlu Danışman</label>
-                <select value={form.consultant_id} onChange={(e) => update('consultant_id', e.target.value)} className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
-                  <option value="">Bana ata (varsayılan)</option>
-                  {consultants.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
-                </select>
+                <StyledSelect
+                  value={form.consultant_id}
+                  onChange={(v) => update('consultant_id', v)}
+                  placeholder="Bana ata (varsayılan)"
+                  options={consultants.map(c => ({ id: c.id, label: c.full_name }))}
+                />
               </div>
               {locations && locations.length > 0 && (
                 <div>
