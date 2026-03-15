@@ -361,7 +361,6 @@ export function CustomerList({ customers, brands, stages, consultants, locations
           </div>
         )
       })()}
-      )}
 
       {/* Search + Filters */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
