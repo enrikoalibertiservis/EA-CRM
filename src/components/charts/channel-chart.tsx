@@ -79,9 +79,10 @@ interface ChannelChartProps {
   customers?: CustomerEntry[]
   locations?: LocationOption[]
   title?: string
+  hideFilters?: boolean
 }
 
-export function ChannelChart({ data, customers, locations, title = 'Temas Kanalları Dağılımı' }: ChannelChartProps) {
+export function ChannelChart({ data, customers, locations, title = 'Temas Kanalları Dağılımı', hideFilters = false }: ChannelChartProps) {
   const [selectedLocation, setSelectedLocation] = useState('all')
   const [selectedBrand, setSelectedBrand] = useState('all')
   const [selectedPeriod, setSelectedPeriod] = useState<DatePeriod>('all')
@@ -147,8 +148,8 @@ export function ChannelChart({ data, customers, locations, title = 'Temas Kanall
         </div>
       </div>
 
-      {/* Filters — only when customers prop provided */}
-      {customers && (
+      {/* Filters — only when customers prop provided and not hidden */}
+      {customers && !hideFilters && (
         <div className="flex items-center gap-1.5 mb-3 flex-wrap shrink-0">
           {/* Location buttons */}
           {locations && locations.length > 0 && (

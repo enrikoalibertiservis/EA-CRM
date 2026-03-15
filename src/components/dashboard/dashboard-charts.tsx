@@ -157,10 +157,10 @@ export function DashboardCharts({ customers, locations }: DashboardChartsProps) 
         />
       </div>
 
-      {/* Charts — receive globally filtered customers, no internal filters */}
+      {/* Charts — global filter bar controls both, no internal filters */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ContactHeatmap customers={filtered as never[]} />
-        <ChannelChart customers={filtered} />
+        <ContactHeatmap customers={filtered as never[]} hideFilters />
+        <ChannelChart customers={filtered} hideFilters />
       </div>
     </div>
   )
