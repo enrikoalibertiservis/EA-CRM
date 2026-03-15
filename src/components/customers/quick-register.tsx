@@ -234,8 +234,8 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
           </div>
         </div>
 
-        {/* Marka + Lokasyon — yan yana */}
-        <div className="flex items-end gap-4 flex-wrap">
+        {/* Marka + Model + Lokasyon — tek satırda */}
+        <div className="flex items-end gap-3 flex-wrap">
           <div>
             <label className="text-[11px] font-medium text-gray-500 block mb-1">
               Marka <span className="text-red-400">*</span>
@@ -257,6 +257,16 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
               ))}
             </div>
             {errors.brand && <p className="text-[10px] text-red-500 mt-0.5">{errors.brand}</p>}
+          </div>
+
+          <div className="w-36">
+            <StyledSelect
+              label="Model"
+              value={model}
+              onChange={v => setModel(v)}
+              placeholder="Seçin"
+              options={filteredModels.map(m => ({ id: m.name, label: m.name }))}
+            />
           </div>
 
           {locations && locations.length > 0 && (
@@ -291,41 +301,32 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
           )}
         </div>
 
-        {/* Model + Kaydet — yan yana */}
-        <div className="flex items-end gap-2 mt-auto">
-          <div className="flex-1">
-            <StyledSelect
-              label="Model"
-              value={model}
-              onChange={v => setModel(v)}
-              placeholder="Seçin"
-              options={filteredModels.map(m => ({ id: m.name, label: m.name }))}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading || saved}
-            className={`shrink-0 h-9 px-5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 border-2 active:scale-[0.98] ${
-              saved
-                ? 'bg-green-500 border-green-500 text-white scale-[1.01]'
-                : 'border-green-500 text-green-700 bg-white hover:bg-green-500 hover:text-white disabled:opacity-50'
-            }`}
-          >
-            {saved ? (
-              <><CheckCircle className="h-4 w-4 animate-bounce" /> Kaydedildi ✓</>
-            ) : loading ? (
-              <>
-                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Kaydediliyor...
-              </>
-            ) : (
-              <><UserPlus className="h-4 w-4" /> Kaydet →</>
-            )}
-          </button>
-        </div>
+        {/* Kaydet — büyük saydam yeşil */}
+        <button
+          type="submit"
+          disabled={loading || saved}
+          className={`mt-auto w-full h-11 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 active:scale-[0.99] ${
+            saved
+              ? 'bg-green-500/80 text-white'
+              : loading
+              ? 'bg-green-100 text-green-600 cursor-not-allowed'
+              : 'bg-green-500/15 text-green-700 hover:bg-green-500/25 border border-green-400/40'
+          }`}
+        >
+          {saved ? (
+            <><CheckCircle className="h-4 w-4 animate-bounce" /> Kaydedildi ✓</>
+          ) : loading ? (
+            <>
+              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Kaydediliyor...
+            </>
+          ) : (
+            <><UserPlus className="h-4 w-4" /> Kaydet ve Devam Et →</>
+          )}
+        </button>
       </form>
     </div>
   )
