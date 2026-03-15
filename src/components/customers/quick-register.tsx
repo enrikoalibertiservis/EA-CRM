@@ -188,40 +188,29 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
           </div>
         </div>
 
-        {/* Marka */}
-        <div>
-          <label className="text-[11px] font-medium text-gray-500 block mb-1">
-            Marka <span className="text-red-400">*</span>
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            {brands.map(b => (
-              <button
-                key={b.id}
-                type="button"
-                onClick={() => { handleBrand(b.id); setErrors(p => { const n={...p}; delete n.brand; return n }) }}
-                className="h-7 px-3 rounded-lg border text-xs font-semibold transition-all"
-                style={brandId === b.id
-                  ? { backgroundColor: b.color + 'cc', borderColor: b.color, color: '#fff' }
-                  : { backgroundColor: b.color + '10', borderColor: b.color + '40', color: b.color }
-                }
-              >
-                {b.name}
-              </button>
-            ))}
-          </div>
-          {errors.brand && <p className="text-[10px] text-red-500 mt-0.5">{errors.brand}</p>}
-        </div>
-
-        {/* Model + Lokasyon — yan yana */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Marka + Lokasyon — yan yana */}
+        <div className="flex items-end gap-4 flex-wrap">
           <div>
-            <StyledSelect
-              label="Model"
-              value={model}
-              onChange={v => setModel(v)}
-              placeholder="Seçin"
-              options={filteredModels.map(m => ({ id: m.name, label: m.name }))}
-            />
+            <label className="text-[11px] font-medium text-gray-500 block mb-1">
+              Marka <span className="text-red-400">*</span>
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {brands.map(b => (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => { handleBrand(b.id); setErrors(p => { const n={...p}; delete n.brand; return n }) }}
+                  className="h-7 px-3 rounded-lg border text-xs font-semibold transition-all"
+                  style={brandId === b.id
+                    ? { backgroundColor: b.color + 'cc', borderColor: b.color, color: '#fff' }
+                    : { backgroundColor: b.color + '10', borderColor: b.color + '40', color: b.color }
+                  }
+                >
+                  {b.name}
+                </button>
+              ))}
+            </div>
+            {errors.brand && <p className="text-[10px] text-red-500 mt-0.5">{errors.brand}</p>}
           </div>
 
           {locations && locations.length > 0 && (
@@ -230,9 +219,9 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
               <div className="flex gap-1">
                 {locations.map((loc, idx) => {
                   const COLORS = [
-                    { bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.35)', text: '#4F46E5', hoverBg: 'rgba(99,102,241,0.08)' },
-                    { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.35)', text: '#059669', hoverBg: 'rgba(16,185,129,0.08)' },
-                    { bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.35)', text: '#D97706', hoverBg: 'rgba(245,158,11,0.08)' },
+                    { bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.35)', text: '#4F46E5' },
+                    { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.35)', text: '#059669' },
+                    { bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.35)', text: '#D97706' },
                   ]
                   const c = COLORS[idx % COLORS.length]
                   const isActive = locationId === loc.id
@@ -241,7 +230,7 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
                       key={loc.id}
                       type="button"
                       onClick={() => setLocationId(loc.id)}
-                      className="flex-1 h-8 rounded-lg border text-[10px] font-semibold transition-all duration-200 truncate px-2"
+                      className="h-7 px-3 rounded-lg border text-[10px] font-semibold transition-all duration-200 truncate"
                       style={isActive
                         ? { backgroundColor: c.bg, borderColor: c.border, color: c.text }
                         : { backgroundColor: 'white', borderColor: '#E5E7EB', color: '#9CA3AF' }
@@ -256,37 +245,41 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
           )}
         </div>
 
-
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={loading || saved}
-          className={`w-full h-9 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 border-2 active:scale-[0.98] mt-auto ${
-            saved
-              ? 'bg-green-500 border-green-500 text-white scale-[1.01]'
-              : 'border-green-500 text-green-700 bg-white hover:bg-green-500 hover:text-white disabled:opacity-50'
-          }`}
-        >
-          {saved ? (
-            <>
-              <CheckCircle className="h-4 w-4 animate-bounce" />
-              Kaydedildi ✓
-            </>
-          ) : loading ? (
-            <>
-              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              Kaydediliyor...
-            </>
-          ) : (
-            <>
-              <UserPlus className="h-4 w-4" />
-              Kaydet ve Devam Et →
-            </>
-          )}
-        </button>
+        {/* Model + Kaydet — yan yana */}
+        <div className="flex items-end gap-2 mt-auto">
+          <div className="flex-1">
+            <StyledSelect
+              label="Model"
+              value={model}
+              onChange={v => setModel(v)}
+              placeholder="Seçin"
+              options={filteredModels.map(m => ({ id: m.name, label: m.name }))}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading || saved}
+            className={`shrink-0 h-9 px-5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 border-2 active:scale-[0.98] ${
+              saved
+                ? 'bg-green-500 border-green-500 text-white scale-[1.01]'
+                : 'border-green-500 text-green-700 bg-white hover:bg-green-500 hover:text-white disabled:opacity-50'
+            }`}
+          >
+            {saved ? (
+              <><CheckCircle className="h-4 w-4 animate-bounce" /> Kaydedildi ✓</>
+            ) : loading ? (
+              <>
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Kaydediliyor...
+              </>
+            ) : (
+              <><UserPlus className="h-4 w-4" /> Kaydet →</>
+            )}
+          </button>
+        </div>
       </form>
     </div>
   )
