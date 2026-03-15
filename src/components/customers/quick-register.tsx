@@ -276,7 +276,7 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
                       key={loc.id}
                       type="button"
                       onClick={() => setLocationId(loc.id)}
-                      className="h-7 px-3 rounded-lg border text-[10px] font-semibold transition-all duration-200 truncate"
+                      className="h-9 px-3 rounded-xl border text-xs font-semibold transition-all duration-200 truncate"
                       style={isActive
                         ? { backgroundColor: c.bg, borderColor: c.border, color: c.text }
                         : { backgroundColor: 'white', borderColor: '#E5E7EB', color: '#9CA3AF' }
