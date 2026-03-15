@@ -26,6 +26,11 @@ const brandLogos: Record<string, string> = {
   'Jeep': '/brands/jeep.png',
 }
 
+// Beyaz logolar için koyu arka plan (aksi hâlde görünmez)
+const logoBg: Record<string, string> = {
+  'Jeep': '#1B4332',
+}
+
 export function BrandFunnel({ data }: { data: BrandFunnelData }) {
   const maxCount = Math.max(...data.stages.map((s) => s.count), 1)
   const gradient = brandGradients[data.brand.name] ?? 'from-blue-50/60 to-indigo-50/40 border-blue-100'
@@ -36,13 +41,16 @@ export function BrandFunnel({ data }: { data: BrandFunnelData }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           {logo ? (
-            <div className="w-10 h-10 flex items-center justify-center shrink-0">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
+              style={logoBg[data.brand.name] ? { backgroundColor: logoBg[data.brand.name] } : {}}
+            >
               <Image
                 src={logo}
                 alt={data.brand.name}
-                width={50}
-                height={50}
-                className="object-contain w-[50px] h-[50px]"
+                width={48}
+                height={48}
+                className="object-contain w-[48px] h-[48px]"
               />
             </div>
           ) : (
