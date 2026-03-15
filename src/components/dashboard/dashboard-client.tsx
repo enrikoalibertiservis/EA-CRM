@@ -233,7 +233,9 @@ export function DashboardClient({
       </div>
 
       {/* ── Quick Register + Brand Funnels ───────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch rounded-2xl p-3"
+        style={{ background: 'linear-gradient(135deg, #e0e7ff 0%, #f0fdf4 50%, #fdf4ff 100%)' }}
+      >
         <QuickRegister
           brands={brands.filter(b => b.slug !== 'ikinci-el' && !b.name.toLowerCase().includes('ikinci'))}
           models={models}

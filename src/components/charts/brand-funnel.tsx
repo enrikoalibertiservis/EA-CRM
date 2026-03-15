@@ -12,19 +12,19 @@ const stageIcons: Record<string, React.ElementType> = {
   'oto-koruma': Lock,
 }
 
-const brandGradients: Record<string, string> = {
-  Fiat: 'from-red-50/60 to-orange-50/40 border-red-100',
-  'Alfa Romeo': 'from-rose-50/60 to-red-50/40 border-rose-100',
-  Jeep: 'from-green-50/60 to-emerald-50/40 border-green-100',
-  'İkinci El': 'from-gray-50/60 to-slate-50/40 border-gray-200',
-}
-
 export function BrandFunnel({ data }: { data: BrandFunnelData }) {
   const maxCount = Math.max(...data.stages.map((s) => s.count), 1)
-  const gradient = brandGradients[data.brand.name] ?? 'from-blue-50/60 to-indigo-50/40 border-blue-100'
+  const brandColor = data.brand.color ?? '#6366f1'
 
   return (
-    <div className={`rounded-2xl border bg-gradient-to-br ${gradient} p-5 shadow-sm h-full`}>
+    <div
+      className="rounded-2xl p-5 h-full backdrop-blur-md"
+      style={{
+        background: 'rgba(255,255,255,0.55)',
+        border: '1px solid rgba(255,255,255,0.75)',
+        boxShadow: `0 8px 32px 0 ${brandColor}22, 0 1.5px 8px 0 rgba(0,0,0,0.06)`,
+      }}
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div>
