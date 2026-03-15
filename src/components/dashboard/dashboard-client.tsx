@@ -154,48 +154,45 @@ export function DashboardClient({
 
       {/* ── Global Filter Bar ─────────────────────────────────────────────── */}
       <div className="bg-white border border-gray-100 rounded-2xl px-5 py-3.5 shadow-sm">
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Location dropdown */}
-          {locations.length > 0 && (
-            <StyledSelect
-              value={selectedLocation === 'all' ? '' : selectedLocation}
-              onChange={v => setSelectedLocation(v || 'all')}
-              placeholder="Tüm Şubeler"
-              className="w-40"
-              options={locations.map(l => ({ id: l.id, label: l.name }))}
-            />
-          )}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
 
-          {/* Brand dropdown */}
-          <StyledSelect
-            value={selectedBrand === 'all' ? '' : selectedBrand}
-            onChange={v => setSelectedBrand((v || 'all') as 'all' | 'fiat' | 'arj')}
-            placeholder="Tüm Markalar"
-            className="w-40"
-            options={BRAND_OPTIONS.filter(o => o.id !== 'all')}
-          />
-
-          {/* Date period dropdown */}
-          <StyledSelect
-            value={selectedPeriod === 'all' ? '' : selectedPeriod}
-            onChange={v => setSelectedPeriod((v || 'all') as DatePeriod)}
-            placeholder="Tümü"
-            className="w-36"
-            options={DATE_PERIOD_OPTIONS.filter(o => o.id !== 'all')}
-          />
-
-          {/* Active filter badges */}
-          {(selectedLocation !== 'all' || selectedBrand !== 'all' || selectedPeriod !== 'all') && (
-            <>
-              <span className="h-4 w-px bg-gray-200 mx-0.5 shrink-0" />
+          {/* Date period buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {DATE_PERIOD_OPTIONS.map(opt => (
               <button
-                onClick={() => { setSelectedLocation('all'); setSelectedBrand('all'); setSelectedPeriod('all') }}
-                className="h-8 px-3 rounded-xl text-[11px] font-semibold text-gray-400 hover:text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all"
+                key={opt.id}
+                onClick={() => setSelectedPeriod(opt.id as DatePeriod)}
+                className={`h-9 px-4 rounded-xl text-xs font-semibold transition-all border ${
+                  selectedPeriod === opt.id
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200'
+                    : 'bg-blue-50/60 border-blue-100 text-blue-500 hover:bg-blue-100/70'
+                }`}
               >
-                Filtreleri Temizle
+                {opt.label}
               </button>
-            </>
-          )}
+            ))}
+          </div>
+
+          {/* Right side: şube + marka dropdowns */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {locations.length > 0 && (
+              <StyledSelect
+                value={selectedLocation === 'all' ? '' : selectedLocation}
+                onChange={v => setSelectedLocation(v || 'all')}
+                placeholder="Tüm Şubeler"
+                className="w-40"
+                options={locations.map(l => ({ id: l.id, label: l.name }))}
+              />
+            )}
+            <StyledSelect
+              value={selectedBrand === 'all' ? '' : selectedBrand}
+              onChange={v => setSelectedBrand((v || 'all') as 'all' | 'fiat' | 'arj')}
+              placeholder="Tüm Markalar"
+              className="w-40"
+              options={BRAND_OPTIONS.filter(o => o.id !== 'all')}
+            />
+          </div>
+
         </div>
       </div>
 
