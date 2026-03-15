@@ -123,7 +123,7 @@ export function StyledSelect({
   return (
     <div ref={wrapperRef} className={`relative ${className}`}>
       {label && (
-        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">
+        <label className="text-[11px] font-medium text-gray-500 block mb-1">
           {label}
         </label>
       )}
