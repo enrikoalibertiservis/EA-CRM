@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
-  LayoutDashboard, Users, UserPlus, BarChart3,
-  MapPin, Settings, Car, LogOut, ChevronRight,
+  LayoutDashboard, Users, UserPlus,
+  Settings, Car, LogOut, ChevronRight,
   ShieldCheck, UserCog, TrendingUp, Smartphone, X, Copy, CheckCheck,
   type LucideIcon,
 } from 'lucide-react'
@@ -39,14 +39,12 @@ function getNavGroups(isAdmin: boolean, isManager: boolean): NavGroup[] {
   ]
 
   if (isAdmin || isManager) {
-    const reportItems: NavItem[] = [
-      { label: 'Enriko Aliberti', href: '/reports/main', icon: BarChart3, color: 'text-amber-400' },
-    ]
-    if (isAdmin) {
-      reportItems.push({ label: 'İncesu Otomotiv', href: '/reports/bergama', icon: MapPin, color: 'text-cyan-400' })
-    }
-    reportItems.push({ label: 'Raporlar', href: '/reports/consultants', icon: TrendingUp, color: 'text-emerald-400' })
-    groups.push({ title: 'RAPORLAR', items: reportItems })
+    groups.push({
+      title: 'RAPORLAR',
+      items: [
+        { label: 'Raporlar', href: '/reports/consultants', icon: TrendingUp, color: 'text-emerald-400' },
+      ],
+    })
   }
 
   if (isAdmin) {
