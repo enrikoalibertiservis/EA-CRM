@@ -24,7 +24,7 @@ export default async function DashboardPage() {
     supabase.from('locations').select('id, name').order('name'),
     supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order'),
     supabase.from('customers').select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id, source_channel_id, brand:brands(id, name, color), source_channel:contact_channels(id, name, slug, icon_name, color)').eq('is_active', true),
-    supabase.from('contact_logs').select('id, contact_date'),
+    Promise.resolve({ data: [] }),
     supabase.from('user_profiles').select('id, full_name').in('role', ['consultant', 'manager']).eq('is_active', true).order('full_name'),
   ])
 
@@ -35,7 +35,6 @@ export default async function DashboardPage() {
   return (
     <DashboardClient
       customers={customers ?? []}
-      contactLogs={contactLogs ?? []}
       locations={locations ?? []}
       brands={brands ?? []}
       stages={stages ?? []}

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Users, MessageSquare, CheckCircle, Clock, UserPlus } from 'lucide-react'
+import { Users, XCircle, CheckCircle, Clock, UserPlus } from 'lucide-react'
 import { BrandFunnel } from '@/components/charts/brand-funnel'
 import { ContactHeatmap } from '@/components/charts/contact-heatmap'
 import { ChannelChart } from '@/components/charts/channel-chart'
@@ -60,7 +60,6 @@ type RawCustomer = any
 
 interface DashboardClientProps {
   customers:        RawCustomer[]
-  contactLogs:      { id: string; contact_date: string }[]
   locations:        { id: string; name: string }[]
   consultants:      { id: string; full_name: string }[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,7 +78,7 @@ interface DashboardClientProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function DashboardClient({
-  customers, contactLogs, locations, consultants, brands, stages, models,
+  customers, locations, consultants, brands, stages, models,
   firstName, today, roleLabel, currentUserId, currentLocationId,
 }: DashboardClientProps) {
   const [selectedLocation,   setSelectedLocation]   = useState('all')
@@ -101,10 +100,7 @@ export function DashboardClient({
   const totalCustomers  = filtered.length
   const activeCustomers = filtered.filter(c => !c.is_won && !c.is_lost).length
   const wonCustomers    = filtered.filter(c => c.is_won).length
-  const totalContacts   = useMemo(() => {
-    if (selectedPeriod === 'all') return contactLogs.length
-    return contactLogs.filter(l => isInPeriod(l.contact_date, selectedPeriod)).length
-  }, [contactLogs, selectedPeriod])
+  const lostCustomers   = filtered.filter(c => c.is_lost).length
 
   // ── Brand funnel data ────────────────────────────────────────────────────
   const brandFunnelData = useMemo(() => {
@@ -131,7 +127,7 @@ export function DashboardClient({
     { label: 'MÜŞTERİLER', value: totalCustomers,  sub: 'toplam müşteri',    icon: Users,         color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-100',   dot: 'bg-blue-500' },
     { label: 'AKTİF TAKİP', value: activeCustomers, sub: 'devam ediyor',     icon: Clock,         color: 'text-teal-600',   bg: 'bg-teal-50',   border: 'border-teal-100',   dot: 'bg-teal-500' },
     { label: 'KAZANILAN',   value: wonCustomers,    sub: 'satış tamamlandı', icon: CheckCircle,   color: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-100',  dot: 'bg-amber-500' },
-    { label: 'TEMAS',       value: totalContacts,   sub: 'toplam temas',     icon: MessageSquare, color: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100', dot: 'bg-violet-500' },
+    { label: 'KAYBEDİLEN',  value: lostCustomers,   sub: 'satış kaybedildi', icon: XCircle,       color: 'text-rose-600',   bg: 'bg-rose-50',   border: 'border-rose-100',   dot: 'bg-rose-500' },
   ]
 
   return (
