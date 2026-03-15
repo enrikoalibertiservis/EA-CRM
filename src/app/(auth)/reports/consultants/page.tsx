@@ -702,7 +702,7 @@ export default function ConsultantReportPage() {
               <YAxis
                 type="category"
                 dataKey="shortReason"
-                width={260}
+                width={Math.min(260, Math.max(...reasonBarData.map(d => d.shortReason.length * 7), 60) + 12)}
                 tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }}
                 axisLine={false}
                 tickLine={false}

@@ -6,6 +6,7 @@ import { Radio } from 'lucide-react'
 
 export function ChannelChart({ data, title = 'Temas Kanalları Dağılımı' }: { data: ChannelStats[]; title?: string }) {
   const maxCount = Math.max(...data.map(d => d.count), 1)
+  const yAxisWidth = Math.min(200, Math.max(...data.map(d => d.channel.name.length * 7), 60) + 12)
 
   return (
     <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-black/[0.04] p-5 h-full flex flex-col">
@@ -51,7 +52,7 @@ export function ChannelChart({ data, title = 'Temas Kanalları Dağılımı' }: 
               <YAxis
                 type="category"
                 dataKey="name"
-                width={200}
+                width={yAxisWidth}
                 tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }}
                 axisLine={false}
                 tickLine={false}
