@@ -647,6 +647,7 @@ export default function ConsultantReportPage() {
       <ContactHeatmap
         customers={heatmapCustomers}
         title="Müşteri Kayıt Yoğunluğu"
+        hideFilters
       />
 
       </div>{/* end 50/50 grid */}

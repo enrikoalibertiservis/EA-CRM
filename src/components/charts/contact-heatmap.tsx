@@ -77,11 +77,13 @@ export function ContactHeatmap({
   data,
   title = 'Müşteri Kayıt Yoğunluğu',
   locations,
+  hideFilters = false,
 }: {
   customers?: CustomerEntry[]
   data?: HeatmapCell[]         // legacy prop — reports sayfaları için
   title?: string
   locations?: LocationOption[]
+  hideFilters?: boolean
 }) {
   // Legacy mode: data prop verilmişse eski heatmap render et
   if (data && !customers) return <LegacyHeatmap data={data} title={title} />
@@ -185,7 +187,7 @@ export function ContactHeatmap({
       </div>
 
       {/* Filters row: location + brand + day dropdown — all in one line */}
-      <div className="flex items-center gap-1.5 mb-3 flex-wrap shrink-0">
+      {!hideFilters && <div className="flex items-center gap-1.5 mb-3 flex-wrap shrink-0">
         {/* Location buttons — shown only when locations prop provided */}
         {locations && locations.length > 0 && (
           <>
@@ -240,7 +242,7 @@ export function ContactHeatmap({
           className="w-32"
           options={DATE_PERIOD_OPTIONS}
         />
-      </div>
+      </div>}
 
       {/* Bar chart */}
       <div className="flex-1 flex flex-col justify-end">
