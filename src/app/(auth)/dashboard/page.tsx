@@ -12,6 +12,7 @@ import Image from 'next/image'
 import { formatDate } from '@/lib/utils'
 import type { Brand, SalesStage, BrandFunnelData, HeatmapCell, ChannelStats, ContactChannel } from '@/lib/types/database'
 import { QuickRegister } from '@/components/customers/quick-register'
+import { DashboardCharts } from '@/components/dashboard/dashboard-charts'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -144,14 +145,11 @@ export default async function DashboardPage() {
           .map((d) => <BrandFunnel key={d.brand.id} data={d} />)}
       </div>
 
-      {/* Heatmap + Channel */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ContactHeatmap
-          customers={(customers ?? []) as never[]}
-          locations={locations ?? []}
-        />
-        <ChannelChart data={channelStats} />
-      </div>
+      {/* Heatmap + Channel — global filter bar controls both */}
+      <DashboardCharts
+        customers={(customers ?? []) as never[]}
+        locations={locations ?? []}
+      />
 
     </div>
   )
