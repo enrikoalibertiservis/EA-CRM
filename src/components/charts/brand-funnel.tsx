@@ -26,10 +26,6 @@ const brandLogos: Record<string, string> = {
   'Jeep': '/brands/jeep.png',
 }
 
-// Fazla beyaz boşluğu olan logolar için görsel büyütme
-const logoScale: Record<string, number> = {
-  'Fiat': 1.45,
-}
 
 
 export function BrandFunnel({ data }: { data: BrandFunnelData }) {
@@ -49,7 +45,6 @@ export function BrandFunnel({ data }: { data: BrandFunnelData }) {
                 width={48}
                 height={48}
                 className="object-contain w-[48px] h-[48px]"
-                style={logoScale[data.brand.name] ? { transform: `scale(${logoScale[data.brand.name]})` } : {}}
               />
             </div>
           ) : (
