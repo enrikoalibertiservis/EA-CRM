@@ -141,7 +141,7 @@ function Column({
                         <select
                           value={editForm[f.key] as string}
                           onChange={e => setEditForm(p => ({ ...p, [f.key]: e.target.value }))}
-                          className="w-full h-7 text-xs border border-indigo-200 rounded px-2 focus:outline-none bg-white"
+                          className="w-full h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
                         >
                           {f.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                         </select>

@@ -192,7 +192,7 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
             <select
               value={model}
               onChange={e => setModel(e.target.value)}
-              className="w-full h-8 rounded-lg border border-gray-200 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300"
             >
               <option value="">Seçin</option>
               {filteredModels.map(m => (

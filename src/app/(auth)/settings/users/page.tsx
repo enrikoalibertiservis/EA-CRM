@@ -449,7 +449,7 @@ export default function UsersPage() {
                   <td className="px-3 py-2.5">
                     {isEditing ? (
                       <select value={user.role} onChange={e => updateField(user.id, 'role', e.target.value)}
-                        className="h-7 rounded border border-gray-200 bg-white text-xs px-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        className="h-7 rounded-lg border border-gray-200 bg-white text-xs px-2 font-medium text-gray-700 appearance-none shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
                         <option value="super_admin">Yönetici</option>
                         <option value="manager">Satış Müdürü</option>
                         <option value="consultant">Satış Danışmanı</option>
@@ -464,7 +464,7 @@ export default function UsersPage() {
                   <td className="px-3 py-2.5">
                     {isEditing ? (
                       <select value={user.location_id} onChange={e => updateField(user.id, 'location_id', e.target.value)}
-                        className="h-7 rounded border border-gray-200 bg-white text-xs px-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        className="h-7 rounded-lg border border-gray-200 bg-white text-xs px-2 font-medium text-gray-700 appearance-none shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
                         {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                       </select>
                     ) : (
@@ -474,7 +474,7 @@ export default function UsersPage() {
                   <td className="px-3 py-2.5 hidden lg:table-cell">
                     {isEditing ? (
                       <select value={user.department ?? ''} onChange={e => updateField(user.id, 'department', e.target.value)}
-                        className="h-7 rounded border border-gray-200 bg-white text-xs px-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        className="h-7 rounded-lg border border-gray-200 bg-white text-xs px-2 font-medium text-gray-700 appearance-none shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none">
                         <option value="">Seçiniz</option>
                         <option value="satis">Satış</option>
                         <option value="servis">Servis</option>

@@ -328,7 +328,7 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
               <div>
                 <label className="text-xs font-medium text-gray-700 block mb-1">İlgilendiği Model</label>
                 <select value={form.interested_model} onChange={(e) => update('interested_model', e.target.value)}
-                  className="w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
                   <option value="">Model seçin</option>
                   {form.brand_id
                     ? models.filter(m => m.brand_id === form.brand_id).map(m => (
@@ -410,7 +410,7 @@ export function CustomerForm({ brands, models, channels, consultants, contactTyp
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-gray-700 block mb-1">Sorumlu Danışman</label>
-                <select value={form.consultant_id} onChange={(e) => update('consultant_id', e.target.value)} className="w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select value={form.consultant_id} onChange={(e) => update('consultant_id', e.target.value)} className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
                   <option value="">Bana ata (varsayılan)</option>
                   {consultants.map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
                 </select>

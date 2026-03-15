@@ -361,7 +361,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
           )}
         </div>
         <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); resetPage() }}
-          className="h-10 w-32 sm:w-36 rounded-lg border border-gray-200 bg-white text-sm px-2 sm:px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+          className="h-10 w-32 sm:w-36 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 px-3 pr-8 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
           <option value="">Tüm Durumlar</option>
           <option value="active">Aktif Takip</option>
           <option value="won">Kazanılan</option>

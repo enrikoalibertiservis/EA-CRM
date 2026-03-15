@@ -417,7 +417,7 @@ export default function ConsultantReportPage() {
               <select
                 value={selectedConsultantFilter}
                 onChange={e => setSelectedConsultantFilter(e.target.value)}
-                className="h-9 rounded-xl border border-gray-200 bg-gray-50 text-xs px-3 pr-7 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 cursor-pointer"
+                className="h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300"
               >
                 <option value="toplam">Tüm Danışmanlar</option>
                 {stats.map(s => (

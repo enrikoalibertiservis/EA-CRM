@@ -3,3 +3,4 @@
 
 ALTER TABLE customers
   ADD COLUMN IF NOT EXISTS initial_contact_type TEXT;
+

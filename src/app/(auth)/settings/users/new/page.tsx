@@ -138,7 +138,7 @@ export default function NewUserPage() {
               <Shield className="h-3.5 w-3.5 text-gray-400" /> Rol <span className="text-red-500">*</span>
             </label>
             <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-              className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
               <option value="consultant">Satış Danışmanı</option>
               <option value="manager">Satış Müdürü</option>
               <option value="super_admin">Yönetici</option>
@@ -149,7 +149,7 @@ export default function NewUserPage() {
               <Building2 className="h-3.5 w-3.5 text-gray-400" /> Lokasyon <span className="text-red-500">*</span>
             </label>
             <select value={form.location_id} onChange={e => setForm(f => ({ ...f, location_id: e.target.value }))}
-              className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
               {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
             </select>
           </div>
@@ -158,7 +158,7 @@ export default function NewUserPage() {
               <Briefcase className="h-3.5 w-3.5 text-gray-400" /> Departman
             </label>
             <select value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))}
-              className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              className="w-full h-9 rounded-xl border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-700 appearance-none shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-300">
               <option value="">Seçiniz</option>
               <option value="satis">Satış</option>
               <option value="servis">Servis</option>

@@ -322,7 +322,7 @@ export function CustomerDetail({
                     autoFocus
                     value={brandId ?? ''}
                     onChange={e => setBrandId(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                     {brandOptions.map(b => (
                       <option key={b.id} value={b.id}>{b.name}</option>
@@ -363,7 +363,7 @@ export function CustomerDetail({
                     autoFocus
                     value={consultantId ?? ''}
                     onChange={e => setConsultantId(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                     <option value="">— Seçiniz —</option>
                     {consultantOptions.map(c => (
@@ -405,7 +405,7 @@ export function CustomerDetail({
                     autoFocus
                     value={sourceChannelId ?? ''}
                     onChange={e => setSourceChannelId(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                     <option value="">— Seçiniz —</option>
                     {channels.map(ch => (
@@ -447,7 +447,7 @@ export function CustomerDetail({
                     autoFocus
                     value={interestedModel}
                     onChange={e => setInterestedModel(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                     <option value="">Model seçin</option>
                     {(brandId ? models.filter(m => m.brand_id === brandId) : models).map(m => (
@@ -498,7 +498,7 @@ export function CustomerDetail({
                 <div className="flex items-center gap-1">
                   <input autoFocus type="tel" value={phone} onChange={e => setPhone(formatGSM(e.target.value))} maxLength={14}
                     onKeyDown={e => { if (e.key === 'Enter') saveMetaField('phone', phone || null); if (e.key === 'Escape') { setPhone(customer.phone ?? ''); setEditingField(null) } }}
-                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="0532 456 78 90" />
+                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="0532 456 78 90" />
                   <button onClick={async () => { await saveMetaField('phone', phone || null) }} disabled={savingField === 'phone'} className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50">
                     {savingField === 'phone' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                   </button>
@@ -523,7 +523,7 @@ export function CustomerDetail({
                 <div className="flex items-center gap-1">
                   <input autoFocus type="text" value={city} onChange={e => setCity(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') saveMetaField('city', city || null); if (e.key === 'Escape') { setCity(customer.city ?? ''); setEditingField(null) } }}
-                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="İzmir" />
+                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="İzmir" />
                   <button onClick={async () => { await saveMetaField('city', city || null) }} disabled={savingField === 'city'} className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50">
                     {savingField === 'city' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                   </button>
@@ -548,7 +548,7 @@ export function CustomerDetail({
                 <div className="flex items-center gap-1">
                   <input autoFocus type="text" value={district} onChange={e => setDistrict(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') saveMetaField('district', district || null); if (e.key === 'Escape') { setDistrict(customer.district ?? ''); setEditingField(null) } }}
-                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="Karşıyaka" />
+                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Karşıyaka" />
                   <button onClick={async () => { await saveMetaField('district', district || null) }} disabled={savingField === 'district'} className="h-7 w-7 rounded-lg bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-50">
                     {savingField === 'district' ? <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                   </button>
@@ -572,7 +572,7 @@ export function CustomerDetail({
               {editingField === 'initial_contact_type' ? (
                 <div className="flex items-center gap-1">
                   <select autoFocus value={initialContactType} onChange={e => setInitialContactType(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200">
+                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                     <option value="">— Seçiniz —</option>
                     {contactTypes.map(ct => <option key={ct.id} value={ct.slug}>{ct.name}</option>)}
                   </select>
@@ -606,7 +606,7 @@ export function CustomerDetail({
               {editingField === 'location_id' ? (
                 <div className="flex items-center gap-1">
                   <select autoFocus value={locationId} onChange={e => setLocationId(e.target.value)}
-                    className="flex-1 h-7 rounded-lg border border-blue-300 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200">
+                    className="flex-1 h-7 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 appearance-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                     <option value="">— Seçiniz —</option>
                     {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                   </select>
