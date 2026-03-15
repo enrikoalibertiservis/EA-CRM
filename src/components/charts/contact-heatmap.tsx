@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { BarChart2 } from 'lucide-react'
 import type { HeatmapCell } from '@/lib/types/database'
+import { StyledSelect } from '@/components/ui/styled-select'
 
 const DAYS     = ['PZT', 'SAL', 'ÇAR', 'PER', 'CUM', 'CMT', 'PAZ']
 const DAYS_FULL = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar']
@@ -163,75 +164,65 @@ export function ContactHeatmap({
         )}
       </div>
 
-      {/* Location filter tabs — shown only when locations prop provided */}
-      {locations && locations.length > 0 && (
-        <div className="flex items-center gap-1.5 mb-2 flex-wrap shrink-0">
-          <button
-            onClick={() => setSelectedLocation('all')}
-            className="h-6 px-2.5 rounded-full text-[10px] font-semibold transition-all border bg-transparent"
-            style={selectedLocation === 'all'
-              ? { borderColor: '#64748b', color: '#64748b', backgroundColor: '#64748b18' }
-              : { borderColor: '#E2E8F0', color: '#94A3B8' }
-            }
-          >
-            Tüm Şubeler
-          </button>
-          {locations.map(loc => (
+      {/* Filters row: location + brand + day dropdown — all in one line */}
+      <div className="flex items-center gap-1.5 mb-3 flex-wrap shrink-0">
+        {/* Location buttons — shown only when locations prop provided */}
+        {locations && locations.length > 0 && (
+          <>
             <button
-              key={loc.id}
-              onClick={() => setSelectedLocation(loc.id)}
+              onClick={() => setSelectedLocation('all')}
               className="h-6 px-2.5 rounded-full text-[10px] font-semibold transition-all border bg-transparent"
-              style={selectedLocation === loc.id
-                ? { borderColor: '#0ea5e9', color: '#0ea5e9', backgroundColor: '#0ea5e918' }
+              style={selectedLocation === 'all'
+                ? { borderColor: '#64748b', color: '#64748b', backgroundColor: '#64748b18' }
                 : { borderColor: '#E2E8F0', color: '#94A3B8' }
               }
             >
-              {loc.name}
+              Tüm Şubeler
             </button>
-          ))}
-        </div>
-      )}
+            {locations.map(loc => (
+              <button
+                key={loc.id}
+                onClick={() => setSelectedLocation(loc.id)}
+                className="h-6 px-2.5 rounded-full text-[10px] font-semibold transition-all border bg-transparent"
+                style={selectedLocation === loc.id
+                  ? { borderColor: '#0ea5e9', color: '#0ea5e9', backgroundColor: '#0ea5e918' }
+                  : { borderColor: '#E2E8F0', color: '#94A3B8' }
+                }
+              >
+                {loc.name}
+              </button>
+            ))}
+            <span className="h-4 w-px bg-gray-200 mx-0.5 shrink-0" />
+          </>
+        )}
 
-      {/* Brand filter tabs — outlined (dolgusuz) */}
-      <div className="flex items-center gap-1.5 mb-3 flex-wrap shrink-0">
+        {/* Brand buttons — same style as location buttons */}
         {brandGroups.map(g => (
           <button
             key={g.key}
             onClick={() => setSelectedBrand(g.key)}
-            className="h-7 px-3 rounded-full text-xs font-semibold transition-all border-2 bg-transparent"
+            className="h-6 px-2.5 rounded-full text-[10px] font-semibold transition-all border bg-transparent"
             style={selectedBrand === g.key
-              ? { borderColor: g.color, color: g.color }
-              : { borderColor: '#D1D5DB', color: '#9CA3AF' }
+              ? { borderColor: g.color, color: g.color, backgroundColor: g.color + '18' }
+              : { borderColor: '#E2E8F0', color: '#94A3B8' }
             }
           >
             {g.label}
           </button>
         ))}
-      </div>
 
-      {/* Day tabs */}
-      <div className="flex items-center justify-between mb-3 shrink-0">
-        {DAYS.map((day, idx) => {
-          const dayTotal = Array.from({ length: 24 }, (_, h) => heatmap.get(`${idx}-${h}`) ?? 0)
-            .reduce((s, v) => s + v, 0)
-          const isSelected = selectedDay === idx
-          return (
-            <button
-              key={day}
-              onClick={() => setSelectedDay(idx)}
-              className="flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-all border bg-transparent"
-              style={isSelected
-                ? { borderColor: '#9CA3AF', color: '#374151' }
-                : { borderColor: 'transparent', color: '#9CA3AF' }
-              }
-            >
-              {day}
-              <span className="text-[9px] font-bold" style={{ color: isSelected ? '#6B7280' : '#C4CAD4' }}>
-                {dayTotal > 0 ? dayTotal : '\u00A0'}
-              </span>
-            </button>
-          )
-        })}
+        {/* Day dropdown */}
+        <span className="h-4 w-px bg-gray-200 mx-0.5 shrink-0" />
+        <StyledSelect
+          compact
+          value={String(selectedDay)}
+          onChange={v => setSelectedDay(Number(v))}
+          className="w-36"
+          options={DAYS.map((day, idx) => {
+            const total = Array.from({ length: 24 }, (_, h) => heatmap.get(`${idx}-${h}`) ?? 0).reduce((s, v) => s + v, 0)
+            return { id: String(idx), label: `${DAYS_FULL[idx]}${total > 0 ? ` (${total})` : ''}` }
+          })}
+        />
       </div>
 
       {/* Bar chart */}
@@ -245,8 +236,7 @@ export function ContactHeatmap({
               <div key={hour} className="flex-1 flex flex-col items-center justify-end gap-0.5 group"
                 title={`${DAYS_FULL[selectedDay]} ${String(hour).padStart(2, '0')}:00 → ${count} kayıt`}>
                 {count > 0 && (
-                  <span className="text-[9px] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ color: activeBrand.color }}>
+                  <span className="text-[9px] font-bold" style={{ color: activeBrand.color }}>
                     {count}
                   </span>
                 )}
