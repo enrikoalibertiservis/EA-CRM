@@ -25,6 +25,10 @@ function nowDatePart() {
   const d = new Date()
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
+function nowDateDisplay() {
+  const d = new Date()
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`
+}
 function nowTimePart() {
   const d = new Date()
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`
@@ -39,10 +43,11 @@ function formatGSM(v: string) {
 }
 
 export function QuickRegister({ brands, models, locations, currentUserId, currentLocationId }: Props) {
-  const [loading, setLoading]         = useState(false)
-  const [saved, setSaved]             = useState(false)
-  const [regDatePart, setRegDatePart] = useState(nowDatePart)
-  const [regTimePart, setRegTimePart] = useState(nowTimePart)
+  const [loading, setLoading]           = useState(false)
+  const [saved, setSaved]               = useState(false)
+  const [regDatePart, setRegDatePart]   = useState(nowDatePart)    // YYYY-MM-DD
+  const [dateDisplay, setDateDisplay]   = useState(nowDateDisplay) // DD/MM/YYYY gösterim
+  const [regTimePart, setRegTimePart]   = useState(nowTimePart)
   const [dateEditable, setDateEditable] = useState(false)
   const [name, setName]             = useState('')
   const [phone, setPhone]       = useState('')
@@ -54,7 +59,7 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
   // Kullanıcı düzenlemiyorsa her 30sn'de otomatik güncelle
   useEffect(() => {
     if (dateEditable) return
-    const id = setInterval(() => { setRegDatePart(nowDatePart()); setRegTimePart(nowTimePart()) }, 30_000)
+    const id = setInterval(() => { setRegDatePart(nowDatePart()); setDateDisplay(nowDateDisplay()); setRegTimePart(nowTimePart()) }, 30_000)
     return () => clearInterval(id)
   }, [dateEditable])
 
@@ -99,6 +104,7 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
         setBrandId('')
         setModel('')
         setRegDatePart(nowDatePart())
+        setDateDisplay(nowDateDisplay())
         setRegTimePart(nowTimePart())
         setDateEditable(false)
         setErrors({})
@@ -171,12 +177,26 @@ export function QuickRegister({ brands, models, locations, currentUserId, curren
             </label>
             <div className="flex gap-1 items-center">
               <input
-                type="date"
-                lang="tr"
-                value={regDatePart}
-                onChange={e => setRegDatePart(e.target.value)}
+                type="text"
+                value={dateDisplay}
+                onChange={e => {
+                  // Sadece rakam ve "/" kabul et
+                  const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 8)
+                  // Otomatik "/" ekle
+                  let display = raw
+                  if (raw.length > 2) display = `${raw.slice(0, 2)}/${raw.slice(2)}`
+                  if (raw.length > 4) display = `${raw.slice(0, 2)}/${raw.slice(2, 4)}/${raw.slice(4)}`
+                  setDateDisplay(display)
+                  // 8 rakam tamamlanınca YYYY-MM-DD'ye çevir
+                  if (raw.length === 8) {
+                    const day = raw.slice(0, 2), month = raw.slice(2, 4), year = raw.slice(4, 8)
+                    setRegDatePart(`${year}-${month}-${day}`)
+                  }
+                }}
                 readOnly={!dateEditable}
                 onClick={() => !dateEditable && setDateEditable(true)}
+                placeholder="GG/AA/YYYY"
+                maxLength={10}
                 className={`flex-1 h-8 rounded-lg border px-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-green-400 transition-all ${
                   dateEditable ? 'border-green-400' : 'border-gray-200 text-gray-500 cursor-pointer'
                 }`}
