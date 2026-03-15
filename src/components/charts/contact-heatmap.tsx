@@ -251,7 +251,7 @@ export function ContactHeatmap({
             const isPeak = count > 0 && count === peakHour.count
             return (
               <div key={hour} className="flex-1 flex flex-col items-center justify-end gap-0.5 group"
-                title={`${DAYS_FULL[selectedDay]} ${String(hour).padStart(2, '0')}:00 → ${count} kayıt`}>
+                title={`${String(hour).padStart(2, '0')}:00 → ${count} kayıt`}>
                 {count > 0 && (
                   <span className="text-[9px] font-bold" style={{ color: activeBrand.color }}>
                     {count}
