@@ -58,37 +58,41 @@ export function DashboardCharts({ customers, locations }: DashboardChartsProps) 
   const [selectedBrand, setSelectedBrand] = useState('all')
   const [selectedPeriod, setSelectedPeriod] = useState<DatePeriod>('all')
 
-  // Build brand groups dynamically
+  // Fixed brand groups — always visible
   const brandGroups = useMemo(() => {
-    const seenNames = new Set<string>()
-    const alfaJeepNames = new Set<string>()
-    customers.forEach(c => {
-      const name: string = Array.isArray(c.brand) ? (c.brand[0]?.name ?? '') : (c.brand?.name ?? '')
-      if (!name || name.toLowerCase().includes('ikinci')) return
-      if (name.includes('Alfa') || name.includes('Jeep')) alfaJeepNames.add(name)
-      else seenNames.add(name)
+    // Fiat rengi customers datasından al, bulamazsa default
+    const fiatSample = customers.find(c => {
+      const n = Array.isArray(c.brand) ? c.brand[0]?.name : c.brand?.name
+      return typeof n === 'string' && n.toLowerCase().includes('fiat')
     })
-    const groups: { key: string; label: string; color: string; filter: (c: CustomerEntry) => boolean }[] = [
-      { key: 'all', label: 'Toplam', color: '#6366f1', filter: () => true },
+    const fiatColor = (Array.isArray(fiatSample?.brand) ? fiatSample?.brand[0]?.color : fiatSample?.brand?.color) ?? '#ef4444'
+
+    return [
+      {
+        key: 'all',
+        label: 'Toplam',
+        color: '#6366f1',
+        filter: (_c: CustomerEntry) => true,
+      },
+      {
+        key: 'fiat',
+        label: 'Fiat',
+        color: fiatColor,
+        filter: (c: CustomerEntry) => {
+          const n = Array.isArray(c.brand) ? c.brand[0]?.name : c.brand?.name
+          return typeof n === 'string' && n.toLowerCase().includes('fiat')
+        },
+      },
+      {
+        key: 'arj',
+        label: 'ARJ',
+        color: '#dc2626',
+        filter: (c: CustomerEntry) => {
+          const n = Array.isArray(c.brand) ? c.brand[0]?.name : c.brand?.name
+          return typeof n === 'string' && (n.toLowerCase().includes('alfa') || n.toLowerCase().includes('jeep'))
+        },
+      },
     ]
-    seenNames.forEach(name => {
-      const sample = customers.find(c => {
-        const n = Array.isArray(c.brand) ? c.brand[0]?.name : c.brand?.name
-        return n === name
-      })
-      const color = (Array.isArray(sample?.brand) ? sample?.brand[0]?.color : sample?.brand?.color) ?? '#6B7280'
-      groups.push({ key: name, label: name, color, filter: c => {
-        const n = Array.isArray(c.brand) ? c.brand[0]?.name : c.brand?.name
-        return n === name
-      }})
-    })
-    if (alfaJeepNames.size > 0) {
-      groups.push({ key: 'alfa-jeep', label: 'ARJ', color: '#dc2626', filter: c => {
-        const n = Array.isArray(c.brand) ? c.brand[0]?.name : c.brand?.name
-        return !!n && (n.includes('Alfa') || n.includes('Jeep'))
-      }})
-    }
-    return groups
   }, [customers])
 
   // Apply global filters
