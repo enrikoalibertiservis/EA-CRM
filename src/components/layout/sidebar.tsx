@@ -32,7 +32,7 @@ function getNavGroups(isAdmin: boolean, isManager: boolean): NavGroup[] {
       title: 'MÜŞTERİ YÖNETİMİ',
       items: [
         { label: 'Ana Sayfa', href: '/dashboard', icon: LayoutDashboard, color: 'text-emerald-400' },
-        { label: 'Müşteriler', href: '/customers', icon: Users, color: 'text-blue-400' },
+        { label: 'Müşteri Süreçleri', href: '/customers', icon: Users, color: 'text-blue-400' },
         { label: 'Yeni Müşteri', href: '/customers/new', icon: UserPlus, color: 'text-purple-400' },
       ],
     },
