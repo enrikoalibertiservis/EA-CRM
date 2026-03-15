@@ -27,12 +27,6 @@ export function BrandFunnel({ data }: { data: BrandFunnelData }) {
     <div className={`rounded-2xl border bg-gradient-to-br ${gradient} p-5 shadow-sm h-full`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ backgroundColor: data.brand.color + '25' }}
-          >
-            <div className="h-4 w-4 rounded-full" style={{ backgroundColor: data.brand.color }} />
-          </div>
           <div>
             <h3 className="text-lg font-bold text-gray-900 leading-tight">{data.brand.name}</h3>
             <p className="text-[10px] text-gray-500">Satış Hunisi</p>
