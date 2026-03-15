@@ -226,10 +226,10 @@ export function ContactHeatmap({
       </div>
 
       {/* Bar chart */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex items-end gap-1 px-1" style={{ height: '112px' }}>
+      <div className="flex-1 flex flex-col justify-end">
+        <div className="flex items-end gap-1 px-1" style={{ height: '80px' }}>
           {dayData.map(({ hour, count }) => {
-            const MAX_BAR = 96
+            const MAX_BAR = 64
             const barHeight = count === 0 ? 3 : Math.max(Math.round((count / maxCount) * MAX_BAR), 12)
             const isPeak = count > 0 && count === peakHour.count
             return (
@@ -248,7 +248,7 @@ export function ContactHeatmap({
         </div>
 
         {/* Hour labels */}
-        <div className="flex items-center gap-1 px-1 mt-1.5">
+        <div className="flex items-center gap-1 px-1 mt-1">
           {dayData.map(({ hour }) => (
             <div key={hour} className="flex-1 text-center text-[9px] text-gray-400 font-medium">
               {hour % 3 === 0 ? String(hour).padStart(2, '0') : ''}
