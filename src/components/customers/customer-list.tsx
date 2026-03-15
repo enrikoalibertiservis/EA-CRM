@@ -314,38 +314,53 @@ export function CustomerList({ customers, brands, stages, consultants, locations
   return (
     <div>
       {/* Location filter tabs */}
-      {locations.length > 1 && (
-        <div className="flex items-center gap-2 mb-4 p-1 bg-gray-100 rounded-xl w-fit">
-          <button
-            onClick={() => { setFilterLocation(''); resetPage() }}
-            className={`flex items-center gap-1.5 h-8 px-4 rounded-lg text-sm font-medium transition-all ${
-              filterLocation === '' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Tümü
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterLocation === '' ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-500'}`}>
-              {customers.length}
-            </span>
-          </button>
-          {locations.map(loc => {
-            const count = customers.filter(c => c.location_id === loc.id).length
-            return (
-              <button
-                key={loc.id}
-                onClick={() => { setFilterLocation(loc.id); resetPage() }}
-                className={`flex items-center gap-1.5 h-8 px-4 rounded-lg text-sm font-medium transition-all ${
-                  filterLocation === loc.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <Building2 className="h-3.5 w-3.5 shrink-0" />
-                {loc.name}
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterLocation === loc.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-500'}`}>
-                  {count}
-                </span>
-              </button>
-            )
-          })}
-        </div>
+      {locations.length > 1 && (() => {
+        const LOCATION_COLORS = [
+          { text: '#4F46E5', bg: 'rgba(99,102,241,0.12)', activeBg: 'rgba(99,102,241,0.22)', badge: 'rgba(99,102,241,0.18)', badgeText: '#4338CA' },
+          { text: '#059669', bg: 'rgba(16,185,129,0.12)', activeBg: 'rgba(16,185,129,0.22)', badge: 'rgba(16,185,129,0.18)', badgeText: '#047857' },
+          { text: '#D97706', bg: 'rgba(245,158,11,0.12)', activeBg: 'rgba(245,158,11,0.22)', badge: 'rgba(245,158,11,0.18)', badgeText: '#B45309' },
+          { text: '#DC2626', bg: 'rgba(239,68,68,0.12)',  activeBg: 'rgba(239,68,68,0.22)',  badge: 'rgba(239,68,68,0.18)',  badgeText: '#B91C1C' },
+        ]
+        return (
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            <button
+              onClick={() => { setFilterLocation(''); resetPage() }}
+              className="flex items-center gap-1.5 h-8 px-4 rounded-xl text-sm font-medium transition-all border"
+              style={filterLocation === ''
+                ? { background: 'rgba(59,130,246,0.18)', color: '#1D4ED8', borderColor: 'rgba(59,130,246,0.35)', boxShadow: '0 1px 4px rgba(59,130,246,0.15)' }
+                : { background: 'rgba(59,130,246,0.08)', color: '#3B82F6', borderColor: 'rgba(59,130,246,0.2)' }
+              }
+            >
+              Tümü
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(59,130,246,0.18)', color: '#1D4ED8' }}>
+                {customers.length}
+              </span>
+            </button>
+            {locations.map((loc, idx) => {
+              const c = LOCATION_COLORS[idx % LOCATION_COLORS.length]
+              const count = customers.filter(cu => cu.location_id === loc.id).length
+              const isActive = filterLocation === loc.id
+              return (
+                <button
+                  key={loc.id}
+                  onClick={() => { setFilterLocation(loc.id); resetPage() }}
+                  className="flex items-center gap-1.5 h-8 px-4 rounded-xl text-sm font-medium transition-all border"
+                  style={isActive
+                    ? { background: c.activeBg, color: c.text, borderColor: c.bg.replace('0.12', '0.4'), boxShadow: `0 1px 4px ${c.bg.replace('0.12', '0.2')}` }
+                    : { background: c.bg, color: c.text, borderColor: c.bg.replace('0.12', '0.25)') }
+                  }
+                >
+                  <Building2 className="h-3.5 w-3.5 shrink-0" />
+                  {loc.name}
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: c.badge, color: c.badgeText }}>
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )
+      })()}
       )}
 
       {/* Search + Filters */}
