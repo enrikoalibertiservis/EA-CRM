@@ -18,12 +18,8 @@ export function BrandFunnel({ data }: { data: BrandFunnelData }) {
 
   return (
     <div
-      className="rounded-2xl p-5 h-full backdrop-blur-md"
-      style={{
-        background: 'rgba(255,255,255,0.55)',
-        border: '1px solid rgba(255,255,255,0.75)',
-        boxShadow: `0 8px 32px 0 ${brandColor}22, 0 1.5px 8px 0 rgba(0,0,0,0.06)`,
-      }}
+      className="rounded-2xl p-5 h-full bg-white shadow-sm"
+      style={{ border: `1px solid ${brandColor}22` }}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
