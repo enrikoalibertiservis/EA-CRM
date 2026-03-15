@@ -26,9 +26,9 @@ const brandLogos: Record<string, string> = {
   'Jeep': '/brands/jeep.png',
 }
 
-// Beyaz logolar için koyu arka plan (aksi hâlde görünmez)
-const logoBg: Record<string, string> = {
-  'Jeep': '#1B4332',
+// Fazla beyaz boşluğu olan logolar için görsel büyütme
+const logoScale: Record<string, number> = {
+  'Fiat': 1.45,
 }
 
 export function BrandFunnel({ data }: { data: BrandFunnelData }) {
@@ -41,16 +41,14 @@ export function BrandFunnel({ data }: { data: BrandFunnelData }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           {logo ? (
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
-              style={logoBg[data.brand.name] ? { backgroundColor: logoBg[data.brand.name] } : {}}
-            >
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
               <Image
                 src={logo}
                 alt={data.brand.name}
                 width={48}
                 height={48}
                 className="object-contain w-[48px] h-[48px]"
+                style={logoScale[data.brand.name] ? { transform: `scale(${logoScale[data.brand.name]})` } : {}}
               />
             </div>
           ) : (
