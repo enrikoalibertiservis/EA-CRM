@@ -151,11 +151,12 @@ interface CustomerListProps {
 
 type SortField = 'created_at' | 'full_name' | 'brand' | 'consultant' | 'status'
 type SortDir = 'asc' | 'desc'
-type DateMode = '' | 'today' | 'week' | 'month' | 'last_month' | 'custom'
+type DateMode = '' | 'today' | 'yesterday' | 'week' | 'month' | 'last_month' | 'custom'
 
 const DATE_TABS: { key: DateMode; label: string }[] = [
   { key: '', label: 'Tümü' },
   { key: 'today', label: 'Bugün' },
+  { key: 'yesterday', label: 'Dün' },
   { key: 'week', label: 'Bu Hafta' },
   { key: 'month', label: 'Bu Ay' },
   { key: 'last_month', label: 'Geçen Ay' },
@@ -213,6 +214,10 @@ export function CustomerList({ customers, brands, stages, consultants, locations
     if (filterDate === 'today') {
       const todayStr = now.toISOString().split('T')[0]
       list = list.filter(c => c.created_at.startsWith(todayStr))
+    } else if (filterDate === 'yesterday') {
+      const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1)
+      const yesterdayStr = yesterday.toISOString().split('T')[0]
+      list = list.filter(c => c.created_at.startsWith(yesterdayStr))
     } else if (filterDate === 'week') {
       const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7)
       list = list.filter(c => new Date(c.created_at) >= weekAgo)
