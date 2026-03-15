@@ -31,6 +31,11 @@ const logoScale: Record<string, number> = {
   'Fiat': 1.45,
 }
 
+// Kaydedilmiş arka planı (damalı/beyaz) yok etmek için blend mode
+const logoBlend: Record<string, string> = {
+  'Jeep': 'multiply',
+}
+
 export function BrandFunnel({ data }: { data: BrandFunnelData }) {
   const maxCount = Math.max(...data.stages.map((s) => s.count), 1)
   const gradient = brandGradients[data.brand.name] ?? 'from-blue-50/60 to-indigo-50/40 border-blue-100'
@@ -48,7 +53,10 @@ export function BrandFunnel({ data }: { data: BrandFunnelData }) {
                 width={48}
                 height={48}
                 className="object-contain w-[48px] h-[48px]"
-                style={logoScale[data.brand.name] ? { transform: `scale(${logoScale[data.brand.name]})` } : {}}
+                style={{
+                  ...(logoScale[data.brand.name] ? { transform: `scale(${logoScale[data.brand.name]})` } : {}),
+                  ...(logoBlend[data.brand.name] ? { mixBlendMode: logoBlend[data.brand.name] as React.CSSProperties['mixBlendMode'] } : {}),
+                }}
               />
             </div>
           ) : (
