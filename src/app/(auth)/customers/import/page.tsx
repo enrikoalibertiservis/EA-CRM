@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface PreviewRow { [key: string]: string }
+interface PreviewRow { [key: string]: unknown }
 interface ImportResult {
   savedCount: number
   skipped: { row: number; reason: string }[]
