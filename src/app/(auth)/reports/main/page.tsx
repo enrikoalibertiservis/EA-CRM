@@ -17,7 +17,7 @@ export default async function MainReportPage() {
   const { data: profile } = await supabase
     .from('user_profiles').select('*, location:locations(*)').eq('id', user!.id).single()
 
-  if (!['super_admin', 'manager'].includes(profile?.role ?? '')) redirect('/dashboard')
+  if (!['super_admin', 'manager', 'resepsiyonist'].includes(profile?.role ?? '')) redirect('/dashboard')
 
   // Ana lokasyonu type='main' ile bul (UUID bağımsız)
   const { data: mainLocationRow } = await supabase

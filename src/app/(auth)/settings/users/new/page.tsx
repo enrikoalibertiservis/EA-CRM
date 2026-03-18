@@ -142,9 +142,10 @@ export default function NewUserPage() {
               value={form.role}
               onChange={v => setForm(f => ({ ...f, role: v }))}
               options={[
-                { id: 'consultant',  label: 'Satış Danışmanı' },
-                { id: 'manager',     label: 'Satış Müdürü' },
-                { id: 'super_admin', label: 'Yönetici' },
+                { id: 'consultant',    label: 'Satış Danışmanı' },
+                { id: 'resepsiyonist', label: 'Resepsiyonist' },
+                { id: 'manager',       label: 'Satış Müdürü' },
+                { id: 'super_admin',   label: 'Yönetici' },
               ]}
             />
           </div>

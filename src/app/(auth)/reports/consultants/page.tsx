@@ -182,7 +182,7 @@ export default function ConsultantReportPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setAuthorized(false); return }
       const { data: profile } = await supabase.from('user_profiles').select('role').eq('id', user.id).single()
-      if (!['super_admin', 'manager'].includes(profile?.role ?? '')) { setAuthorized(false); return }
+      if (!['super_admin', 'manager', 'resepsiyonist'].includes(profile?.role ?? '')) { setAuthorized(false); return }
 
       // Fetch locations
       const { data: locData } = await supabase.from('locations').select('id, name').order('name')

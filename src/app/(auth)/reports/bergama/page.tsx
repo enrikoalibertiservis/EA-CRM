@@ -28,7 +28,7 @@ export default async function IncesusReportPage() {
     .eq('id', user!.id)
     .single()
 
-  if (profile?.role !== 'super_admin') {
+  if (!['super_admin', 'manager', 'resepsiyonist'].includes(profile?.role ?? '')) {
     redirect('/dashboard')
   }
 

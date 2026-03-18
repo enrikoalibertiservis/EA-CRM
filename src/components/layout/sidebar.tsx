@@ -26,7 +26,7 @@ interface NavGroup {
   items: NavItem[]
 }
 
-function getNavGroups(isAdmin: boolean, isManager: boolean): NavGroup[] {
+function getNavGroups(isAdmin: boolean, isManager: boolean, isReceptionist: boolean): NavGroup[] {
   const groups: NavGroup[] = [
     {
       title: 'MÜŞTERİ YÖNETİMİ',
@@ -38,7 +38,7 @@ function getNavGroups(isAdmin: boolean, isManager: boolean): NavGroup[] {
     },
   ]
 
-  if (isAdmin || isManager) {
+  if (isAdmin || isManager || isReceptionist) {
     groups.push({
       title: 'RAPORLAR',
       items: [
@@ -215,8 +215,12 @@ export function Sidebar({ profile, mobileOpen = false, onClose }: {
 
   const isAdmin = profile?.role === 'super_admin'
   const isManager = profile?.role === 'manager'
-  const roleName = isAdmin ? 'Yönetici' : isManager ? 'Satış Müdürü' : 'Satış Danışmanı'
-  const groups = getNavGroups(isAdmin, isManager)
+  const isReceptionist = profile?.role === 'resepsiyonist'
+  const roleName = isAdmin ? 'Yönetici'
+    : isManager ? 'Satış Müdürü'
+    : isReceptionist ? 'Resepsiyonist'
+    : 'Satış Danışmanı'
+  const groups = getNavGroups(isAdmin, isManager, isReceptionist)
 
   const allHrefs = groups.flatMap(g => g.items.map(i => i.href))
 

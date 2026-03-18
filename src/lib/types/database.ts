@@ -1,4 +1,4 @@
-export type UserRole = 'super_admin' | 'manager' | 'consultant'
+export type UserRole = 'super_admin' | 'manager' | 'consultant' | 'resepsiyonist'
 export type LocationType = 'main' | 'satellite'
 export type FuelType = 'benzin' | 'dizel' | 'hybrid' | 'elektrik' | 'lpg' | 'diger'
 export type TransmissionType = 'manuel' | 'otomatik' | 'yari_otomatik'

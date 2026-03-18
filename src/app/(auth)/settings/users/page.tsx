@@ -16,11 +16,13 @@ const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Yönetici',
   manager: 'Satış Müdürü',
   consultant: 'Satış Danışmanı',
+  resepsiyonist: 'Resepsiyonist',
 }
 const ROLE_COLORS: Record<string, string> = {
   super_admin: '#8B5CF6',
   manager: '#2563EB',
   consultant: '#059669',
+  resepsiyonist: '#D97706',
 }
 const DEPT_LABELS: Record<string, string> = {
   satis: 'Satış',
@@ -453,6 +455,7 @@ export default function UsersPage() {
                         <option value="super_admin">Yönetici</option>
                         <option value="manager">Satış Müdürü</option>
                         <option value="consultant">Satış Danışmanı</option>
+                        <option value="resepsiyonist">Resepsiyonist</option>
                       </select>
                     ) : (
                       <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold"
