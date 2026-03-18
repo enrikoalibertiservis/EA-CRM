@@ -27,7 +27,7 @@ export default async function CustomersPage() {
       .order('created_at', { ascending: false }),
     supabase.from('brands').select('id, name, color, slug').eq('is_active', true),
     supabase.from('sales_stages').select('id, name, color, slug, sort_order').eq('is_active', true).order('sort_order'),
-    supabase.from('user_profiles').select('id, full_name').eq('is_active', true),
+    supabase.from('user_profiles').select('id, full_name').eq('is_active', true).eq('role', 'consultant'),
     supabase.from('user_profiles').select('role').eq('id', user!.id).single(),
     supabase.from('locations').select('id, name').order('name'),
     supabase.from('contact_channels').select('id, name, color').eq('is_active', true).order('sort_order'),
