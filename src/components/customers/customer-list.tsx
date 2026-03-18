@@ -695,6 +695,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                     Marka <SortIcon field="brand" />
                   </button>
                 </th>
+                <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden xl:table-cell">Model</th>
                 <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden xl:table-cell">Şube</th>
                 <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden lg:table-cell">Telefon</th>
                 {/* Sortable: Durum */}
@@ -746,14 +747,11 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                     </td>
                     <td className="px-4 py-2.5">
                       <Link href={`/customers/${customer.id}`} className="flex items-center gap-2.5" onClick={e => e.stopPropagation()}>
-                        <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                        <div className="h-7 w-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
                           style={{ backgroundColor: customer.brand?.color ?? '#6B7280' }}>
                           {customer.full_name.charAt(0)}
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">{customer.full_name}</p>
-                          {customer.interested_model && <p className="text-[11px] text-gray-400">{customer.interested_model}</p>}
-                        </div>
+                        <span className="text-xs font-medium text-gray-900">{customer.full_name}</span>
                       </Link>
                     </td>
                     <td className="px-3 py-2.5 hidden md:table-cell">
@@ -761,6 +759,9 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                         style={{ backgroundColor: (customer.brand?.color ?? '#6B7280') + '15', color: customer.brand?.color ?? '#6B7280', borderColor: (customer.brand?.color ?? '#6B7280') + '30' }}>
                         {customer.brand?.name ?? '—'}
                       </span>
+                    </td>
+                    <td className="px-3 py-2.5 hidden xl:table-cell">
+                      <span className="text-xs text-gray-600">{customer.interested_model || <span className="text-gray-300">—</span>}</span>
                     </td>
                     <td className="px-3 py-2.5 hidden xl:table-cell">
                       {customer.location?.name ? (() => {
