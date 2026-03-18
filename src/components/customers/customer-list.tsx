@@ -175,7 +175,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
   const [filterStages, setFilterStages] = useState<string[]>([])
   const [filterConsultants, setFilterConsultants] = useState<string[]>([])
   const [filterChannels, setFilterChannels] = useState<string[]>([])
-  const [filterContactTypes, setFilterContactTypes] = useState<string[]>([])
+  const [filterModels, setFilterModels] = useState<string[]>([])
   const [filterStatus, setFilterStatus] = useState('')
   const [filterDate, setFilterDate] = useState<DateMode>('')
   const [dateFrom, setDateFrom] = useState('')
@@ -250,7 +250,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
     if (filterStages.length > 0) list = list.filter(c => filterStages.includes(c.current_stage_id ?? ''))
     if (filterConsultants.length > 0) list = list.filter(c => filterConsultants.includes(c.consultant_id ?? ''))
     if (filterChannels.length > 0) list = list.filter(c => filterChannels.includes(c.source_channel_id ?? ''))
-    if (filterContactTypes.length > 0) list = list.filter(c => filterContactTypes.includes(c.initial_contact_type ?? ''))
+    if (filterModels.length > 0) list = list.filter(c => filterModels.includes(c.interested_model ?? ''))
     if (filterStatus === 'active') list = list.filter(c => !c.is_won && !c.is_lost)
     if (filterStatus === 'won') list = list.filter(c => c.is_won)
     if (filterStatus === 'lost') list = list.filter(c => c.is_lost)
@@ -294,13 +294,18 @@ export function CustomerList({ customers, brands, stages, consultants, locations
       return aVal > bVal ? -1 : aVal < bVal ? 1 : 0
     })
     return list
-  }, [customers, filterLocation, search, filterBrands, filterStages, filterConsultants, filterChannels, filterContactTypes, filterStatus, filterDate, dateFrom, dateTo, sortField, sortDir])
+  }, [customers, filterLocation, search, filterBrands, filterStages, filterConsultants, filterChannels, filterModels, filterStatus, filterDate, dateFrom, dateTo, sortField, sortDir])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
   const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
-  const activeFilters = filterBrands.length + filterStages.length + filterConsultants.length + filterChannels.length + filterContactTypes.length + (filterStatus ? 1 : 0)
+  const activeFilters = filterBrands.length + filterStages.length + filterConsultants.length + filterChannels.length + filterModels.length + (filterStatus ? 1 : 0)
+
+  const uniqueModels = useMemo(() =>
+    [...new Set(customers.map(c => c.interested_model).filter(Boolean) as string[])].sort(),
+    [customers]
+  )
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -547,12 +552,12 @@ export function CustomerList({ customers, brands, stages, consultants, locations
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Temas Türü</label>
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Model</label>
               <MultiSelect
                 label="Tümü"
-                options={contactTypes.map(ct => ({ id: ct.slug, label: ct.name, color: ct.color }))}
-                selected={filterContactTypes}
-                onChange={(v) => { setFilterContactTypes(v); resetPage() }}
+                options={uniqueModels.map(m => ({ id: m, label: m }))}
+                selected={filterModels}
+                onChange={(v) => { setFilterModels(v); resetPage() }}
               />
             </div>
           </div>
@@ -595,18 +600,15 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                     </span>
                   ) : null
                 })}
-                {filterContactTypes.map(slug => {
-                  const ct = contactTypes.find(x => x.slug === slug)
-                  return ct ? (
-                    <span key={slug} className="inline-flex items-center gap-1 h-6 px-2 rounded-full text-[11px] font-semibold border" style={{ backgroundColor: (ct.color || '#6B7280') + '15', color: ct.color || '#6B7280', borderColor: (ct.color || '#6B7280') + '30' }}>
-                      {ct.name}
-                      <button onClick={() => { setFilterContactTypes(p => p.filter(v => v !== slug)); resetPage() }}><X className="h-2.5 w-2.5" /></button>
-                    </span>
-                  ) : null
-                })}
+                {filterModels.map(m => (
+                  <span key={m} className="inline-flex items-center gap-1 h-6 px-2 rounded-full text-[11px] font-semibold border bg-violet-50 text-violet-700 border-violet-200">
+                    {m}
+                    <button onClick={() => { setFilterModels(p => p.filter(v => v !== m)); resetPage() }}><X className="h-2.5 w-2.5" /></button>
+                  </span>
+                ))}
               </div>
               <button
-                onClick={() => { setFilterBrands([]); setFilterStages([]); setFilterConsultants([]); setFilterChannels([]); setFilterContactTypes([]); setFilterStatus(''); resetPage() }}
+                onClick={() => { setFilterBrands([]); setFilterStages([]); setFilterConsultants([]); setFilterChannels([]); setFilterModels([]); setFilterStatus(''); resetPage() }}
                 className="shrink-0 text-xs text-red-500 hover:text-red-700 font-medium flex items-center gap-1 ml-3"
               >
                 <X className="h-3 w-3" /> Tümünü Temizle
