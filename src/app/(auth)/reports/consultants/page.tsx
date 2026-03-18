@@ -218,7 +218,7 @@ export default function ConsultantReportPage() {
       setRawConsultants(consultantList)
       setAllCustomerList(customerList)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setHeatmapCustomers((customers ?? []) as any)
+      setHeatmapCustomers(customerList as any)
       setLoading(false)
     }
     load()
