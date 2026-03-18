@@ -73,6 +73,9 @@ export async function POST(req: NextRequest) {
     return list.find(x => normalize(x.name) === n)?.id ?? null
   }
 
+  // Normalize consultants to { id, name } shape
+  const consultantList = (consultants ?? []).map(c => ({ id: c.id, name: c.full_name }))
+
   const inserted: Record<string, string>[] = []
   const skipped: { row: number; reason: string }[] = []
 
@@ -92,9 +95,9 @@ export async function POST(req: NextRequest) {
     if (!full_name) { skipped.push({ row: i + 2, reason: 'Ad Soyad boş' }); continue }
     if (!phone)     { skipped.push({ row: i + 2, reason: 'Telefon boş' }); continue }
 
-    const brand_id     = findId(brands, r.brand)
-    const consultant_id = findId(consultants, r.consultant)
-    const location_id  = findId(locations, r.location)
+    const brand_id          = findId(brands, r.brand)
+    const consultant_id     = findId(consultantList, r.consultant)
+    const location_id       = findId(locations, r.location)
     const source_channel_id = findId(channels, r.channel)
     const current_stage_id  = findId(stages, r.stage)
 
