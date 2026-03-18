@@ -194,13 +194,18 @@ export function CustomerList({ customers, brands, stages, consultants, locations
   const exportToCSV = () => {
     if (!canExport) return
     const BOM = '\uFEFF'
-    const headers = ['#', 'Ad Soyad', 'Telefon', 'Marka', 'İlgilendiği Model', 'Durum', 'Aşama', 'Danışman', 'Şube', 'Kayıt Tarihi']
+    const headers = ['#', 'Ad Soyad', 'Telefon', 'Marka', 'İlgilendiği Model', 'Durum', 'Aşama', 'Danışman', 'Şube', 'Nereden Ulaştı?', 'Kayıt Tarihi']
     const rows = filtered.map((c, idx) => {
       const HIDDEN = ['sigorta', 'oto-koruma']
       const displaySt = c.current_stage && HIDDEN.includes(c.current_stage.slug ?? '')
         ? stages.find(s => s.slug === 'kabul') ?? c.current_stage
         : c.current_stage
       const durum = c.is_won ? 'Satış Yapıldı' : c.is_lost ? 'Kaçan Satış' : (displaySt?.name ?? '—')
+      const channel = channels.find(ch => ch.id === c.source_channel_id)?.name ?? '—'
+      const tarih = new Date(c.created_at).toLocaleString('tr-TR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      })
       return [
         idx + 1,
         c.full_name,
@@ -211,7 +216,8 @@ export function CustomerList({ customers, brands, stages, consultants, locations
         c.current_stage?.name ?? '—',
         c.consultant?.full_name ?? '—',
         c.location?.name ?? '—',
-        new Date(c.created_at).toLocaleDateString('tr-TR'),
+        channel,
+        tarih,
       ]
     })
     const csv = BOM + [headers, ...rows]
