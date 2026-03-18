@@ -9,6 +9,7 @@ import {
   Search, Filter, ChevronRight, Car, FileText, Clock,
   CheckCircle, Shield, Lock, X, Trash2, CalendarDays, AlertTriangle,
   ChevronUp, ChevronDown, ChevronsUpDown, Building2, Check, ChevronDown as ChevDown, UserPlus,
+  FileDown,
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import type { Customer } from '@/lib/types/database'
@@ -163,7 +164,8 @@ const DATE_TABS: { key: DateMode; label: string }[] = [
   { key: 'custom', label: 'Özel Tarih' },
 ]
 
-const CAN_DELETE = ['super_admin', 'manager']
+const CAN_DELETE  = ['super_admin', 'manager']
+const CAN_EXPORT  = ['super_admin', 'manager']
 
 export function CustomerList({ customers, brands, stages, consultants, locations, channels, contactTypes, userRole }: CustomerListProps) {
   const router = useRouter()
@@ -186,7 +188,43 @@ export function CustomerList({ customers, brands, stages, consultants, locations
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [page, setPage] = useState(1)
 
-  const canDelete = CAN_DELETE.includes(userRole)
+  const canDelete  = CAN_DELETE.includes(userRole)
+  const canExport  = CAN_EXPORT.includes(userRole)
+
+  const exportToCSV = () => {
+    if (!canExport) return
+    const BOM = '\uFEFF'
+    const headers = ['#', 'Ad Soyad', 'Telefon', 'Marka', 'İlgilendiği Model', 'Durum', 'Aşama', 'Danışman', 'Şube', 'Kayıt Tarihi']
+    const rows = filtered.map((c, idx) => {
+      const HIDDEN = ['sigorta', 'oto-koruma']
+      const displaySt = c.current_stage && HIDDEN.includes(c.current_stage.slug ?? '')
+        ? stages.find(s => s.slug === 'kabul') ?? c.current_stage
+        : c.current_stage
+      const durum = c.is_won ? 'Satış Yapıldı' : c.is_lost ? 'Kaçan Satış' : (displaySt?.name ?? '—')
+      return [
+        idx + 1,
+        c.full_name,
+        c.phone,
+        c.brand?.name ?? '—',
+        c.interested_model ?? '—',
+        durum,
+        c.current_stage?.name ?? '—',
+        c.consultant?.full_name ?? '—',
+        c.location?.name ?? '—',
+        new Date(c.created_at).toLocaleDateString('tr-TR'),
+      ]
+    })
+    const csv = BOM + [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';'))
+      .join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `musteriler_${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const resetPage = () => setPage(1)
 
@@ -405,6 +443,20 @@ export function CustomerList({ customers, brands, stages, consultants, locations
           }`}>
           <Filter className="h-4 w-4" />
           Filtre {activeFilters > 0 && `(${activeFilters})`}
+        </button>
+
+        {/* Excel Export */}
+        <button
+          onClick={canExport ? exportToCSV : undefined}
+          title={canExport ? `${filtered.length} müşteriyi Excel'e aktar` : 'Bu işlem için yetkiniz yok'}
+          className={`flex items-center gap-1.5 h-10 px-4 rounded-lg border text-sm font-medium shadow-sm transition-colors ${
+            canExport
+              ? 'bg-white border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 cursor-pointer'
+              : 'bg-white border-gray-100 text-gray-300 cursor-not-allowed opacity-50'
+          }`}
+        >
+          <FileDown className="h-4 w-4" />
+          <span className="hidden sm:inline">Excel</span>
         </button>
       </div>
 
