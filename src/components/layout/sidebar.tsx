@@ -6,6 +6,7 @@ import {
   LayoutDashboard, Users, UserPlus,
   Settings, Car, LogOut, ChevronRight,
   ShieldCheck, UserCog, TrendingUp, Smartphone, X, Copy, CheckCheck,
+  FileUp,
   type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -34,6 +35,7 @@ function getNavGroups(isAdmin: boolean, isManager: boolean, isReceptionist: bool
         { label: 'Ana Sayfa', href: '/dashboard', icon: LayoutDashboard, color: 'text-emerald-400' },
         { label: 'Müşteri Süreçleri', href: '/customers', icon: Users, color: 'text-blue-400' },
         { label: 'Yeni Müşteri', href: '/customers/new', icon: UserPlus, color: 'text-purple-400' },
+        ...(isAdmin || isManager ? [{ label: 'Excel İçe Aktar', href: '/customers/import', icon: FileUp, color: 'text-amber-400' }] : []),
       ],
     },
   ]
