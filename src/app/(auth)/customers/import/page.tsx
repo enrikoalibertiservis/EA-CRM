@@ -49,9 +49,10 @@ export default function ImportPage() {
     const reader = new FileReader()
     reader.onload = (e) => {
       const data = new Uint8Array(e.target?.result as ArrayBuffer)
-      const wb   = XLSX.read(data, { type: 'array', cellDates: true })
+      const wb   = XLSX.read(data, { type: 'array', cellDates: true, cellText: false })
       const ws   = wb.Sheets[wb.SheetNames[0]]
-      const rows: PreviewRow[] = XLSX.utils.sheet_to_json(ws, { defval: '' })
+      // raw: true keeps native types (numbers, Dates) so the API can handle them correctly
+      const rows: PreviewRow[] = XLSX.utils.sheet_to_json(ws, { defval: '', raw: true }) as PreviewRow[]
       if (!rows.length) { toast.error('Dosya boş görünüyor'); return }
       setHeaders(Object.keys(rows[0]))
       setPreview(rows as PreviewRow[])
@@ -189,7 +190,11 @@ export default function ImportPage() {
                       <tr key={i} className={`border-b border-slate-50 ${i % 2 === 1 ? 'bg-slate-50/40' : ''}`}>
                         {headers.map(h => (
                           <td key={h} className="px-3 py-2 text-slate-700 whitespace-nowrap max-w-[180px] truncate">
-                            {row[h] !== undefined && row[h] !== '' ? String(row[h]) : <span className="text-slate-300">—</span>}
+                            {row[h] !== undefined && row[h] !== ''
+                            ? (row[h] instanceof Date
+                                ? (row[h] as unknown as Date).toLocaleDateString('tr-TR')
+                                : String(row[h]))
+                            : <span className="text-slate-300">—</span>}
                           </td>
                         ))}
                       </tr>
