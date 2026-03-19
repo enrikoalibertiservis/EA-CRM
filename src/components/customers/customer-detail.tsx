@@ -495,7 +495,7 @@ export function CustomerDetail({
                   <button onClick={() => { setPhone(customer.phone ?? ''); setEditingField(null) }} className="h-7 w-7 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 flex items-center justify-center"><X className="h-3.5 w-3.5" /></button>
                 </div>
               ) : (
-                <p className="text-sm font-medium text-gray-900">{phone || '—'}</p>
+                <p className="text-sm font-medium text-gray-900 tabular-nums">{formatPhone(phone) || '—'}</p>
               )}
             </div>
 
