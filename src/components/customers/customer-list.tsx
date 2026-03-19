@@ -11,7 +11,7 @@ import {
   ChevronUp, ChevronDown, ChevronsUpDown, Building2, Check, ChevronDown as ChevDown, UserPlus,
   FileDown,
 } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatPhone } from '@/lib/utils'
 import type { Customer } from '@/lib/types/database'
 import { StyledSelect } from '@/components/ui/styled-select'
 
@@ -779,7 +779,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                       })() : <span className="text-xs text-gray-300">—</span>}
                     </td>
                     <td className="px-3 py-2.5 hidden lg:table-cell">
-                      <span className="text-xs text-gray-600">{customer.phone}</span>
+                      <span className="text-xs text-gray-600 font-mono">{formatPhone(customer.phone)}</span>
                     </td>
                     <td className="px-3 py-2.5">
                       {customer.is_won ? (

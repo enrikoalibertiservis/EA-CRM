@@ -34,6 +34,13 @@ export function formatCurrency(amount: number | null): string {
   }).format(amount)
 }
 
+export function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return '—'
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length < 10) return phone
+  return `(${digits.slice(0, 4)}) *** ** **`
+}
+
 export function getInitials(name: string): string {
   return name
     .split(' ')

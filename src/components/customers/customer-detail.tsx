@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { PipelineTimeline } from './pipeline-timeline'
 import { ContactLogForm } from './contact-log-form'
 import { Phone, Mail, MapPin, MessageSquare, Calendar, Clock, ChevronRight, CheckCircle, XCircle, X, AlertCircle, Pencil, Check, Building2, PhoneCall, Share2, Users, Wrench, Shield, Radio, Newspaper, BookOpen, Search, Globe, UserCheck, Heart, HelpCircle, type LucideIcon } from 'lucide-react'
-import { formatDate, OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/utils'
+import { formatDate, formatPhone, OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/utils'
 import { StyledSelect } from '@/components/ui/styled-select'
 import type { Customer, SalesStage, CustomerStageHistory, ContactLog, ContactChannel, Brand } from '@/lib/types/database'
 
@@ -242,9 +242,9 @@ export function CustomerDetail({
               <div>
                 <h1 className="text-xl font-bold text-gray-900">{customer.full_name}</h1>
                 <div className="flex items-center gap-3 mt-1 flex-wrap">
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
+                  <div className="flex items-center gap-1 text-sm text-gray-600 font-mono">
                     <Phone className="h-3.5 w-3.5 text-gray-400" />
-                    {customer.phone}
+                    {formatPhone(customer.phone)}
                   </div>
                   {customer.email && (
                     <div className="flex items-center gap-1 text-sm text-gray-600">
