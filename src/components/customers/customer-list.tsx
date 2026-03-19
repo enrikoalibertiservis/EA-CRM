@@ -779,7 +779,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
                       })() : <span className="text-xs text-gray-300">—</span>}
                     </td>
                     <td className="px-3 py-2.5 hidden lg:table-cell">
-                      <span className="text-xs text-gray-600 font-mono">{formatPhone(customer.phone)}</span>
+                      <span className="text-xs text-gray-600 tabular-nums">{formatPhone(customer.phone)}</span>
                     </td>
                     <td className="px-3 py-2.5">
                       {customer.is_won ? (

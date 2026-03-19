@@ -242,7 +242,7 @@ export function CustomerDetail({
               <div>
                 <h1 className="text-xl font-bold text-gray-900">{customer.full_name}</h1>
                 <div className="flex items-center gap-3 mt-1 flex-wrap">
-                  <div className="flex items-center gap-1 text-sm text-gray-600 font-mono">
+                  <div className="flex items-center gap-1 text-sm text-gray-600 tabular-nums">
                     <Phone className="h-3.5 w-3.5 text-gray-400" />
                     {formatPhone(customer.phone)}
                   </div>
