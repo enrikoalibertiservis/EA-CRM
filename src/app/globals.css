@@ -2,7 +2,7 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
+    --background: 210 20% 93%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -48,7 +48,7 @@
 
 @layer utilities {
   .dot-grid {
-    background: linear-gradient(160deg, #f0f6ff 0%, #f8fafc 40%, #f5f7ff 100%);
+    background: linear-gradient(160deg, #e3ecf9 0%, #edf1f6 40%, #e8ecf9 100%);
   }
 }
 
