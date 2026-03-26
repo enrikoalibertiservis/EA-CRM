@@ -129,6 +129,57 @@ const stageIcons: Record<string, React.ElementType> = {
   'kabul': CheckCircle, 'sigorta': Shield, 'oto-koruma': Lock,
 }
 
+// Sürecin "gerçekten aktif" sayılması için dolu olması gereken alanlar
+const STAGE_ACTION_FIELDS: Partial<Record<string, (keyof Customer)[]>> = {
+  'arac-tanitimi':     ['vehicle_info_given', 'test_drive_done', 'catalog_given'],
+  'teklif':            ['offer_written', 'offer_amount', 'offer_campaign'],
+  'dusunme':           ['followup_done', 'followup_datetime'],
+  'baglanti-sureci':   ['verbal_agreement_done'],
+  'baglanti':          ['verbal_agreement_done'],
+  'satis':             ['sale_completed'],
+  'kabul':             ['offer_accepted', 'deposit_received', 'contract_signed'],
+  'sigorta':           ['insurance_kasko_offered', 'insurance_kasko_not_done', 'insurance_trafik_offered', 'insurance_trafik_not_done'],
+  'sigorta-islemleri': ['insurance_kasko_offered', 'insurance_kasko_not_done', 'insurance_trafik_offered', 'insurance_trafik_not_done'],
+  'oto-koruma':        ['oto_koruma_sold', 'oto_koruma_not_done', 'oto_koruma_product', 'oto_koruma_amount'],
+}
+
+// Seçenek yoksa süreç geçerli, varsa en az biri dolu olmalı
+function stageHasAction(customer: Customer, slug: string): boolean {
+  const fields = STAGE_ACTION_FIELDS[slug]
+  if (!fields || fields.length === 0) return true
+  return fields.some(f => {
+    const v = customer[f]
+    return v !== null && v !== undefined && v !== false && v !== ''
+  })
+}
+
+const HIDDEN_STAGE_SLUGS = ['sigorta', 'sigorta-islemleri', 'oto-koruma', 'baglanti-sureci', 'baglanti', 'satis']
+
+// Müşteri listesinde gösterilecek "efektif" süreç:
+// Mevcut süreçte aksiyon yoksa geriye gidip aksiyon alınmış son süreci bul.
+// Gizli slug'larsa yerine 'kabul' göster.
+function getEffectiveStage(
+  customer: Customer,
+  stages: { id: string; name: string; color: string; slug: string; sort_order: number }[],
+) {
+  if (!customer.current_stage) return null
+  const sorted = [...stages].sort((a, b) => a.sort_order - b.sort_order)
+  const currentOrder = customer.current_stage.sort_order
+  const candidates = sorted.filter(s => s.sort_order <= currentOrder)
+  // Geriden başla, aksiyon alınmış ilk süreci bul
+  for (let i = candidates.length - 1; i >= 0; i--) {
+    if (stageHasAction(customer, candidates[i].slug)) {
+      const found = candidates[i]
+      // Gizli slug ise yerine 'kabul' göster
+      if (HIDDEN_STAGE_SLUGS.includes(found.slug)) {
+        return stages.find(s => s.slug === 'kabul') ?? found
+      }
+      return found
+    }
+  }
+  return null
+}
+
 const PAGE_SIZE = 20
 
 const LOCATION_PALETTE = [
@@ -196,10 +247,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
     const BOM = '\uFEFF'
     const headers = ['#', 'Ad Soyad', 'Telefon', 'Marka', 'İlgilendiği Model', 'Durum', 'Aşama', 'Danışman', 'Şube', 'Nereden Ulaştı?', 'Kayıt Tarihi']
     const rows = filtered.map((c, idx) => {
-      const HIDDEN = ['sigorta', 'oto-koruma']
-      const displaySt = c.current_stage && HIDDEN.includes(c.current_stage.slug ?? '')
-        ? stages.find(s => s.slug === 'kabul') ?? c.current_stage
-        : c.current_stage
+      const displaySt = getEffectiveStage(c, stages)
       const durum = c.is_won ? 'Satış Yapıldı' : c.is_lost ? 'Kaçan Satış' : (displaySt?.name ?? '—')
       const channel = channels.find(ch => ch.id === c.source_channel_id)?.name ?? '—'
       const tarih = new Date(c.created_at).toLocaleString('tr-TR', {
@@ -724,10 +772,7 @@ export function CustomerList({ customers, brands, stages, consultants, locations
             <tbody>
               {paged.map((customer, idx) => {
                 const globalIdx = (safePage - 1) * PAGE_SIZE + idx + 1
-                const HIDDEN_STAGE_SLUGS = ['sigorta', 'oto-koruma']
-                const displayStage = customer.current_stage && HIDDEN_STAGE_SLUGS.includes(customer.current_stage.slug ?? '')
-                  ? stages.find(s => s.slug === 'kabul') ?? customer.current_stage
-                  : customer.current_stage
+                const displayStage = getEffectiveStage(customer, stages)
                 const StageIcon = displayStage?.slug ? (stageIcons[displayStage.slug] ?? Car) : Car
                 const isSelected = selectedIds.has(customer.id)
                 return (
