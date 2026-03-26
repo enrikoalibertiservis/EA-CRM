@@ -237,16 +237,35 @@ export function DashboardClient({
       </div>
 
       {/* ── Quick Register + Brand Funnels ───────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
-        <QuickRegister
-          brands={brands.filter(b => b.slug !== 'ikinci-el' && !b.name.toLowerCase().includes('ikinci'))}
-          models={models}
-          locations={locations}
-          currentUserId={currentUserId}
-          currentLocationId={currentLocationId}
-        />
-        {brandFunnelData.map(d => <BrandFunnel key={d.brand.id} data={d} />)}
-      </div>
+      {(() => {
+        const brandOrder = (name: string) =>
+          name.toLowerCase().includes('fiat') ? 0 :
+          name.toLowerCase().includes('jeep') ? 1 : 2
+        const sorted = [...brandFunnelData].sort((a, b) => brandOrder(a.brand.name) - brandOrder(b.brand.name))
+        const fiat    = sorted[0]
+        const others  = sorted.slice(1)
+        return (
+          <>
+            {/* Satır 1: Hızlı Kayıt | Fiat */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
+              <QuickRegister
+                brands={brands.filter(b => b.slug !== 'ikinci-el' && !b.name.toLowerCase().includes('ikinci'))}
+                models={models}
+                locations={locations}
+                currentUserId={currentUserId}
+                currentLocationId={currentLocationId}
+              />
+              {fiat && <BrandFunnel key={fiat.brand.id} data={fiat} />}
+            </div>
+            {/* Satır 2: Jeep | Alfa Romeo */}
+            {others.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
+                {others.map(d => <BrandFunnel key={d.brand.id} data={d} />)}
+              </div>
+            )}
+          </>
+        )
+      })()}
 
       {/* ── Heatmap + Channel Chart ──────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
