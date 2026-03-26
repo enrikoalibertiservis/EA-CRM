@@ -223,9 +223,17 @@ export function PipelineTimeline({
             const isExpanded = expandedStageId === stage.id
             const clickable  = completed || current || next
             const { done, total } = getCheckboxProgress(stage.slug)
+            // Seçenek var ama hiçbiri işaretlenmemişse süreç "boş" sayılır → silik göster
+            const isEmpty = (completed || current) && total > 0 && done === 0
 
             return (
-              <div key={stage.id} className="flex flex-col items-center gap-1.5 min-w-[80px] flex-1">
+              <div
+                key={stage.id}
+                className={cn(
+                  'flex flex-col items-center gap-1.5 min-w-[80px] flex-1 transition-opacity',
+                  isEmpty && 'opacity-40',
+                )}
+              >
                 <button
                   onClick={() => handleStageClick(stage)}
                   disabled={!clickable || !!loading}
