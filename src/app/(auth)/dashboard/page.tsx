@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { DashboardClient } from '@/components/dashboard/dashboard-client'
+import { STAGE_ACTION_SELECT } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +24,7 @@ export default async function DashboardPage() {
     supabase.from('vehicle_models').select('id, brand_id, name').eq('is_active', true).order('sort_order'),
     supabase.from('locations').select('id, name').order('name'),
     supabase.from('sales_stages').select('*').eq('is_active', true).order('sort_order'),
-    supabase.from('customers').select('id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id, source_channel_id, brand:brands(id, name, color), source_channel:contact_channels(id, name, slug, icon_name, color)').eq('is_active', true),
+    supabase.from('customers').select(`id, brand_id, current_stage_id, is_won, is_lost, created_at, consultant_id, location_id, source_channel_id, ${STAGE_ACTION_SELECT}, brand:brands(id, name, color), source_channel:contact_channels(id, name, slug, icon_name, color)`).eq('is_active', true),
     Promise.resolve({ data: [] }),
     supabase.from('user_profiles').select('id, full_name').in('role', ['consultant', 'manager']).eq('is_active', true).order('full_name'),
   ])

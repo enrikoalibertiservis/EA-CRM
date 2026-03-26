@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Users, XCircle, CheckCircle, Clock, UserPlus } from 'lucide-react'
+import { getEffectiveStageId } from '@/lib/utils'
 import { BrandFunnel } from '@/components/charts/brand-funnel'
 import { ContactHeatmap } from '@/components/charts/contact-heatmap'
 import { ChannelChart } from '@/components/charts/channel-chart'
@@ -115,7 +116,10 @@ export function DashboardClient({
         const bc = filtered.filter(c => c.brand_id === brand.id)
         return {
           brand,
-          stages: stages.map(stage => ({ stage, count: bc.filter(c => c.current_stage_id === stage.id).length })),
+          stages: stages.map(stage => ({
+            stage,
+            count: bc.filter(c => getEffectiveStageId(c as Record<string, unknown>, stages, c.current_stage_id) === stage.id).length,
+          })),
           total: bc.length,
           won:   bc.filter(c => c.is_won).length,
           lost:  bc.filter(c => c.is_lost).length,

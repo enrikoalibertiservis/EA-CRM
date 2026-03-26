@@ -11,7 +11,7 @@ import {
   ChevronUp, ChevronDown, ChevronsUpDown, Building2, Check, ChevronDown as ChevDown, UserPlus,
   FileDown,
 } from 'lucide-react'
-import { formatDate, formatPhone } from '@/lib/utils'
+import { formatDate, formatPhone, getEffectiveStageId } from '@/lib/utils'
 import type { Customer } from '@/lib/types/database'
 import { StyledSelect } from '@/components/ui/styled-select'
 
@@ -129,55 +129,20 @@ const stageIcons: Record<string, React.ElementType> = {
   'kabul': CheckCircle, 'sigorta': Shield, 'oto-koruma': Lock,
 }
 
-// Sürecin "gerçekten aktif" sayılması için dolu olması gereken alanlar
-const STAGE_ACTION_FIELDS: Partial<Record<string, (keyof Customer)[]>> = {
-  'arac-tanitimi':     ['vehicle_info_given', 'test_drive_done', 'catalog_given'],
-  'teklif':            ['offer_written', 'offer_amount', 'offer_campaign'],
-  'dusunme':           ['followup_done', 'followup_datetime'],
-  'baglanti-sureci':   ['verbal_agreement_done'],
-  'baglanti':          ['verbal_agreement_done'],
-  'satis':             ['sale_completed'],
-  'kabul':             ['offer_accepted', 'deposit_received', 'contract_signed'],
-  'sigorta':           ['insurance_kasko_offered', 'insurance_kasko_not_done', 'insurance_trafik_offered', 'insurance_trafik_not_done'],
-  'sigorta-islemleri': ['insurance_kasko_offered', 'insurance_kasko_not_done', 'insurance_trafik_offered', 'insurance_trafik_not_done'],
-  'oto-koruma':        ['oto_koruma_sold', 'oto_koruma_not_done', 'oto_koruma_product', 'oto_koruma_amount'],
-}
-
-// Seçenek yoksa süreç geçerli, varsa en az biri dolu olmalı
-function stageHasAction(customer: Customer, slug: string): boolean {
-  const fields = STAGE_ACTION_FIELDS[slug]
-  if (!fields || fields.length === 0) return true
-  return fields.some(f => {
-    const v = customer[f]
-    return v !== null && v !== undefined && v !== false && v !== ''
-  })
-}
-
 const HIDDEN_STAGE_SLUGS = ['sigorta', 'sigorta-islemleri', 'oto-koruma', 'baglanti-sureci', 'baglanti', 'satis']
 
-// Müşteri listesinde gösterilecek "efektif" süreç:
-// Mevcut süreçte aksiyon yoksa geriye gidip aksiyon alınmış son süreci bul.
-// Gizli slug'larsa yerine 'kabul' göster.
+// Listede gösterilecek efektif süreç — utils'teki getEffectiveStageId'yi kullanır,
+// ardından gizli slug'ları 'kabul' ile değiştirir.
 function getEffectiveStage(
   customer: Customer,
   stages: { id: string; name: string; color: string; slug: string; sort_order: number }[],
 ) {
-  if (!customer.current_stage) return null
-  const sorted = [...stages].sort((a, b) => a.sort_order - b.sort_order)
-  const currentOrder = customer.current_stage.sort_order
-  const candidates = sorted.filter(s => s.sort_order <= currentOrder)
-  // Geriden başla, aksiyon alınmış ilk süreci bul
-  for (let i = candidates.length - 1; i >= 0; i--) {
-    if (stageHasAction(customer, candidates[i].slug)) {
-      const found = candidates[i]
-      // Gizli slug ise yerine 'kabul' göster
-      if (HIDDEN_STAGE_SLUGS.includes(found.slug)) {
-        return stages.find(s => s.slug === 'kabul') ?? found
-      }
-      return found
-    }
-  }
-  return null
+  const effId = getEffectiveStageId(customer as unknown as Record<string, unknown>, stages, customer.current_stage_id)
+  if (!effId) return null
+  const found = stages.find(s => s.id === effId) ?? null
+  if (!found) return null
+  if (HIDDEN_STAGE_SLUGS.includes(found.slug)) return stages.find(s => s.slug === 'kabul') ?? found
+  return found
 }
 
 const PAGE_SIZE = 20

@@ -7,6 +7,7 @@ import { ActivityChart } from '@/components/charts/activity-chart'
 import { Building2, Users, CheckCircle, MessageSquare, TrendingUp, Shield, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import type { Brand, SalesStage, BrandFunnelData, HeatmapCell, ChannelStats, ContactChannel } from '@/lib/types/database'
+import { STAGE_ACTION_SELECT, getEffectiveStageId } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,7 +38,7 @@ export default async function MainReportPage() {
   // locationFilter yoksa tüm aktif müşterileri getir
   let customersQuery = supabase
     .from('customers')
-    .select('id, brand_id, brand:brands(name, color), current_stage_id, is_won, is_lost, created_at, consultant_id, insurance_kasko_offered, oto_koruma_sold, location_id')
+    .select(`id, brand_id, brand:brands(name, color), current_stage_id, is_won, is_lost, created_at, consultant_id, location_id, ${STAGE_ACTION_SELECT}`)
     .eq('is_active', true)
   if (locationFilter) customersQuery = customersQuery.eq('location_id', locationFilter)
   let { data: customers, error: customersError } = await customersQuery
@@ -70,7 +71,7 @@ export default async function MainReportPage() {
       brand,
       stages: (stages ?? []).map((stage: SalesStage) => ({
         stage,
-        count: bc.filter((c) => c.current_stage_id === stage.id).length,
+        count: bc.filter((c) => getEffectiveStageId(c as Record<string, unknown>, stages ?? [], c.current_stage_id) === stage.id).length,
       })),
       total: bc.length,
       won: bc.filter((c) => c.is_won).length,
