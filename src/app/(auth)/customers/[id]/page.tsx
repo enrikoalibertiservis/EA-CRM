@@ -31,7 +31,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
     supabase.from('contact_logs').select(`*, channel:contact_channels(*), created_by_profile:user_profiles(id, full_name)`).eq('customer_id', id).order('contact_date', { ascending: false }),
     supabase.from('contact_channels').select('*').eq('is_active', true).order('sort_order'),
     supabase.from('brands').select('id, name, color').eq('is_active', true),
-    supabase.from('user_profiles').select('id, full_name').eq('is_active', true),
+    supabase.from('user_profiles').select('id, full_name').eq('is_active', true).eq('role', 'consultant'),
     supabase.from('contact_types').select('id, name, slug, icon_name, color').eq('is_active', true).order('sort_order'),
     supabase.from('locations').select('id, name').order('name'),
     supabase.from('vehicle_models').select('id, brand_id, name').eq('is_active', true).order('sort_order'),
