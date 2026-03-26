@@ -295,7 +295,10 @@ export function CustomerList({ customers, brands, stages, consultants, locations
       )
     }
     if (filterBrands.length > 0) list = list.filter(c => filterBrands.includes(c.brand_id ?? ''))
-    if (filterStages.length > 0) list = list.filter(c => filterStages.includes(c.current_stage_id ?? ''))
+    if (filterStages.length > 0) list = list.filter(c => {
+      const eff = getEffectiveStage(c, stages)
+      return filterStages.includes(eff?.id ?? '')
+    })
     if (filterConsultants.length > 0) list = list.filter(c => filterConsultants.includes(c.consultant_id ?? ''))
     if (filterChannels.length > 0) list = list.filter(c => filterChannels.includes(c.source_channel_id ?? ''))
     if (filterModels.length > 0) list = list.filter(c => filterModels.includes(c.interested_model ?? ''))

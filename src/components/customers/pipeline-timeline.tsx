@@ -223,16 +223,10 @@ export function PipelineTimeline({
             const isExpanded = expandedStageId === stage.id
             const clickable  = completed || current || next
             const { done, total } = getCheckboxProgress(stage.slug)
-            // Seçenek var ama hiçbiri işaretlenmemişse süreç "boş" sayılır → silik göster
-            const isEmpty = (completed || current) && total > 0 && done === 0
-
             return (
               <div
                 key={stage.id}
-                className={cn(
-                  'flex flex-col items-center gap-1.5 min-w-[80px] flex-1 transition-opacity',
-                  isEmpty && 'opacity-40',
-                )}
+                className="flex flex-col items-center gap-1.5 min-w-[80px] flex-1"
               >
                 <button
                   onClick={() => handleStageClick(stage)}
@@ -330,7 +324,6 @@ export function PipelineTimeline({
                     {pairedOptions.map((opt) => {
                       const isPositive = !!customerFields[opt.field]
                       const isNegative = !!customerFields[opt.negativeField!]
-                      const isNeutral  = !isPositive && !isNegative
                       return (
                         <div key={opt.field} className="space-y-1.5">
                           {/* Ana kart — button içinde button olmaması için div kullanılıyor */}
@@ -341,7 +334,7 @@ export function PipelineTimeline({
                                 ? 'bg-green-50 border-green-300 shadow-sm'
                                 : isNegative
                                   ? 'bg-red-50 border-red-200'
-                                  : 'bg-gray-50/60 border-gray-100 opacity-55 hover:opacity-80 hover:border-gray-200',
+                                  : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50',
                             )}
                             onClick={() => handlePairedClick(opt, true)}
                             role="button"
@@ -413,7 +406,7 @@ export function PipelineTimeline({
                               ? opt.green
                                 ? 'bg-green-50 border-green-300 shadow-sm'
                                 : 'bg-blue-50 border-blue-300 shadow-sm'
-                              : 'bg-gray-50/60 border-gray-100 opacity-55 hover:opacity-80 hover:border-gray-200',
+                              : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50',
                           )}
                         >
                           <div
@@ -448,9 +441,8 @@ export function PipelineTimeline({
                       const displayVal = opt.type === 'currency' && currentVal != null && currentVal !== ''
                         ? new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(currentVal))
                         : currentVal != null ? String(currentVal) : ''
-                      const hasValue = currentVal !== null && currentVal !== '' && currentVal !== undefined
                       return (
-                        <div key={opt.field} className={cn(!hasValue && 'opacity-55 hover:opacity-90 transition-opacity')}>
+                        <div key={opt.field}>
                           <label
                             className="text-xs font-semibold block mb-1.5 tracking-wide"
                             style={{ color: c + 'cc' }}
