@@ -52,7 +52,18 @@ export default async function MainReportPage() {
       .eq('is_active', true)
     if (locationFilter) fallbackQuery = fallbackQuery.eq('location_id', locationFilter)
     const { data: fallbackData } = await fallbackQuery
-    customers = (fallbackData ?? []).map((c) => ({ ...c, insurance_kasko_offered: false, oto_koruma_sold: false }))
+    const stageDefaults = {
+      vehicle_info_given: false, test_drive_done: false, catalog_given: false,
+      offer_written: false, offer_amount: null, offer_campaign: null,
+      followup_done: false, followup_datetime: null,
+      verbal_agreement_done: false, sale_completed: false,
+      offer_accepted: false, deposit_received: false, contract_signed: false,
+      insurance_kasko_offered: false, insurance_kasko_not_done: false,
+      insurance_trafik_offered: false, insurance_trafik_not_done: false,
+      oto_koruma_sold: false, oto_koruma_not_done: false,
+      oto_koruma_product: null, oto_koruma_amount: null,
+    }
+    customers = (fallbackData ?? []).map((c) => ({ ...stageDefaults, ...c }))
   }
 
   let consultantsQuery = supabase.from('user_profiles').select('id, full_name, is_active')
